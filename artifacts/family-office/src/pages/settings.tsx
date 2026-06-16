@@ -4,7 +4,7 @@ import { useListAssets, useListTransactions } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 
@@ -33,10 +33,19 @@ export default function Settings() {
   const [purgeError, setPurgeError] = useState("");
   const [aiStatus, setAiStatus] = useState<any>(null);
   const [aiLoading, setAiLoading] = useState(true);
+  const [toolsStatus, setToolsStatus] = useState<any>(null);
+  const [copiedEnvVar, setCopiedEnvVar] = useState<string | null>(null);
 
   React.useEffect(() => {
     fetch("/api/ai/status").then(r => r.json()).then(d => { setAiStatus(d); setAiLoading(false); }).catch(() => setAiLoading(false));
+    fetch("/api/research/tools/status").then(r => r.json()).then(setToolsStatus).catch(() => {});
   }, []);
+
+  function copyEnvVar(name: string) {
+    navigator.clipboard.writeText(name);
+    setCopiedEnvVar(name);
+    setTimeout(() => setCopiedEnvVar(null), 2000);
+  }
 
   function handleCurrencyChange(c: Currency) {
     setCurrencyState(c);
@@ -392,6 +401,135 @@ export default function Settings() {
               </Button>
             </Link>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Wrench className="w-4 h-4 text-primary" />
+            Tools &amp; Integrations
+          </CardTitle>
+          <CardDescription className="text-sm">Configure external services and AI tools. All credentials are stored as environment secrets — never in the database.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {!toolsStatus ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking tool status…</div>
+          ) : (
+            <>
+              {/* Web Search */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><Search className="w-3 h-3" /> Web Search</p>
+                <div className="space-y-2">
+                  {[
+                    { key: "duckduckgo", tool: toolsStatus.webSearch?.duckduckgo, icon: Globe },
+                    { key: "brave",      tool: toolsStatus.webSearch?.brave,      icon: Search },
+                  ].map(({ key, tool, icon: Icon }) => tool && (
+                    <div key={key} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center ${tool.available ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-muted/40 border border-border"}`}>
+                          <Icon className={`w-3.5 h-3.5 ${tool.available ? "text-emerald-400" : "text-muted-foreground"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{tool.label}</p>
+                          <p className="text-xs text-muted-foreground">{tool.note}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {tool.available
+                          ? <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">ACTIVE</span>
+                          : tool.keyRequired && tool.envVar && (
+                            <button onClick={() => copyEnvVar(tool.envVar)}
+                              className="flex items-center gap-1 text-[10px] font-mono bg-muted/40 text-muted-foreground px-2 py-1 rounded border border-border hover:border-primary/40 hover:text-foreground transition-colors">
+                              {copiedEnvVar === tool.envVar ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Key className="w-3 h-3" />}
+                              {copiedEnvVar === tool.envVar ? "Copied!" : tool.envVar}
+                            </button>
+                          )
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* GitHub */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><Github className="w-3 h-3" /> GitHub</p>
+                {toolsStatus.github && (
+                  <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center ${toolsStatus.github.available ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-muted/40 border border-border"}`}>
+                        <Github className={`w-3.5 h-3.5 ${toolsStatus.github.available ? "text-emerald-400" : "text-muted-foreground"}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">GitHub API</p>
+                        <p className="text-xs text-muted-foreground">{toolsStatus.github.note}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {toolsStatus.github.available
+                        ? <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">TOKEN SET</span>
+                        : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground/60">Public repos: 60 req/hr without token</span>
+                            <button onClick={() => copyEnvVar("GITHUB_TOKEN")}
+                              className="flex items-center gap-1 text-[10px] font-mono bg-muted/40 text-muted-foreground px-2 py-1 rounded border border-border hover:border-primary/40 hover:text-foreground transition-colors">
+                              {copiedEnvVar === "GITHUB_TOKEN" ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Key className="w-3 h-3" />}
+                              {copiedEnvVar === "GITHUB_TOKEN" ? "Copied!" : "GITHUB_TOKEN"}
+                            </button>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Models */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5"><Sparkles className="w-3 h-3" /> AI Models</p>
+                <div className="space-y-2">
+                  {[
+                    { tool: toolsStatus.cloudAI, icon: Cloud, detail: toolsStatus.cloudAI?.model },
+                    { tool: toolsStatus.localAI,  icon: Cpu,   detail: toolsStatus.localAI?.model, online: toolsStatus.localAI?.online },
+                  ].map(({ tool, icon: Icon, detail, online }, i) => tool && (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-md flex items-center justify-center ${tool.available && online !== false ? "bg-emerald-500/10 border border-emerald-500/20" : tool.available ? "bg-amber-500/10 border border-amber-500/20" : "bg-muted/40 border border-border"}`}>
+                          <Icon className={`w-3.5 h-3.5 ${tool.available && online !== false ? "text-emerald-400" : tool.available ? "text-amber-400" : "text-muted-foreground"}`} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{tool.label}</p>
+                          <p className="text-xs text-muted-foreground">{tool.note}{detail ? ` · ${detail}` : ""}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {tool.available
+                          ? online === false
+                            ? <span className="text-[10px] font-mono bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 flex items-center gap-1"><WifiOff className="w-2.5 h-2.5" /> OFFLINE</span>
+                            : <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1"><Wifi className="w-2.5 h-2.5" /> READY</span>
+                          : tool.keyRequired && tool.envVar
+                            ? <button onClick={() => copyEnvVar(tool.envVar)}
+                                className="flex items-center gap-1 text-[10px] font-mono bg-muted/40 text-muted-foreground px-2 py-1 rounded border border-border hover:border-primary/40 hover:text-foreground transition-colors">
+                                {copiedEnvVar === tool.envVar ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Key className="w-3 h-3" />}
+                                {copiedEnvVar === tool.envVar ? "Copied!" : tool.envVar}
+                              </button>
+                            : <span className="text-[10px] text-muted-foreground/50">Not configured</span>
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-1 border-t border-border">
+                <p className="text-xs text-muted-foreground/60 flex items-start gap-1.5">
+                  <Key className="w-3 h-3 mt-0.5 shrink-0" />
+                  To add a secret: open the <strong className="text-muted-foreground">Replit Secrets</strong> panel (lock icon in the sidebar), add the environment variable name shown above, and restart the API server. Keys are never stored in the database.
+                </p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

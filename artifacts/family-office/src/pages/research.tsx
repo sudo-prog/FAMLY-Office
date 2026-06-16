@@ -12,7 +12,9 @@ import {
   Save, Trash2, Clock, Copy, Check, FileCode, Loader2, StopCircle,
   AlertTriangle, Shield, TrendingUp, BarChart2, Building2, Bitcoin,
   Gem, Leaf, Landmark, Flame, DollarSign, ChevronDown, ChevronUp,
-  Briefcase, ChevronRight, Play,
+  Briefcase, ChevronRight, Play, Github, Star, GitFork, Code2,
+  Bug, Package, GitBranch, Users, Cpu, AlertCircle, CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 
 const BASE = (import.meta.env.BASE_URL ?? "").replace(/\/$/, "");
@@ -26,7 +28,7 @@ type ResearchReport = {
   webSearched: boolean; createdAt: string;
 };
 type Component = { id: number; name: string; description: string; code: string; createdAt: string };
-type Tab = "research" | "reports" | "builder";
+type Tab = "research" | "reports" | "github" | "builder";
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 
@@ -469,9 +471,13 @@ function SavedReports() {
 
 // ─── Component Builder ────────────────────────────────────────────────────────
 
-function ComponentBuilder() {
-  const [desc, setDesc] = useState("");
+function ComponentBuilder({ seedDescription }: { seedDescription?: string }) {
+  const [desc, setDesc] = useState(seedDescription ?? "");
   const [incPortfolio, setIncPortfolio] = useState(false);
+
+  React.useEffect(() => {
+    if (seedDescription) setDesc(seedDescription);
+  }, [seedDescription]);
   const [compName, setCompName] = useState("");
   const [savedId, setSavedId] = useState<number|null>(null);
   const [activeComp, setActiveComp] = useState<Component|null>(null);
@@ -593,14 +599,290 @@ function ComponentBuilder() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+// ─── GitHub Panel ─────────────────────────────────────────────────────────────
+
+const FOCUS_OPTIONS = [
+  { id: "architecture",   label: "Architecture & Structure", icon: Code2 },
+  { id: "dependencies",   label: "Dependencies & Security",  icon: Package },
+  { id: "ui_components",  label: "UI Components",            icon: FileCode },
+  { id: "integration",    label: "Integration Plan",         icon: ArrowRight },
+  { id: "code_quality",   label: "Code Quality",             icon: CheckCircle2 },
+];
+
+function useGitHubStream() {
+  const [phase, setPhase] = useState<"idle"|"running"|"done"|"error">("idle");
+  const [steps, setSteps] = useState<{step: string; message: string}[]>([]);
+  const [text, setText] = useState("");
+  const [repoData, setRepoData] = useState<any>(null);
+  const [err, setErr] = useState<string|null>(null);
+  const ctrl = useRef<AbortController|null>(null);
+
+  const run = useCallback(async (params: object) => {
+    setText(""); setSteps([]); setRepoData(null); setErr(null);
+    setPhase("running");
+    ctrl.current = new AbortController();
+    try {
+      await readSSE(`${BASE}/api/research/github`, params, ctrl.current.signal, (data) => {
+        if (data.type === "step") setSteps(s => [...s, { step: data.step, message: data.message }]);
+        else if (data.type === "repo") setRepoData(data.data);
+        else if (data.type === "done") setPhase("done");
+        else if (data.type === "error" || data.error) { setErr(data.error); setPhase("error"); }
+        else if (data.choices?.[0]?.delta?.content) setText(t => t + data.choices[0].delta.content);
+      });
+      setPhase(p => p === "running" ? "done" : p);
+    } catch (e: any) {
+      if (e.name !== "AbortError") { setErr(e.message); setPhase("error"); }
+      else setPhase("idle");
+    }
+  }, []);
+
+  const stop = useCallback(() => { ctrl.current?.abort(); setPhase("idle"); }, []);
+  const reset = useCallback(() => { ctrl.current?.abort(); setText(""); setSteps([]); setRepoData(null); setErr(null); setPhase("idle"); }, []);
+  return { phase, steps, text, repoData, err, run, stop, reset };
+}
+
+function GitHubPanel({ onSendToBuilder }: { onSendToBuilder: (desc: string) => void }) {
+  const [repoUrl, setRepoUrl] = useState("");
+  const [depth, setDepth] = useState("standard");
+  const [focus, setFocus] = useState<string[]>(["architecture", "integration"]);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<number|null>(null);
+  const { phase, steps, text, repoData, err, run, stop, reset } = useGitHubStream();
+  const saveReport = useSaveReport();
+
+  function toggleFocus(id: string) {
+    setFocus(f => f.includes(id) ? f.filter(x => x !== id) : [...f, id]);
+  }
+
+  async function handleAnalyse() {
+    if (!repoUrl.trim() || phase === "running") return;
+    setSavedId(null);
+    const focusLabels = focus.map(f => FOCUS_OPTIONS.find(o => o.id === f)?.label ?? f);
+    await run({ repoUrl: repoUrl.trim(), depth, focus: focusLabels });
+  }
+
+  async function handleSave() {
+    if (!text) return;
+    setSaving(true);
+    const title = saveTitle.trim() || (repoData ? `GitHub: ${repoData.name}` : repoUrl);
+    try {
+      const r = await saveReport.mutateAsync({ title, query: `GitHub analysis: ${repoUrl}`, depth, report: text, summary: text.slice(0, 400), sources: [], portfolioIncluded: false, webSearched: false });
+      setSavedId(r.id);
+    } finally { setSaving(false); }
+  }
+
+  function handleSendToBuilder() {
+    if (!repoData) return;
+    const desc = `Generate a dark premium React component inspired by the ${repoData.name} GitHub project. The component should use the repository's purpose (${repoData.description || "software project"}) as context, use recharts for any data visualisation, shadcn/ui components, Tailwind CSS, and match the dark Bloomberg-meets-Apple aesthetic of the Family Office app (background #0d1117, accent gold #C9A227). Create something that could be useful in a wealth management dashboard context.`;
+    onSendToBuilder(desc);
+  }
+
+  const isRunning = phase === "running";
+  const isDone = phase === "done";
+  const noData = !text && phase === "idle";
+
+  return (
+    <div className="space-y-5">
+      {noData && (
+        <div className="text-center py-6">
+          <div className="w-16 h-16 rounded-2xl bg-muted/30 border border-border flex items-center justify-center mx-auto mb-4">
+            <Github className="w-8 h-8 text-foreground/60" />
+          </div>
+          <h2 className="text-xl font-serif text-foreground mb-1">GitHub Repository Analyser</h2>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">Paste any GitHub repo URL. The AI fetches its metadata, README, issues, dependencies, and code structure — then delivers a deep analysis and integration plan.</p>
+        </div>
+      )}
+
+      {/* URL input */}
+      <div className={`flex gap-3 ${!noData ? "border-b border-border pb-5" : ""}`}>
+        <div className="flex-1 relative">
+          <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <input value={repoUrl} onChange={e => setRepoUrl(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !isRunning) handleAnalyse(); }}
+            placeholder="https://github.com/owner/repo"
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+            disabled={isRunning} />
+        </div>
+        {isRunning
+          ? <button onClick={stop} className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-destructive/60 text-destructive hover:bg-destructive/10 text-sm transition-colors shrink-0"><StopCircle className="w-4 h-4" /> Stop</button>
+          : <button onClick={handleAnalyse} disabled={!repoUrl.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm disabled:opacity-40 transition-colors shrink-0">
+              <Sparkles className="w-4 h-4" /> Analyse
+            </button>
+        }
+        {isDone && <button onClick={() => { reset(); setSavedId(null); }} className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm shrink-0">New</button>}
+      </div>
+
+      {/* Options */}
+      {noData && (
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Analysis Depth</p>
+            <div className="flex gap-2">
+              {DEPTH_OPTIONS.map(d => (
+                <button key={d.id} onClick={() => setDepth(d.id)}
+                  className={`flex-1 p-3 rounded-lg border text-left transition-colors ${depth === d.id ? "border-primary bg-primary/10" : "border-border hover:bg-muted/20"}`}>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <d.icon className={`w-3.5 h-3.5 ${depth === d.id ? "text-primary" : "text-muted-foreground"}`} />
+                    <span className={`text-xs font-medium ${depth === d.id ? "text-foreground" : "text-muted-foreground"}`}>{d.label}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground/60">{d.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Focus Areas</p>
+            <div className="flex flex-wrap gap-2">
+              {FOCUS_OPTIONS.map(o => (
+                <button key={o.id} onClick={() => toggleFocus(o.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${focus.includes(o.id) ? "border-primary bg-primary/10 text-foreground" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>
+                  <o.icon className={`w-3 h-3 ${focus.includes(o.id) ? "text-primary" : "text-muted-foreground"}`} />
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-3 rounded-lg border border-border bg-muted/10 text-xs text-muted-foreground flex items-start gap-2">
+            <Shield className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-500" />
+            Public repos work without a GitHub token (60 req/hr). Add a <code className="font-mono text-primary bg-muted/40 px-1 rounded">GITHUB_TOKEN</code> secret for private repos and higher rate limits (5,000 req/hr). Configure in Settings → Tools &amp; Integrations.
+          </div>
+        </div>
+      )}
+
+      {/* Progress */}
+      {(isRunning || (isDone && steps.length > 0)) && (
+        <div className="space-y-1.5 px-1">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${i < steps.length - 1 ? "bg-emerald-500" : isRunning ? "bg-primary animate-pulse" : "bg-emerald-500"}`} />
+              {s.message}
+            </div>
+          ))}
+          {isRunning && <div className="flex items-center gap-2 mt-1"><Loader2 className="w-3.5 h-3.5 text-primary animate-spin" /><span className="text-xs text-muted-foreground italic">{text ? "Writing analysis…" : "Preparing…"}</span></div>}
+        </div>
+      )}
+
+      {/* Error */}
+      {err && (
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm text-destructive">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div><p className="font-medium">Analysis failed</p><p className="text-xs mt-0.5 opacity-80">{err}</p></div>
+        </div>
+      )}
+
+      {/* Repo stats card */}
+      {repoData && (
+        <div className="p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-muted/40 border border-border flex items-center justify-center">
+                <Github className="w-4 h-4 text-foreground/60" />
+              </div>
+              <div>
+                <a href={`https://github.com/${repoData.name}`} target="_blank" rel="noreferrer"
+                  className="text-sm font-semibold text-foreground hover:text-primary transition-colors font-mono">{repoData.name}</a>
+                {repoData.description && <p className="text-xs text-muted-foreground mt-0.5">{repoData.description}</p>}
+              </div>
+            </div>
+            {isDone && (
+              <button onClick={handleSendToBuilder}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 text-xs font-medium transition-colors shrink-0">
+                <FileCode className="w-3 h-3" /> Generate Component
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1"><Star className="w-3 h-3 text-primary" />{repoData.stars?.toLocaleString() ?? 0}</span>
+            <span className="flex items-center gap-1"><GitFork className="w-3 h-3" />{repoData.forks?.toLocaleString() ?? 0}</span>
+            <span className="flex items-center gap-1"><Bug className="w-3 h-3" />{repoData.openIssues ?? 0} open issues</span>
+            {repoData.language && <span className="flex items-center gap-1"><Code2 className="w-3 h-3" />{repoData.language}</span>}
+            {repoData.license && <span className="flex items-center gap-1"><Shield className="w-3 h-3" />{repoData.license}</span>}
+          </div>
+          {repoData.topics?.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {repoData.topics.slice(0, 8).map((t: string) => (
+                <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">{t}</span>
+              ))}
+            </div>
+          )}
+          {repoData.languages && Object.keys(repoData.languages).length > 0 && (
+            <div className="mt-3">
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wide mb-1.5">Languages</p>
+              <div className="flex gap-1 h-1.5 rounded-full overflow-hidden">
+                {(() => {
+                  const total = Object.values(repoData.languages).reduce((s: number, v: any) => s + v, 0) as number;
+                  const colors = ["bg-primary", "bg-blue-400", "bg-purple-400", "bg-emerald-400", "bg-orange-400", "bg-pink-400"];
+                  return Object.entries(repoData.languages).map(([lang, bytes]: any, i) => (
+                    <div key={lang} className={`${colors[i % colors.length]} transition-all`} style={{ width: `${((bytes / total) * 100).toFixed(1)}%` }} title={`${lang}: ${((bytes / total) * 100).toFixed(1)}%`} />
+                  ));
+                })()}
+              </div>
+              <div className="flex flex-wrap gap-3 mt-1.5">
+                {(() => {
+                  const total = Object.values(repoData.languages).reduce((s: number, v: any) => s + v, 0) as number;
+                  const colors = ["text-primary", "text-blue-400", "text-purple-400", "text-emerald-400", "text-orange-400", "text-pink-400"];
+                  return Object.entries(repoData.languages).slice(0, 6).map(([lang, bytes]: any, i) => (
+                    <span key={lang} className={`text-[10px] flex items-center gap-1 ${colors[i % colors.length]}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${colors[i % colors.length].replace("text-", "bg-")}`} />
+                      {lang} {((bytes / total) * 100).toFixed(0)}%
+                    </span>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Analysis report */}
+      {text && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Github className="w-4 h-4 text-foreground/60" />
+              <span className="text-sm font-medium text-foreground">Repository Analysis</span>
+              <Badge variant="outline" className={`text-[10px] border-border capitalize ${depth === "deep" ? "text-purple-400 border-purple-400/30" : depth === "quick" ? "text-emerald-400 border-emerald-400/30" : "text-blue-400 border-blue-400/30"}`}>{depth}</Badge>
+            </div>
+            {isDone && !savedId && (
+              <div className="flex items-center gap-2 shrink-0">
+                <input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…"
+                  className="h-7 w-44 px-2 text-xs rounded-md border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-1 h-7 px-2.5 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                  <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
+                </button>
+              </div>
+            )}
+            {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
+          </div>
+          <div className="bg-card border border-border rounded-xl p-6">
+            <MarkdownReport content={text} />
+            {isRunning && <span className="inline-block w-1.5 h-4 bg-primary/80 animate-pulse ml-1 rounded-sm align-middle" />}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "research", label: "Research",          icon: BrainCircuit },
   { id: "reports",  label: "Saved Reports",      icon: BookOpen },
+  { id: "github",   label: "GitHub",             icon: Github },
   { id: "builder",  label: "Component Builder",  icon: FileCode },
 ];
 
 export default function Research() {
   const [tab, setTab] = useState<Tab>("research");
+  const [builderSeed, setBuilderSeed] = useState<string | undefined>(undefined);
+
+  function sendToBuilder(desc: string) {
+    setBuilderSeed(desc);
+    setTab("builder");
+  }
+
   return (
     <div className="space-y-6 pb-10">
       <div className="flex items-start justify-between">
@@ -611,7 +893,7 @@ export default function Research() {
             </div>
             <h1 className="text-3xl font-serif text-foreground">AI Research</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Deep financial analysis · Live web search · Portfolio-aware · Multi-scenario projections · Component builder</p>
+          <p className="text-muted-foreground text-sm">Deep financial analysis · Live web search · Portfolio-aware · Multi-scenario projections · GitHub integration · Component builder</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground border border-border rounded-lg px-3 py-1.5 bg-muted/10">
           <Shield className="w-3.5 h-3.5 text-emerald-500" />
@@ -621,17 +903,18 @@ export default function Research() {
 
       <div className="flex gap-1 bg-muted/30 border border-border rounded-xl p-1">
         {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${tab === t.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+          <button key={t.id} onClick={() => { setTab(t.id); if (t.id !== "builder") setBuilderSeed(undefined); }}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${tab === t.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
             <t.icon className="w-3.5 h-3.5" />
-            {t.label}
+            <span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
       </div>
 
       {tab === "research" && <ResearchPanel />}
-      {tab === "reports" && <SavedReports />}
-      {tab === "builder" && <ComponentBuilder />}
+      {tab === "reports"  && <SavedReports />}
+      {tab === "github"   && <GitHubPanel onSendToBuilder={sendToBuilder} />}
+      {tab === "builder"  && <ComponentBuilder seedDescription={builderSeed} />}
     </div>
   );
 }

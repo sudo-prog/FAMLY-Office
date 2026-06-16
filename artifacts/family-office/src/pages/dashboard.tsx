@@ -47,7 +47,7 @@ function fmtDate(d: string) {
 
 function fmtCat(c: string) { return c.replace(/_/g, " ").replace(/\b\w/g, (x) => x.toUpperCase()); }
 
-type WidgetId = "net-worth" | "asset-stats" | "allocation" | "cash-flow" | "recent-activity" | "vault" | "entities" | "quick-add" | "ai-assistant";
+type WidgetId = "net-worth" | "asset-stats" | "allocation" | "cash-flow" | "recent-activity" | "vault" | "entities" | "quick-add" | "ai-assistant" | "insights";
 
 const WIDGET_META: Record<WidgetId, { label: string; desc: string; cols: string; icon: React.ElementType }> = {
   "net-worth": { label: "Net Worth", desc: "Total portfolio value and trend", cols: "col-span-2", icon: TrendingUp },
@@ -58,10 +58,12 @@ const WIDGET_META: Record<WidgetId, { label: string; desc: string; cols: string;
   "vault": { label: "Vault", desc: "Document vault status", cols: "col-span-1", icon: FileKey },
   "entities": { label: "Entities", desc: "Legal entity overview", cols: "col-span-1", icon: Users },
   "quick-add": { label: "Quick Add", desc: "Log a transaction fast", cols: "col-span-1", icon: Plus },
+  "insights": { label: "AI Insights", desc: "Proactive portfolio intelligence", cols: "col-span-3", icon: Sparkles },
   "ai-assistant": { label: "AI Assistant", desc: "Local + Cloud AI with zero-trust routing", cols: "col-span-3", icon: Sparkles },
 };
 
 const DEFAULT_WIDGETS: WidgetId[] = [
+  "insights",
   "net-worth", "asset-stats",
   "allocation", "cash-flow",
   "recent-activity", "vault",
@@ -589,6 +591,105 @@ function AIWidget() {
   );
 }
 
+// ─── AI Insights Widget ───────────────────────────────────────────────────────
+
+interface Insight {
+  type: "warning" | "opportunity" | "info";
+  category: string;
+  severity: "high" | "medium" | "low";
+  title: string;
+  detail: string;
+  action: string;
+}
+
+function InsightsWidget() {
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [, navigate] = useLocation();
+
+  const severityColor = {
+    high: "border-red-500/40 bg-red-500/5",
+    medium: "border-amber-500/40 bg-amber-500/5",
+    low: "border-border bg-muted/20",
+  };
+  const severityDot = { high: "bg-red-500", medium: "bg-amber-400", low: "bg-emerald-500" };
+  async function fetchInsights() {
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/api/ai/insights`);
+      if (res.ok) {
+        const data = await res.json();
+        setInsights(data.insights ?? []);
+      }
+    } catch {}
+    setLoading(false);
+  }
+
+  useEffect(() => { fetchInsights(); }, []);
+
+  function handleAction(action: string) {
+    const routes: Record<string, string> = {
+      "Add Assets": "/assets", "Review Allocation": "/assets", "Rebalance": "/assets",
+      "View Ledger": "/transactions", "Open Vault": "/vault", "Add Entities": "/entities",
+      "View Projections": "/projections", "Review Crypto": "/assets", "Review Assets": "/assets",
+      "Review Strategy": "/projections", "Review Entities": "/entities",
+    };
+    if (routes[action]) navigate(routes[action]);
+  }
+
+  return (
+    <WidgetCard id="insights" className="min-h-[120px]">
+      <div className="p-5 flex flex-col h-full">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Insight Engine</span>
+          </div>
+          <button onClick={fetchInsights} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 disabled:opacity-40">
+            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3 rotate-[-90deg]" />}
+            {loading ? "Analysing…" : "Refresh"}
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted/30 rounded-xl animate-pulse" />)}
+          </div>
+        ) : insights.length === 0 ? (
+          <div className="flex items-center justify-center h-16 text-muted-foreground text-sm">No insights available — add assets to begin analysis.</div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {insights.map((ins, i) => (
+              <button
+                key={i}
+                onClick={() => setExpanded(expanded === i ? null : i)}
+                className={`text-left rounded-xl border p-3 transition-all hover:border-primary/30 ${severityColor[ins.severity]}`}
+              >
+                <div className="flex items-start gap-2 mb-1">
+                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${severityDot[ins.severity]}`} />
+                  <span className="text-xs font-medium text-foreground leading-snug">{ins.title}</span>
+                </div>
+                {expanded === i && (
+                  <div className="mt-2 pl-3.5 space-y-2">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{ins.detail}</p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleAction(ins.action); }}
+                      className="text-[11px] text-primary hover:underline font-medium"
+                    >
+                      {ins.action} →
+                    </button>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </WidgetCard>
+  );
+}
+
 // ─── Customize Panel ──────────────────────────────────────────────────────────
 
 function CustomizePanel({ visible, onClose, activeWidgets, onToggle, onReset }: {
@@ -706,6 +807,7 @@ export default function Dashboard() {
             case "entities": return <EntitiesWidget key={id} entities={entities ?? []} />;
             case "quick-add": return <QuickAddWidget key={id} />;
             case "ai-assistant": return <AIWidget key={id} />;
+            case "insights": return <InsightsWidget key={id} />;
             default: return null;
           }
         })}

@@ -4,7 +4,7 @@ import { useListAssets, useListTransactions } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 
@@ -35,11 +35,38 @@ export default function Settings() {
   const [aiLoading, setAiLoading] = useState(true);
   const [toolsStatus, setToolsStatus] = useState<any>(null);
   const [copiedEnvVar, setCopiedEnvVar] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installState, setInstallState] = useState<"idle" | "installing" | "done">("idle");
+  const [swStatus, setSwStatus] = useState<"checking" | "active" | "inactive">("checking");
 
   React.useEffect(() => {
     fetch("/api/ai/status").then(r => r.json()).then(d => { setAiStatus(d); setAiLoading(false); }).catch(() => setAiLoading(false));
     fetch("/api/research/tools/status").then(r => r.json()).then(setToolsStatus).catch(() => {});
+
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    navigator.serviceWorker?.getRegistration().then((reg) => {
+      setSwStatus(reg?.active ? "active" : "inactive");
+    }).catch(() => setSwStatus("inactive"));
+
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setInstallState("done");
+    }
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  async function handleInstall() {
+    if (!installPrompt) return;
+    setInstallState("installing");
+    try {
+      installPrompt.prompt();
+      const result = await installPrompt.userChoice;
+      if (result.outcome === "accepted") { setInstallState("done"); setInstallPrompt(null); }
+      else { setInstallState("idle"); }
+    } catch { setInstallState("idle"); }
+  }
 
   function copyEnvVar(name: string) {
     navigator.clipboard.writeText(name);
@@ -93,6 +120,55 @@ export default function Settings() {
         <h1 className="text-3xl font-serif text-foreground mb-1">System Settings</h1>
         <p className="text-muted-foreground text-sm">Configuration, security, and export controls.</p>
       </div>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MonitorSmartphone className="w-4 h-4 text-primary" />
+            Install App (PWA)
+          </CardTitle>
+          <CardDescription className="text-sm">Install Family Office as a standalone app on your device for a native-like experience with offline capability.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${swStatus === "active" ? "bg-emerald-500" : swStatus === "inactive" ? "bg-red-500" : "bg-amber-400 animate-pulse"}`} />
+                  <span className="text-muted-foreground">Service Worker: <span className={swStatus === "active" ? "text-emerald-500" : "text-muted-foreground"}>{swStatus === "active" ? "Registered" : swStatus === "inactive" ? "Not active" : "Checking…"}</span></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${installState === "done" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+                  <span className="text-muted-foreground">Installed: <span className={installState === "done" ? "text-emerald-500" : "text-muted-foreground"}>{installState === "done" ? "Yes" : "No"}</span></span>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {installState === "done"
+                  ? "App is installed and running in standalone mode. You can access it from your home screen."
+                  : installPrompt
+                  ? "Your browser supports installation. Click Install to add Family Office to your device."
+                  : "To install: use your browser's menu → 'Add to Home Screen' or 'Install App'. Supported in Chrome, Edge, and Safari 16.4+."}
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              {installState === "done" ? (
+                <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium">
+                  <CheckCircle2 className="w-4 h-4" /> Installed
+                </div>
+              ) : (
+                <Button
+                  onClick={handleInstall}
+                  disabled={!installPrompt || installState === "installing"}
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  {installState === "installing" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
+                  {installState === "installing" ? "Installing…" : "Install App"}
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="bg-card border-border">
         <CardHeader>

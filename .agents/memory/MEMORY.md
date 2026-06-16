@@ -6,3 +6,6 @@
 - [Net Worth Snapshots](snapshots-schema.md) — wealth_snapshots table (snapshotDate TEXT unique per day); dashboard auto-records on mount via POST /api/snapshots/record; real sparkline uses GET /api/snapshots.
 - [Document RAG](document-rag.md) — ocrText column on documents table; keyword-matching in ai.ts on query words >3 chars; top 3 matching docs injected as RAG context into local LLM system prompt.
 - [Shared AIPanel component](ai-panel-component.md) — artifacts/family-office/src/components/ai-panel.tsx; used on assets, transactions, projections pages; mode prop controls local/cloud/auto routing.
+- [PWA service worker path](pwa-sw-path.md) — SW must register at BASE_URL-prefixed path, not hardcoded /sw.js; use `${base}/sw.js` with scope `base + "/"`. SVG-only icons sufficient for installability; remove PNG refs that don't exist.
+- [AI Insight Engine](ai-insights-engine.md) — Rule-based GET /api/ai/insights in ai.ts; 9 checks (concentration, crypto, idle cash, cash flow, diversification, entities, tax, vault, super); always fast, no LLM needed.
+- [Tax Tag column](tax-tag-schema.md) — tax_tag TEXT column added to transactions table; drizzle "no changes" if column already in DB; always verify via psql column query before troubleshooting push.

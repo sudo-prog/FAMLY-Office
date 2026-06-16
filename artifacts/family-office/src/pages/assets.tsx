@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Search, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Sparkles } from "lucide-react";
 import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
+import { AIPanel } from "@/components/ai-panel";
 
 const CATEGORIES = ["bank_account", "property", "investment", "crypto", "superannuation", "business", "bond", "other"];
 const CURRENCIES = ["AUD", "USD", "EUR", "GBP", "CAD", "SGD"];
@@ -44,6 +45,7 @@ export default function Assets() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<AssetForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const filtered = (assets ?? []).filter((a) =>
     !search || a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -109,9 +111,14 @@ export default function Assets() {
             {assets?.length ?? 0} holdings &middot; {sym[disp]}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(totalValue))} total
           </p>
         </div>
-        <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> New Asset
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setAiOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+            <Sparkles className="w-4 h-4" /> AI Analysis
+          </Button>
+          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="w-4 h-4" /> New Asset
+          </Button>
+        </div>
       </div>
 
       <div className="relative">
@@ -167,6 +174,20 @@ export default function Assets() {
           </Table>
         </div>
       </Card>
+
+      <AIPanel
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        title="Portfolio Analysis"
+        suggestions={[
+          "Analyze my portfolio concentration risk and suggest diversification",
+          "Which assets are underperforming and should be reviewed?",
+          "Identify tax optimization opportunities across my holdings",
+          "What is my exposure to interest rate risk?",
+          "Suggest a rebalancing strategy for my current allocation",
+          "Compare my asset allocation to typical family office benchmarks",
+        ]}
+      />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
         <DialogContent className="bg-card border-border max-w-md">

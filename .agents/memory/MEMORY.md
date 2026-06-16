@@ -2,3 +2,7 @@
 - [PIN lock pattern](pin-lock-pattern.md) — PIN stored in localStorage as plain string; screenshot tool always shows lock screen (fresh session); this is correct behavior.
 - [API client hooks](api-client-hooks.md) — generated hooks live in lib/api-client-react; useUpdateAsset/Transaction/Document/Entity all exist; getList*QueryKey() used for invalidation.
 - [FX currency util](fx-currency-util.md) — src/lib/currency.ts; hardcoded mid-2025 rates; preferred currency in localStorage key fo-currency; reloads page on change.
+- [Zero-Trust AI Architecture](zero-trust-ai.md) — local LLM for sensitive data (portfolio context), cloud AI for research only (sanitized); 20+ signal classifier in ai.ts; fail-secure = local.
+- [Net Worth Snapshots](snapshots-schema.md) — wealth_snapshots table (snapshotDate TEXT unique per day); dashboard auto-records on mount via POST /api/snapshots/record; real sparkline uses GET /api/snapshots.
+- [Document RAG](document-rag.md) — ocrText column on documents table; keyword-matching in ai.ts on query words >3 chars; top 3 matching docs injected as RAG context into local LLM system prompt.
+- [Shared AIPanel component](ai-panel-component.md) — artifacts/family-office/src/components/ai-panel.tsx; used on assets, transactions, projections pages; mode prop controls local/cloud/auto routing.

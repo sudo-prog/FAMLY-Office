@@ -1,0 +1,637 @@
+import React, { useState, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { MarkdownReport } from "@/components/markdown-report";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Sparkles, Globe, Database, BrainCircuit, BookOpen, Zap, ExternalLink,
+  Save, Trash2, Clock, Copy, Check, FileCode, Loader2, StopCircle,
+  AlertTriangle, Shield, TrendingUp, BarChart2, Building2, Bitcoin,
+  Gem, Leaf, Landmark, Flame, DollarSign, ChevronDown, ChevronUp,
+  Briefcase, ChevronRight, Play,
+} from "lucide-react";
+
+const BASE = (import.meta.env.BASE_URL ?? "").replace(/\/$/, "");
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type Source = { title: string; url: string; snippet: string };
+type ResearchReport = {
+  id: number; title: string; query: string; depth: string; report: string;
+  summary?: string; sources: Source[]; portfolioIncluded: boolean;
+  webSearched: boolean; createdAt: string;
+};
+type Component = { id: number; name: string; description: string; code: string; createdAt: string };
+type Tab = "research" | "reports" | "builder";
+
+// ─── Config ────────────────────────────────────────────────────────────────────
+
+const DEPTH_OPTIONS = [
+  { id: "quick",    label: "Quick Summary",   desc: "~2 min · Concise overview",              icon: Zap },
+  { id: "standard", label: "Standard Report", desc: "~5 min · Structured full report",         icon: BarChart2 },
+  { id: "deep",     label: "Deep Analysis",   desc: "~12 min · All sections + projections",    icon: BrainCircuit },
+];
+
+const TOPIC_CHIPS = [
+  { label: "Australian Real Estate", icon: Building2, q: "Australian residential and commercial real estate market analysis 2025 2026" },
+  { label: "ASX & Equities",         icon: TrendingUp, q: "ASX Australian stock market outlook and key sector analysis" },
+  { label: "Global Markets",         icon: Globe,      q: "Global equity markets trends outlook and risks" },
+  { label: "Crypto & Digital",       icon: Bitcoin,    q: "Cryptocurrency digital assets investment analysis outlook" },
+  { label: "Gold & Commodities",     icon: Gem,        q: "Gold and commodities market analysis and investment outlook" },
+  { label: "Fixed Income",           icon: Landmark,   q: "Fixed income bonds yield curves investment analysis Australia" },
+  { label: "Energy & Resources",     icon: Flame,      q: "Energy sector resources investment analysis ASX Australia" },
+  { label: "ESG & Sustainable",      icon: Leaf,       q: "ESG sustainable investing trends and opportunities Australia" },
+  { label: "Inflation & RBA",        icon: DollarSign, q: "Australian inflation interest rates RBA monetary policy outlook" },
+  { label: "Tax Optimisation",       icon: Briefcase,  q: "Australian high net worth tax optimisation strategies 2025 2026" },
+];
+
+const COMPONENT_PRESETS = [
+  "Dark-themed portfolio allocation donut chart with recharts — showing asset classes and AUD values",
+  "KPI card grid with animated counters — revenue, expenses, net profit, and growth percentage",
+  "Net worth growth line chart over 5 years — dark theme with recharts and area fill",
+  "Bull/Base/Bear scenario comparison table — colour-coded rows with 1yr/3yr/5yr projections",
+  "Investment risk heat map — grid of asset classes vs risk factors, colour-coded cells",
+  "Invoice status pipeline — horizontal stepper showing Draft → Sent → Paid stages",
+  "Asset allocation rebalancing bar chart — current vs target allocation per category",
+  "Time tracking weekly calendar heatmap — showing billable hours per day in gold",
+];
+
+// ─── SSE Parser ───────────────────────────────────────────────────────────────
+
+async function readSSE(
+  url: string,
+  body: object,
+  signal: AbortSignal,
+  onEvent: (data: any) => void
+) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+  const reader = res.body!.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const raw = line.slice(6).trim();
+      if (!raw || raw === "[DONE]") continue;
+      try { onEvent(JSON.parse(raw)); } catch {}
+    }
+  }
+}
+
+// ─── Research Stream Hook ─────────────────────────────────────────────────────
+
+function useResearchStream() {
+  const [phase, setPhase] = useState<"idle"|"running"|"done"|"error">("idle");
+  const [steps, setSteps] = useState<{step: string; message: string}[]>([]);
+  const [text, setText] = useState("");
+  const [sources, setSources] = useState<Source[]>([]);
+  const [err, setErr] = useState<string|null>(null);
+  const ctrl = useRef<AbortController|null>(null);
+
+  const run = useCallback(async (params: object) => {
+    setText(""); setSteps([]); setSources([]); setErr(null);
+    setPhase("running");
+    ctrl.current = new AbortController();
+    try {
+      await readSSE(`${BASE}/api/research/query`, params, ctrl.current.signal, (data) => {
+        if (data.type === "step") setSteps(s => [...s, { step: data.step, message: data.message }]);
+        else if (data.type === "sources") setSources(data.sources ?? []);
+        else if (data.type === "done") setPhase("done");
+        else if (data.error) { setErr(data.error); setPhase("error"); }
+        else if (data.choices?.[0]?.delta?.content) setText(t => t + data.choices[0].delta.content);
+      });
+      setPhase(p => p === "running" ? "done" : p);
+    } catch (e: any) {
+      if (e.name !== "AbortError") { setErr(e.message); setPhase("error"); }
+      else setPhase("idle");
+    }
+  }, []);
+
+  const stop = useCallback(() => { ctrl.current?.abort(); setPhase("idle"); }, []);
+  const reset = useCallback(() => { ctrl.current?.abort(); setText(""); setSteps([]); setSources([]); setErr(null); setPhase("idle"); }, []);
+  return { phase, steps, text, sources, err, run, stop, reset };
+}
+
+// ─── Component Stream Hook ────────────────────────────────────────────────────
+
+function useComponentStream() {
+  const [phase, setPhase] = useState<"idle"|"running"|"done"|"error">("idle");
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState<string|null>(null);
+  const ctrl = useRef<AbortController|null>(null);
+
+  const generate = useCallback(async (params: object) => {
+    setCode(""); setErr(null); setPhase("running");
+    ctrl.current = new AbortController();
+    try {
+      await readSSE(`${BASE}/api/research/component`, params, ctrl.current.signal, (data) => {
+        if (data.type === "done") setPhase("done");
+        else if (data.error) { setErr(data.error); setPhase("error"); }
+        else if (data.choices?.[0]?.delta?.content) setCode(c => c + data.choices[0].delta.content);
+      });
+      setPhase(p => p === "running" ? "done" : p);
+    } catch (e: any) {
+      if (e.name !== "AbortError") { setErr(e.message); setPhase("error"); }
+      else setPhase("idle");
+    }
+  }, []);
+
+  const reset = useCallback(() => { ctrl.current?.abort(); setCode(""); setErr(null); setPhase("idle"); }, []);
+  return { phase, code, err, generate, reset };
+}
+
+// ─── Data Hooks ───────────────────────────────────────────────────────────────
+
+const api = (path: string, init?: RequestInit) => fetch(`${BASE}${path}`, init).then(r => r.json());
+
+function useReports() {
+  return useQuery<ResearchReport[]>({ queryKey: ["research", "reports"], queryFn: () => api("/api/research/reports") });
+}
+function useSaveReport() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (d: any) => api("/api/research/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) }), onSuccess: () => qc.invalidateQueries({ queryKey: ["research", "reports"] }) });
+}
+function useDeleteReport() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => fetch(`${BASE}/api/research/reports/${id}`, { method: "DELETE" }), onSuccess: () => qc.invalidateQueries({ queryKey: ["research", "reports"] }) });
+}
+function useComponents() {
+  return useQuery<Component[]>({ queryKey: ["research", "components"], queryFn: () => api("/api/research/components") });
+}
+function useSaveComponent() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (d: any) => api("/api/research/components", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d) }), onSuccess: () => qc.invalidateQueries({ queryKey: ["research", "components"] }) });
+}
+function useDeleteComponent() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => fetch(`${BASE}/api/research/components/${id}`, { method: "DELETE" }), onSuccess: () => qc.invalidateQueries({ queryKey: ["research", "components"] }) });
+}
+
+// ─── Code Block ───────────────────────────────────────────────────────────────
+
+function CodeBlock({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  function copy() { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+
+  return (
+    <div className="rounded-xl border border-border overflow-hidden bg-[#0a0f16]">
+      <div className="flex items-center justify-between px-4 py-2 bg-muted/20 border-b border-border">
+        <div className="flex items-center gap-2"><FileCode className="w-3.5 h-3.5 text-primary" /><span className="text-xs font-mono text-muted-foreground">TSX · React · shadcn/ui · Tailwind</span></div>
+        <button onClick={copy} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          {copied ? <><Check className="w-3 h-3 text-emerald-400" /> Copied!</> : <><Copy className="w-3 h-3" /> Copy</>}
+        </button>
+      </div>
+      <pre className="p-4 text-xs font-mono leading-5 overflow-auto max-h-[540px] text-foreground/80 whitespace-pre">{code}</pre>
+    </div>
+  );
+}
+
+// ─── Research Panel ───────────────────────────────────────────────────────────
+
+function ResearchPanel() {
+  const [query, setQuery] = useState("");
+  const [depth, setDepth] = useState("standard");
+  const [incPortfolio, setIncPortfolio] = useState(true);
+  const [incWeb, setIncWeb] = useState(true);
+  const [allowCloud, setAllowCloud] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [showSources, setShowSources] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<number|null>(null);
+  const { phase, steps, text, sources, err, run, stop, reset } = useResearchStream();
+  const saveReport = useSaveReport();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function start() {
+    if (!query.trim() || phase === "running") return;
+    setSavedId(null);
+    await run({ query: query.trim(), depth, includePortfolio: incPortfolio, includeWeb: incWeb, allowCloudPortfolio: allowCloud });
+  }
+
+  async function handleSave() {
+    if (!text || !query) return;
+    setSaving(true);
+    try {
+      const r = await saveReport.mutateAsync({ title: saveTitle.trim() || query.slice(0, 80), query, depth, report: text, summary: text.slice(0, 400), sources, portfolioIncluded: incPortfolio, webSearched: incWeb });
+      setSavedId(r.id);
+    } finally { setSaving(false); }
+  }
+
+  const isRunning = phase === "running";
+  const isDone = phase === "done";
+  const noReport = !text && phase === "idle";
+  const lastStep = steps[steps.length - 1];
+
+  return (
+    <div className="space-y-5">
+      {/* Hero when empty */}
+      {noReport && (
+        <div className="text-center py-6">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/5">
+            <BrainCircuit className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-2xl font-serif text-foreground mb-1">AI Research Engine</h2>
+          <p className="text-muted-foreground text-sm max-w-lg mx-auto">Deep financial analysis with live web search, portfolio-aware insights, and multi-scenario future projections.</p>
+        </div>
+      )}
+
+      {/* Input row */}
+      <div className={`flex gap-3 ${!noReport ? "border-b border-border pb-5" : ""}`}>
+        <Input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !isRunning) start(); }}
+          placeholder="What would you like to research? e.g. Australian real estate market outlook 2026…"
+          className="flex-1 bg-muted/30 border-border text-sm h-10" disabled={isRunning} />
+        {isRunning
+          ? <Button onClick={stop} variant="outline" className="gap-1.5 border-destructive/60 text-destructive hover:bg-destructive/10 h-10 shrink-0"><StopCircle className="w-4 h-4" /> Stop</Button>
+          : <Button onClick={start} disabled={!query.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 h-10 shrink-0"><Sparkles className="w-4 h-4" /> Research</Button>
+        }
+        {isDone && <Button onClick={() => { reset(); setSavedId(null); }} variant="outline" className="border-border text-muted-foreground h-10 shrink-0">New</Button>}
+      </div>
+
+      {/* Quick chips + options when idle/empty */}
+      {noReport && (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {TOPIC_CHIPS.map(t => (
+              <button key={t.label} onClick={() => { setQuery(t.q); inputRef.current?.focus(); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-muted-foreground bg-muted/30 border border-border hover:border-primary/50 hover:text-foreground transition-colors">
+                <t.icon className="w-3 h-3 text-primary" /> {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <button onClick={() => setShowOptions(o => !o)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              {showOptions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              Research options &amp; depth
+            </button>
+            {showOptions && (
+              <div className="mt-3 p-4 rounded-xl border border-border bg-muted/10 space-y-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Report depth</Label>
+                  <div className="flex gap-2">
+                    {DEPTH_OPTIONS.map(d => (
+                      <button key={d.id} onClick={() => setDepth(d.id)}
+                        className={`flex-1 p-3 rounded-lg border text-left transition-colors ${depth === d.id ? "border-primary bg-primary/10" : "border-border hover:bg-muted/20"}`}>
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <d.icon className={`w-3.5 h-3.5 ${depth === d.id ? "text-primary" : "text-muted-foreground"}`} />
+                          <span className={`text-xs font-medium ${depth === d.id ? "text-foreground" : "text-muted-foreground"}`}>{d.label}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground/60">{d.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                    <input type="checkbox" checked={incPortfolio} onChange={e => setIncPortfolio(e.target.checked)} className="accent-primary" />
+                    <Database className="w-3.5 h-3.5" /> Portfolio context
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                    <input type="checkbox" checked={incWeb} onChange={e => setIncWeb(e.target.checked)} className="accent-primary" />
+                    <Globe className="w-3.5 h-3.5" /> Live web search
+                  </label>
+                </div>
+                {incPortfolio && (
+                  <div className={`p-3 rounded-lg border text-xs ${allowCloud ? "border-amber-500/30 bg-amber-500/5" : "border-border bg-muted/10"}`}>
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${allowCloud ? "text-amber-400" : "text-muted-foreground"}`} />
+                      <div>
+                        <p className={`font-medium mb-0.5 ${allowCloud ? "text-amber-400" : "text-muted-foreground"}`}>Cloud AI + Portfolio</p>
+                        <p className="text-muted-foreground/70">By default your portfolio data stays on-device (local AI). Enable to allow cloud AI to see your portfolio for richer personalised analysis.</p>
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                          <input type="checkbox" checked={allowCloud} onChange={e => setAllowCloud(e.target.checked)} className="accent-amber-500" />
+                          <span className={allowCloud ? "text-amber-400" : "text-muted-foreground"}>I consent — use cloud AI with my portfolio data</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Progress steps */}
+      {(isRunning || (isDone && steps.length > 0)) && (
+        <div className="space-y-1.5 px-1">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${i < steps.length - 1 ? "bg-emerald-500" : isRunning ? "bg-primary animate-pulse" : "bg-emerald-500"}`} />
+              {s.message}
+            </div>
+          ))}
+          {isRunning && <div className="flex items-center gap-2 mt-1"><Loader2 className="w-3.5 h-3.5 text-primary animate-spin" /><span className="text-xs text-muted-foreground italic">{text ? "Writing report…" : "Preparing…"}</span></div>}
+        </div>
+      )}
+
+      {/* Error */}
+      {err && (
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm text-destructive">
+          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" /><div><p className="font-medium">Research failed</p><p className="text-xs mt-0.5 opacity-80">{err}</p></div>
+        </div>
+      )}
+
+      {/* Web sources panel */}
+      {sources.length > 0 && (
+        <div className="rounded-xl border border-border overflow-hidden">
+          <button onClick={() => setShowSources(o => !o)} className="w-full flex items-center justify-between px-4 py-2.5 bg-muted/20 hover:bg-muted/30 transition-colors">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Globe className="w-3.5 h-3.5 text-primary" />{sources.length} web sources retrieved</div>
+            {showSources ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+          </button>
+          {showSources && (
+            <div className="divide-y divide-border/40">
+              {sources.map((s, i) => (
+                <div key={i} className="px-4 py-3">
+                  <a href={s.url} target="_blank" rel="noreferrer" className="flex items-start gap-2 group">
+                    <ExternalLink className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
+                    <div><p className="text-xs font-medium text-foreground/80 group-hover:text-primary transition-colors line-clamp-1">{s.title}</p><p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{s.snippet}</p></div>
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Report output */}
+      {text && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <BookOpen className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Research Report</span>
+              {[
+                { show: true, label: DEPTH_OPTIONS.find(d => d.id === depth)?.label ?? depth, color: "border-border text-muted-foreground" },
+                { show: incPortfolio, label: "Portfolio-aware", color: "border-primary/30 text-primary" },
+                { show: incWeb && sources.length > 0, label: "Web-sourced", color: "border-blue-400/30 text-blue-400" },
+              ].filter(b => b.show).map(b => <Badge key={b.label} variant="outline" className={`text-[10px] ${b.color}`}>{b.label}</Badge>)}
+            </div>
+            {isDone && !savedId && (
+              <div className="flex items-center gap-2 shrink-0">
+                <Input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…" className="h-7 w-44 text-xs bg-muted/30 border-border" />
+                <Button onClick={handleSave} disabled={saving} size="sm" variant="outline" className="h-7 text-xs gap-1 border-border">
+                  <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            )}
+            {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1 shrink-0"><Check className="w-3 h-3" />Saved</span>}
+          </div>
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <MarkdownReport content={text} />
+            {isRunning && <span className="inline-block w-1.5 h-4 bg-primary/80 animate-pulse ml-1 rounded-sm align-middle" />}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Saved Reports ────────────────────────────────────────────────────────────
+
+function SavedReports() {
+  const { data: reports = [], isLoading } = useReports();
+  const delReport = useDeleteReport();
+  const [active, setActive] = useState<ResearchReport|null>(null);
+
+  if (isLoading) return <Skeleton className="h-64 bg-muted/50 rounded-xl" />;
+
+  if (active) return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setActive(null)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+          <ChevronRight className="w-3.5 h-3.5 rotate-180" /> All Reports
+        </button>
+        <span className="text-muted-foreground/30">·</span>
+        <span className="text-sm text-foreground truncate flex-1">{active.title}</span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {active.portfolioIncluded && <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Portfolio</Badge>}
+          {active.webSearched && <Badge variant="outline" className="text-[10px] border-blue-400/30 text-blue-400">Web</Badge>}
+          <Badge variant="outline" className={`text-[10px] border-border capitalize ${active.depth === "deep" ? "text-purple-400" : active.depth === "quick" ? "text-emerald-400" : "text-blue-400"}`}>{active.depth}</Badge>
+        </div>
+      </div>
+      <div className="bg-card border border-border rounded-xl p-6"><MarkdownReport content={active.report} /></div>
+    </div>
+  );
+
+  if (reports.length === 0) return (
+    <div className="text-center py-20 text-muted-foreground">
+      <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-20" />
+      <p className="text-sm">No saved reports yet. Run a research query and save it.</p>
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {reports.map(r => (
+        <Card key={r.id} onClick={() => setActive(r)}
+          className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer group">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex gap-1.5 flex-wrap">
+                <Badge variant="outline" className={`text-[10px] border-border capitalize ${r.depth === "deep" ? "text-purple-400 border-purple-400/30" : r.depth === "quick" ? "text-emerald-400 border-emerald-400/30" : "text-blue-400 border-blue-400/30"}`}>{r.depth}</Badge>
+                {r.portfolioIncluded && <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Portfolio</Badge>}
+                {r.webSearched && <Badge variant="outline" className="text-[10px] border-blue-400/30 text-blue-400">Web</Badge>}
+              </div>
+              <button onClick={e => { e.stopPropagation(); if (confirm("Delete report?")) delReport.mutate(r.id); }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive rounded transition-all">
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+            <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">{r.title}</h3>
+            {r.summary && <p className="text-xs text-muted-foreground/60 line-clamp-3">{r.summary}</p>}
+            <div className="flex items-center gap-1.5 mt-3 text-[10px] text-muted-foreground/40">
+              <Clock className="w-3 h-3" />
+              {new Date(r.createdAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+// ─── Component Builder ────────────────────────────────────────────────────────
+
+function ComponentBuilder() {
+  const [desc, setDesc] = useState("");
+  const [incPortfolio, setIncPortfolio] = useState(false);
+  const [compName, setCompName] = useState("");
+  const [savedId, setSavedId] = useState<number|null>(null);
+  const [activeComp, setActiveComp] = useState<Component|null>(null);
+  const { phase, code, err, generate, reset } = useComponentStream();
+  const { data: components = [] } = useComponents();
+  const saveComp = useSaveComponent();
+  const delComp = useDeleteComponent();
+
+  async function handleGenerate() {
+    if (!desc.trim() || phase === "running") return;
+    setSavedId(null);
+    const context = incPortfolio ? "The user has an Australian multi-asset portfolio with real estate, equities, super, and trusts. Use realistic AUD sample data for the dark Bloomberg-meets-Apple premium aesthetic." : undefined;
+    await generate({ description: desc, context });
+  }
+
+  async function handleSave() {
+    if (!code) return;
+    const r = await saveComp.mutateAsync({ name: compName.trim() || desc.slice(0, 60), description: desc, code });
+    setSavedId(r.id);
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="p-5 rounded-xl border border-border bg-card">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center"><FileCode className="w-3.5 h-3.5 text-primary" /></div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">AI Component Builder</h3>
+            <p className="text-[11px] text-muted-foreground">Describe a UI component and the AI generates production-ready React + shadcn/ui + Tailwind code</p>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="e.g. A dark-themed portfolio allocation donut chart with a legend, using recharts, showing each asset class as a segment with AUD values…"
+            className="w-full rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+            <input type="checkbox" checked={incPortfolio} onChange={e => setIncPortfolio(e.target.checked)} className="accent-primary" />
+            Include Australian portfolio sample data
+          </label>
+          <div className="flex gap-2">
+            {phase === "running"
+              ? <Button onClick={reset} variant="outline" className="gap-1.5 border-destructive/60 text-destructive"><StopCircle className="w-3.5 h-3.5" /> Stop</Button>
+              : <Button onClick={handleGenerate} disabled={!desc.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Generate Component</Button>
+            }
+            {code && <Button onClick={reset} variant="outline" className="border-border text-muted-foreground">Reset</Button>}
+          </div>
+        </div>
+        {phase === "idle" && !code && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wide mb-2">Quick presets</p>
+            <div className="flex flex-wrap gap-1.5">
+              {COMPONENT_PRESETS.map((p, i) => (
+                <button key={i} onClick={() => setDesc(p)} className="text-[11px] px-2.5 py-1 rounded-md bg-muted/30 border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors text-left">
+                  {p.slice(0, 52)}…
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {phase === "running" && !code && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin text-primary" /> Generating component…</div>
+      )}
+      {err && <div className="text-sm text-destructive p-4 rounded-xl border border-destructive/30 bg-destructive/5">{err}</div>}
+
+      {code && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground flex items-center gap-2">Generated Component {phase === "running" && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />}</p>
+            {phase !== "running" && !savedId && (
+              <div className="flex items-center gap-2">
+                <Input value={compName} onChange={e => setCompName(e.target.value)} placeholder="Component name…" className="h-7 w-40 text-xs bg-muted/30 border-border" />
+                <Button onClick={handleSave} size="sm" variant="outline" className="h-7 text-xs gap-1 border-border"><Save className="w-3 h-3" /> Save</Button>
+              </div>
+            )}
+            {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
+          </div>
+          <CodeBlock code={code} />
+        </div>
+      )}
+
+      {components.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            Saved Components <Badge variant="outline" className="text-[10px] border-border text-muted-foreground">{components.length}</Badge>
+          </h3>
+          {activeComp
+            ? (
+              <div className="space-y-3">
+                <button onClick={() => setActiveComp(null)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                  <ChevronRight className="w-3.5 h-3.5 rotate-180" /> Back to list
+                </button>
+                <CodeBlock code={activeComp.code} />
+              </div>
+            )
+            : (
+              <div className="space-y-2">
+                {components.map(c => (
+                  <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card/50 hover:border-primary/30 transition-colors group">
+                    <FileCode className="w-4 h-4 text-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground font-medium truncate">{c.name}</p>
+                      <p className="text-xs text-muted-foreground/60 truncate">{c.description}</p>
+                    </div>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => setActiveComp(c)} className="p-1.5 text-muted-foreground hover:text-foreground rounded" title="View code"><Play className="w-3 h-3" /></button>
+                      <button onClick={() => { if (confirm("Delete?")) delComp.mutate(c.id); }} className="p-1.5 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
+  { id: "research", label: "Research",          icon: BrainCircuit },
+  { id: "reports",  label: "Saved Reports",      icon: BookOpen },
+  { id: "builder",  label: "Component Builder",  icon: FileCode },
+];
+
+export default function Research() {
+  const [tab, setTab] = useState<Tab>("research");
+  return (
+    <div className="space-y-6 pb-10">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-primary" />
+            </div>
+            <h1 className="text-3xl font-serif text-foreground">AI Research</h1>
+          </div>
+          <p className="text-muted-foreground text-sm">Deep financial analysis · Live web search · Portfolio-aware · Multi-scenario projections · Component builder</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground border border-border rounded-lg px-3 py-1.5 bg-muted/10">
+          <Shield className="w-3.5 h-3.5 text-emerald-500" />
+          Portfolio stays local by default
+        </div>
+      </div>
+
+      <div className="flex gap-1 bg-muted/30 border border-border rounded-xl p-1">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${tab === t.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+            <t.icon className="w-3.5 h-3.5" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "research" && <ResearchPanel />}
+      {tab === "reports" && <SavedReports />}
+      {tab === "builder" && <ComponentBuilder />}
+    </div>
+  );
+}

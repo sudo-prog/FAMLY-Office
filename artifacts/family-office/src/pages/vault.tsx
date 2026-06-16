@@ -12,13 +12,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Lock, Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Lock, Plus, Search, Pencil, Trash2, LayoutGrid, List, FileText, FileCheck, ScrollText, Shield, FileBarChart, Award, File } from "lucide-react";
 
 const FILE_TYPES = ["pdf", "contract", "tax", "insurance", "statement", "deed", "certificate", "other"];
 const curYear = String(new Date().getFullYear());
 
+const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; border: string; bg: string }> = {
+  pdf:         { icon: FileText,    color: "text-amber-400",   border: "border-amber-400/40",  bg: "bg-amber-500/5" },
+  contract:    { icon: ScrollText,  color: "text-blue-400",    border: "border-blue-400/40",   bg: "bg-blue-500/5" },
+  tax:         { icon: FileBarChart,color: "text-emerald-400", border: "border-emerald-400/40",bg: "bg-emerald-500/5" },
+  insurance:   { icon: Shield,      color: "text-purple-400",  border: "border-purple-400/40", bg: "bg-purple-500/5" },
+  statement:   { icon: FileCheck,   color: "text-orange-400",  border: "border-orange-400/40", bg: "bg-orange-500/5" },
+  deed:        { icon: ScrollText,  color: "text-red-400",     border: "border-red-400/40",    bg: "bg-red-500/5" },
+  certificate: { icon: Award,       color: "text-cyan-400",    border: "border-cyan-400/40",   bg: "bg-cyan-500/5" },
+  other:       { icon: File,        color: "text-muted-foreground", border: "border-border", bg: "bg-muted/10" },
+};
+
 type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean };
 const emptyForm: DocForm = { title: "", description: "", fileType: "pdf", year: curYear, encrypted: true };
+type ViewMode = "canvas" | "list";
 
 export default function Vault() {
   const qc = useQueryClient();
@@ -28,16 +40,18 @@ export default function Vault() {
   const deleteDoc = useDeleteDocument();
 
   const [search, setSearch] = useState("");
+  const [view, setView] = useState<ViewMode>("canvas");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<DocForm>(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  const filtered = (documents ?? []).filter((d) =>
-    !search || d.title.toLowerCase().includes(search.toLowerCase()) ||
-    (d.description ?? "").toLowerCase().includes(search.toLowerCase()) ||
-    d.fileType.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = (documents ?? []).filter((d) => {
+    const matchSearch = !search || d.title.toLowerCase().includes(search.toLowerCase()) || (d.description ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchType = typeFilter === "all" || d.fileType === typeFilter;
+    return matchSearch && matchType;
+  });
 
   function openAdd() { setEditId(null); setForm(emptyForm); setOpen(true); }
   function openEdit(d: NonNullable<typeof documents>[number]) {
@@ -52,17 +66,15 @@ export default function Vault() {
     setSaving(true);
     try {
       const payload = { title: form.title, description: form.description || undefined, fileType: form.fileType as any, year: form.year ? parseInt(form.year) : undefined, encrypted: form.encrypted };
-      if (editId !== null) {
-        await updateDoc.mutateAsync({ id: editId, data: payload as any });
-      } else {
-        await createDoc.mutateAsync(payload as any);
-      }
+      if (editId !== null) await updateDoc.mutateAsync({ id: editId, data: payload as any });
+      else await createDoc.mutateAsync(payload as any);
       await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
       setOpen(false); setForm(emptyForm); setEditId(null);
     } finally { setSaving(false); }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: number, e?: React.MouseEvent) {
+    e?.stopPropagation();
     if (!confirm("Delete this document record?")) return;
     await deleteDoc.mutateAsync(id);
     await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
@@ -82,69 +94,132 @@ export default function Vault() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-serif text-foreground mb-1">Document Vault</h1>
-          <p className="text-muted-foreground text-sm">{documents?.length ?? 0} documents &middot; Encrypted secure storage.</p>
+          <p className="text-muted-foreground text-sm">{documents?.length ?? 0} documents · AES-256 encrypted storage.</p>
         </div>
         <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
           <Plus className="w-4 h-4" /> Add Document
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search by title, type, description…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border" />
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Search by title, description…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border" />
+        </div>
+        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1 flex-shrink-0">
+          <button onClick={() => setTypeFilter("all")} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${typeFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>All</button>
+          {FILE_TYPES.slice(0, 4).map((t) => (
+            <button key={t} onClick={() => setTypeFilter(t === typeFilter ? "all" : t)}
+              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex bg-muted/30 border border-border rounded-md p-1">
+          <button onClick={() => setView("canvas")} className={`px-2 py-1 rounded transition-colors ${view === "canvas" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => setView("list")} className={`px-2 py-1 rounded transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <List className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      <Card className="bg-card border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="font-medium text-muted-foreground">Title</TableHead>
-                <TableHead className="font-medium text-muted-foreground w-28">Type</TableHead>
-                <TableHead className="font-medium text-muted-foreground w-20">Year</TableHead>
-                <TableHead className="font-medium text-muted-foreground w-28">Status</TableHead>
-                <TableHead className="w-16" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((doc) => (
-                <TableRow key={doc.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => openEdit(doc)}>
-                  <TableCell className="font-medium">
-                    <div className="flex flex-col">
-                      <span>{doc.title}</span>
-                      {doc.description && <span className="text-xs text-muted-foreground mt-0.5">{doc.description}</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm capitalize text-xs">{doc.fileType}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{doc.year ?? "—"}</TableCell>
-                  <TableCell>
-                    {doc.encrypted && (
-                      <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-medium">
-                        <Lock className="w-3 h-3" /> Encrypted
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => openEdit(doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => handleDelete(doc.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-sm">
-                    {search ? "No documents match your search." : "No documents yet. Add your first record."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+      {view === "canvas" ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filtered.map((doc) => {
+            const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
+            const Icon = cfg.icon;
+            return (
+              <div key={doc.id} onClick={() => openEdit(doc)}
+                className={`group relative rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20 ${cfg.border} ${cfg.bg}`}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-5 h-5 ${cfg.color}`} />
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => { e.stopPropagation(); openEdit(doc); }} className="text-muted-foreground hover:text-foreground p-1 rounded"><Pencil className="w-3 h-3" /></button>
+                    <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1 rounded"><Trash2 className="w-3 h-3" /></button>
+                  </div>
+                </div>
+                <h3 className="text-sm font-medium text-foreground leading-tight mb-1 line-clamp-2">{doc.title}</h3>
+                {doc.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{doc.description}</p>}
+                <div className="flex items-center justify-between mt-auto pt-2">
+                  <span className={`text-[10px] font-medium uppercase tracking-wider ${cfg.color}`}>{doc.fileType}</span>
+                  <div className="flex items-center gap-1.5">
+                    {doc.year && <span className="text-[10px] text-muted-foreground font-mono">{doc.year}</span>}
+                    {doc.encrypted && <Lock className="w-3 h-3 text-emerald-500" />}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {filtered.length === 0 && (
+            <div className="col-span-full h-40 flex items-center justify-center text-muted-foreground text-sm">
+              {search ? "No documents match your search." : "No documents yet. Add your first record."}
+            </div>
+          )}
         </div>
-      </Card>
+      ) : (
+        <Card className="bg-card border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="font-medium text-muted-foreground">Title</TableHead>
+                  <TableHead className="font-medium text-muted-foreground w-28">Type</TableHead>
+                  <TableHead className="font-medium text-muted-foreground w-20">Year</TableHead>
+                  <TableHead className="font-medium text-muted-foreground w-28">Status</TableHead>
+                  <TableHead className="w-16" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((doc) => {
+                  const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
+                  const Icon = cfg.icon;
+                  return (
+                    <TableRow key={doc.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => openEdit(doc)}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2.5">
+                          <Icon className={`w-4 h-4 flex-shrink-0 ${cfg.color}`} />
+                          <div>
+                            <span>{doc.title}</span>
+                            {doc.description && <p className="text-xs text-muted-foreground mt-0.5">{doc.description}</p>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`rounded-sm capitalize text-xs border ${cfg.border} ${cfg.color} bg-transparent`}>{doc.fileType}</Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
+                      <TableCell>
+                        {doc.encrypted && (
+                          <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-medium">
+                            <Lock className="w-3 h-3" /> Encrypted
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => openEdit(doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                          <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-sm">
+                      {search ? "No documents match your search." : "No documents yet."}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      )}
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
         <DialogContent className="bg-card border-border max-w-md">

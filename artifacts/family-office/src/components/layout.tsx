@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users, Settings as SettingsIcon, FileText } from "lucide-react";
+import { LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users, Settings as SettingsIcon, FileText, TrendingUp } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -11,6 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/transactions", label: "Ledger", icon: ArrowLeftRight },
     { href: "/vault", label: "Vault", icon: FileKey },
     { href: "/entities", label: "Entities", icon: Users },
+    { href: "/projections", label: "Projections", icon: TrendingUp },
     { href: "/report", label: "Report", icon: FileText },
   ];
 

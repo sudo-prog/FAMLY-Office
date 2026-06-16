@@ -1,0 +1,31 @@
+kind = "slides"
+previewPath = "/family-office-pitch/"
+title = "Family Office — Pitch Deck"
+version = "1.0.0"
+id = "artifacts/family-office-pitch"
+router = "path"
+
+[[integratedSkills]]
+name = "slides"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/family-office-pitch/" ]
+localPort = 19788
+
+[services.development]
+run = "pnpm --filter @workspace/family-office-pitch run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/family-office-pitch", "run", "build" ]
+publicDir = "artifacts/family-office-pitch/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19788"
+BASE_PATH = "/family-office-pitch/"

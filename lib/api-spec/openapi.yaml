@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Family Office Wealth OS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: assets
+    description: Asset tracking
+  - name: transactions
+    description: Transaction management
+  - name: documents
+    description: Document vault
+  - name: entities
+    description: Legal entities and structures
+  - name: dashboard
+    description: Dashboard summaries and analytics
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +32,485 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── ASSETS ──────────────────────────────────────────────────────────────────
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [assets]
+      summary: List all assets
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Asset list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Asset"
+    post:
+      operationId: createAsset
+      tags: [assets]
+      summary: Create an asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+
+  /assets/{id}:
+    get:
+      operationId: getAsset
+      tags: [assets]
+      summary: Get asset by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateAsset
+      tags: [assets]
+      summary: Update an asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+    delete:
+      operationId: deleteAsset
+      tags: [assets]
+      summary: Delete an asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /assets/by-category:
+    get:
+      operationId: getAssetsByCategory
+      tags: [assets]
+      summary: Get asset totals grouped by category
+      responses:
+        "200":
+          description: Asset category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetCategoryTotal"
+
+  # ── TRANSACTIONS ─────────────────────────────────────────────────────────────
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [transactions]
+      summary: List transactions
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      operationId: createTransaction
+      tags: [transactions]
+      summary: Create a transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+
+  /transactions/{id}:
+    get:
+      operationId: getTransaction
+      tags: [transactions]
+      summary: Get transaction by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transaction
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    patch:
+      operationId: updateTransaction
+      tags: [transactions]
+      summary: Update a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    delete:
+      operationId: deleteTransaction
+      tags: [transactions]
+      summary: Delete a transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /transactions/recent:
+    get:
+      operationId: getRecentTransactions
+      tags: [transactions]
+      summary: Get recent transactions (last 10)
+      responses:
+        "200":
+          description: Recent transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  # ── DOCUMENTS ────────────────────────────────────────────────────────────────
+  /documents:
+    get:
+      operationId: listDocuments
+      tags: [documents]
+      summary: List documents in the vault
+      parameters:
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Document list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+    post:
+      operationId: createDocument
+      tags: [documents]
+      summary: Add a document to the vault
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    get:
+      operationId: getDocument
+      tags: [documents]
+      summary: Get document by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    patch:
+      operationId: updateDocument
+      tags: [documents]
+      summary: Update document metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /documents/recent:
+    get:
+      operationId: getRecentDocuments
+      tags: [documents]
+      summary: Get recently added documents
+      responses:
+        "200":
+          description: Recent documents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+  # ── ENTITIES ─────────────────────────────────────────────────────────────────
+  /entities:
+    get:
+      operationId: listEntities
+      tags: [entities]
+      summary: List legal entities
+      responses:
+        "200":
+          description: Entity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Entity"
+    post:
+      operationId: createEntity
+      tags: [entities]
+      summary: Create a legal entity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+
+  /entities/{id}:
+    get:
+      operationId: getEntity
+      tags: [entities]
+      summary: Get entity by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Entity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+    patch:
+      operationId: updateEntity
+      tags: [entities]
+      summary: Update an entity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Entity"
+    delete:
+      operationId: deleteEntity
+      tags: [entities]
+      summary: Delete an entity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── DASHBOARD ─────────────────────────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Wealth summary for the dashboard
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/net-worth-history:
+    get:
+      operationId: getNetWorthHistory
+      tags: [dashboard]
+      summary: Net worth over time (last 12 months)
+      responses:
+        "200":
+          description: Net worth history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NetWorthPoint"
+
+  /dashboard/cash-flow:
+    get:
+      operationId: getCashFlow
+      tags: [dashboard]
+      summary: Monthly income vs expenses (last 6 months)
+      responses:
+        "200":
+          description: Cash flow data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CashFlowPoint"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +521,358 @@ components:
       required:
         - status
 
+    # ── ASSET ──
+    Asset:
+      type: object
+      required: [id, name, category, value, currency, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          description: "bank_account | property | investment | superannuation | crypto | business | trust | insurance | other"
+        subcategory:
+          type: ["string", "null"]
+        value:
+          type: number
+          description: Current value in base currency
+        currency:
+          type: string
+          default: AUD
+        notes:
+          type: ["string", "null"]
+        entityId:
+          type: ["integer", "null"]
+        institution:
+          type: ["string", "null"]
+        lastUpdated:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    AssetInput:
+      type: object
+      required: [name, category, value]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        value:
+          type: number
+        currency:
+          type: string
+        notes:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        institution:
+          type: string
+        lastUpdated:
+          type: string
+
+    AssetUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        value:
+          type: number
+        currency:
+          type: string
+        notes:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        institution:
+          type: string
+        lastUpdated:
+          type: string
+
+    AssetCategoryTotal:
+      type: object
+      required: [category, total, count]
+      properties:
+        category:
+          type: string
+        total:
+          type: number
+        count:
+          type: integer
+
+    # ── TRANSACTION ──
+    Transaction:
+      type: object
+      required: [id, description, amount, type, date, createdAt]
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+          description: "income | expense | transfer"
+        category:
+          type: ["string", "null"]
+        subcategory:
+          type: ["string", "null"]
+        date:
+          type: string
+        notes:
+          type: ["string", "null"]
+        assetId:
+          type: ["integer", "null"]
+        entityId:
+          type: ["integer", "null"]
+        taxDeductible:
+          type: boolean
+        tags:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    TransactionInput:
+      type: object
+      required: [description, amount, type, date]
+      properties:
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+        assetId:
+          type: ["integer", "null"]
+        entityId:
+          type: ["integer", "null"]
+        taxDeductible:
+          type: boolean
+        tags:
+          type: string
+
+    TransactionUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+        amount:
+          type: number
+        type:
+          type: string
+        category:
+          type: string
+        subcategory:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+        assetId:
+          type: ["integer", "null"]
+        entityId:
+          type: ["integer", "null"]
+        taxDeductible:
+          type: boolean
+        tags:
+          type: string
+
+    # ── DOCUMENT ──
+    Document:
+      type: object
+      required: [id, title, fileType, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        fileType:
+          type: string
+          description: "pdf | image | spreadsheet | contract | tax | insurance | other"
+        tags:
+          type: ["string", "null"]
+        entityId:
+          type: ["integer", "null"]
+        year:
+          type: ["integer", "null"]
+        ocrText:
+          type: ["string", "null"]
+        encrypted:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: ["string", "null"]
+
+    DocumentInput:
+      type: object
+      required: [title, fileType]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        fileType:
+          type: string
+        tags:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        year:
+          type: ["integer", "null"]
+        ocrText:
+          type: string
+        encrypted:
+          type: boolean
+
+    DocumentUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        fileType:
+          type: string
+        tags:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        year:
+          type: ["integer", "null"]
+        ocrText:
+          type: string
+        encrypted:
+          type: boolean
+
+    # ── ENTITY ──
+    Entity:
+      type: object
+      required: [id, name, type, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          description: "individual | sole_trader | company | trust | smsf | partnership | other"
+        abn:
+          type: ["string", "null"]
+        acn:
+          type: ["string", "null"]
+        tfn:
+          type: ["string", "null"]
+        jurisdiction:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    EntityInput:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        abn:
+          type: string
+        acn:
+          type: string
+        tfn:
+          type: string
+        jurisdiction:
+          type: string
+        notes:
+          type: string
+
+    EntityUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        abn:
+          type: string
+        acn:
+          type: string
+        tfn:
+          type: string
+        jurisdiction:
+          type: string
+        notes:
+          type: string
+
+    # ── DASHBOARD ──
+    DashboardSummary:
+      type: object
+      required: [totalNetWorth, totalAssets, totalLiabilities, totalIncome, totalExpenses, assetCount, documentCount, entityCount]
+      properties:
+        totalNetWorth:
+          type: number
+        totalAssets:
+          type: number
+        totalLiabilities:
+          type: number
+        totalIncome:
+          type: number
+          description: Income this month
+        totalExpenses:
+          type: number
+          description: Expenses this month
+        taxDeductibleYTD:
+          type: number
+          description: Tax deductible expenses year-to-date
+        assetCount:
+          type: integer
+        documentCount:
+          type: integer
+        entityCount:
+          type: integer
+        topAssetCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetCategoryTotal"
+
+    NetWorthPoint:
+      type: object
+      required: [month, value]
+      properties:
+        month:
+          type: string
+        value:
+          type: number
+
+    CashFlowPoint:
+      type: object
+      required: [month, income, expenses]
+      properties:
+        month:
+          type: string
+        income:
+          type: number
+        expenses:
+          type: number

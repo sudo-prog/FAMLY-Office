@@ -1,0 +1,82 @@
+[
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000001",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide01Cover.tsx",
+    "title": "Cover",
+    "description": "Family Office Wealth OS — Sovereign Wealth. Private by Design.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000002",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide02Problem.tsx",
+    "title": "The Problem",
+    "description": "Wealth without order is wealth at risk — scattered institutions, no unified view, no privacy.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000003",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide03Solution.tsx",
+    "title": "The Solution",
+    "description": "One sovereign platform for your entire wealth — local-first, AI-powered, multi-entity.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000004",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide04Privacy.tsx",
+    "title": "Privacy & Security",
+    "description": "Your data never leaves your control — local-first, zero knowledge, end-to-end encrypted.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000005",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide05Intelligence.tsx",
+    "title": "AI Intelligence",
+    "description": "Insights that anticipate, not just report — AI engine for risk, cash flow, and opportunity.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000006",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide06AllInOne.tsx",
+    "title": "Complete Platform",
+    "description": "Everything in one place — Assets, Ledger, Vault, Entities, Dashboard.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000007",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide07NetWorth.tsx",
+    "title": "Live Data",
+    "description": "$4.7M total net worth tracked across three entities, ten asset classes, and fifteen accounts.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000008",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide08Entities.tsx",
+    "title": "Entities & Legacy",
+    "description": "Structure built for generations — trusts, LLCs, individuals managed together.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000009",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide09WhoItsFor.tsx",
+    "title": "Who It's For",
+    "description": "UHNW individuals, family offices, and post-liquidity founders.",
+    "speakerNotes": ""
+  },
+  {
+    "id": "f1a2b3c4-d5e6-4f78-9012-000000000010",
+    "position": 10,
+    "filepath": "src/pages/slides/Slide10Close.tsx",
+    "title": "Take Control",
+    "description": "Sovereign. Private. Intelligent. Take control of your wealth on your terms.",
+    "speakerNotes": ""
+  }
+]

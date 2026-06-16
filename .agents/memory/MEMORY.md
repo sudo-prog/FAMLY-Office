@@ -1,0 +1,4 @@
+- [Family Office stack](family-office-stack.md) — 4-artifact PWA: web app (React/Vite at `/`), API server (Express on :8080), pitch deck slides, video (deferred).
+- [PIN lock pattern](pin-lock-pattern.md) — PIN stored in localStorage as plain string; screenshot tool always shows lock screen (fresh session); this is correct behavior.
+- [API client hooks](api-client-hooks.md) — generated hooks live in lib/api-client-react; useUpdateAsset/Transaction/Document/Entity all exist; getList*QueryKey() used for invalidation.
+- [FX currency util](fx-currency-util.md) — src/lib/currency.ts; hardcoded mid-2025 rates; preferred currency in localStorage key fo-currency; reloads page on change.

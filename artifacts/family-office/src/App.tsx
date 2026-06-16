@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { initTheme } from "@/hooks/use-theme";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -39,6 +40,7 @@ function Router() {
 
 function App() {
   const [unlocked, setUnlocked] = useState(false);
+  useEffect(() => { initTheme(); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

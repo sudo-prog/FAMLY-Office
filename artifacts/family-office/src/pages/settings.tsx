@@ -4,8 +4,9 @@ import { useListAssets, useListTransactions } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2 } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
+import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 
 function fmt(v: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
@@ -24,8 +25,10 @@ export default function Settings() {
   const { data: assets } = useListAssets();
   const { data: transactions } = useListTransactions();
 
+  const { theme, updateTheme, resetTheme } = useTheme();
   const [currency, setCurrencyState] = useState<Currency>(getStoredCurrency());
   const [exportDone, setExportDone] = useState(false);
+  const [fontImportInput, setFontImportInput] = useState(theme.fontImportUrl);
   const [purging, setPurging] = useState(false);
   const [purgeError, setPurgeError] = useState("");
   const [aiStatus, setAiStatus] = useState<any>(null);
@@ -109,6 +112,157 @@ export default function Settings() {
           <p className="text-xs text-muted-foreground mt-3">
             Currently displaying in <span className="text-foreground font-mono">{currency}</span>. FX rates are approximated and update on page reload.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Palette className="w-4 h-4 text-primary" />
+                UI Theme &amp; Appearance
+              </CardTitle>
+              <CardDescription className="text-sm mt-1">Customise colors, fonts, and text scale. Changes apply instantly.</CardDescription>
+            </div>
+            <Button onClick={() => { resetTheme(); setFontImportInput(""); }} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs flex-shrink-0">
+              <RotateCcw className="w-3 h-3" /> Reset
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Preset themes */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Color Presets</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Dark Gold", primaryHsl: "43 65% 52%", backgroundHsl: "220 16% 7%", cardHsl: "220 18% 10%" },
+                { label: "Dark Navy", primaryHsl: "213 80% 55%", backgroundHsl: "222 28% 7%", cardHsl: "222 28% 10%" },
+                { label: "Dark Teal", primaryHsl: "174 60% 45%", backgroundHsl: "192 20% 7%", cardHsl: "192 20% 10%" },
+                { label: "Deep Violet", primaryHsl: "262 70% 60%", backgroundHsl: "260 18% 7%", cardHsl: "260 18% 10%" },
+                { label: "Rose Gold", primaryHsl: "340 55% 60%", backgroundHsl: "340 12% 8%", cardHsl: "340 12% 11%" },
+                { label: "Emerald", primaryHsl: "158 60% 48%", backgroundHsl: "168 16% 7%", cardHsl: "168 16% 10%" },
+              ].map((preset) => {
+                const active = theme.primaryHsl === preset.primaryHsl && theme.backgroundHsl === preset.backgroundHsl;
+                return (
+                  <button key={preset.label}
+                    onClick={() => updateTheme({ primaryHsl: preset.primaryHsl, backgroundHsl: preset.backgroundHsl, cardHsl: preset.cardHsl })}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all ${active ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `hsl(${preset.primaryHsl})` }} />
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Custom colors */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Custom Colors</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Accent / Primary", hsl: theme.primaryHsl, key: "primaryHsl" as const },
+                { label: "Background", hsl: theme.backgroundHsl, key: "backgroundHsl" as const },
+                { label: "Card Surface", hsl: theme.cardHsl, key: "cardHsl" as const },
+              ].map((c) => (
+                <div key={c.key} className="space-y-1.5">
+                  <p className="text-xs text-muted-foreground">{c.label}</p>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={hslToHex(c.hsl)}
+                      onChange={(e) => updateTheme({ [c.key]: hexToHsl(e.target.value) })}
+                      className="w-9 h-8 rounded cursor-pointer border border-border bg-transparent p-0.5" />
+                    <code className="text-[10px] text-muted-foreground/70 font-mono">{hslToHex(c.hsl)}</code>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Text scale */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              <Type className="inline w-3.5 h-3.5 mr-1.5 -mt-0.5" />Text Scale — <span className="text-foreground">{Math.round(theme.textScale * 100)}%</span>
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {[0.85, 0.90, 1.0, 1.05, 1.10, 1.15].map((scale) => (
+                <button key={scale} onClick={() => updateTheme({ textScale: scale })}
+                  className={`px-3 py-1 rounded-md border text-xs transition-all ${theme.textScale === scale ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground bg-muted/20 hover:border-primary/40 hover:text-foreground"}`}>
+                  {Math.round(scale * 100)}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Body font */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Body Font</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Inter", family: "Inter, sans-serif", url: "" },
+                { label: "DM Sans", family: "'DM Sans', sans-serif", url: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" },
+                { label: "Outfit", family: "'Outfit', sans-serif", url: "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" },
+                { label: "Source Sans 3", family: "'Source Sans 3', sans-serif", url: "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600&display=swap" },
+              ].map((f) => {
+                const active = theme.fontBody === f.family;
+                return (
+                  <button key={f.label} onClick={() => {
+                    updateTheme({ fontBody: f.family, fontImportUrl: f.url || theme.fontImportUrl });
+                    if (f.url) setFontImportInput(f.url);
+                  }}
+                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${active ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
+                    style={{ fontFamily: f.family }}>
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Heading font */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Heading / Serif Font</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Georgia", family: "Georgia, serif", url: "" },
+                { label: "Playfair Display", family: "'Playfair Display', serif", url: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" },
+                { label: "Lora", family: "'Lora', serif", url: "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap" },
+                { label: "DM Serif Display", family: "'DM Serif Display', serif", url: "https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap" },
+                { label: "EB Garamond", family: "'EB Garamond', serif", url: "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" },
+              ].map((f) => {
+                const active = theme.fontHeading === f.family;
+                return (
+                  <button key={f.label} onClick={() => {
+                    updateTheme({ fontHeading: f.family, fontImportUrl: f.url || theme.fontImportUrl });
+                    if (f.url) setFontImportInput(f.url);
+                  }}
+                    className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${active ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
+                    style={{ fontFamily: f.family }}>
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Google Fonts URL import */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Google Fonts / Custom URL Import</p>
+            <div className="flex gap-2">
+              <input value={fontImportInput} onChange={(e) => setFontImportInput(e.target.value)}
+                placeholder="https://fonts.googleapis.com/css2?family=…&display=swap"
+                className="flex-1 h-8 bg-muted/30 border border-border rounded-md px-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono" />
+              <Button onClick={() => updateTheme({ fontImportUrl: fontImportInput })} size="sm" variant="outline" className="text-xs border-border h-8">Apply</Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground/60 mt-1.5">Paste any Google Fonts embed URL. The stylesheet is loaded immediately.</p>
+          </div>
+
+          {/* Live preview */}
+          <div className="p-4 rounded-xl border border-border bg-muted/10 space-y-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Preview</p>
+            <p className="font-serif text-xl text-foreground" style={{ fontFamily: theme.fontHeading }}>Family Office Wealth OS</p>
+            <p className="text-sm text-muted-foreground" style={{ fontFamily: theme.fontBody }}>Total portfolio value and strategic asset overview</p>
+            <p className="font-mono text-primary text-base">$12,450,000</p>
+          </div>
         </CardContent>
       </Card>
 

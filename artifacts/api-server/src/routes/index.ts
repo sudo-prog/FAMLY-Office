@@ -8,6 +8,7 @@ import dashboardRouter from "./dashboard";
 import systemRouter from "./system";
 import aiRouter from "./ai";
 import snapshotsRouter from "./snapshots";
+import businessRouter from "./business";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(dashboardRouter);
 router.use(systemRouter);
 router.use(aiRouter);
 router.use(snapshotsRouter);
+router.use(businessRouter);
 
 export default router;

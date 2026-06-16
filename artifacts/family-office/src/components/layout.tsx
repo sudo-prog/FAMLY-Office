@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
+  Briefcase, Search,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -15,7 +16,13 @@ const NAV_ITEMS = [
   { href: "/report", label: "Report", icon: FileText },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+const BUSINESS_ITEMS = [
+  { href: "/home-office", label: "Home Office", icon: Briefcase },
+];
+
+interface LayoutProps { children: React.ReactNode; onOpenPalette?: () => void }
+
+export function Layout({ children, onOpenPalette }: LayoutProps) {
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -27,9 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     }
     if (menuOpen) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -63,9 +68,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-6 mb-3 px-2">Business</div>
+          {BUSINESS_ITEMS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link key={item.href} href={item.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}>
+                <item.icon className={`w-4 h-4 ${active ? "text-primary" : ""}`} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-1">
+          {onOpenPalette && (
+            <button onClick={onOpenPalette}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-muted-foreground hover:bg-muted hover:text-foreground">
+              <Search className="w-4 h-4" />
+              <span className="flex-1 text-left text-sm">Search</span>
+              <span className="text-[10px] font-mono bg-muted border border-border rounded px-1 py-0.5 text-muted-foreground/70">⌘K</span>
+            </button>
+          )}
           <Link href="/settings"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
               location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -82,6 +109,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <span className="text-sm font-mono text-muted-foreground">STATUS: <span className="text-emerald-500">ENCRYPTED</span></span>
           </div>
           <div className="flex items-center gap-3">
+            {onOpenPalette && (
+              <button onClick={onOpenPalette}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-muted/20 text-muted-foreground hover:text-foreground hover:border-border/80 transition-colors text-xs">
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
+                <span className="font-mono text-[10px] bg-muted border border-border rounded px-1 ml-1">⌘K</span>
+              </button>
+            )}
             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
               <span className="text-xs font-medium">CFO</span>
             </div>
@@ -102,7 +137,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Navigate</p>
                   </div>
                   <div className="p-2 space-y-0.5">
-                    {NAV_ITEMS.map((item) => {
+                    {[...NAV_ITEMS, ...BUSINESS_ITEMS].map((item) => {
                       const active = isActive(item.href);
                       return (
                         <Link key={item.href} href={item.href}

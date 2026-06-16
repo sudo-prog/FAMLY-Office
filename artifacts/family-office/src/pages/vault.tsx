@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListDocuments, getListDocumentsQueryKey,
@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Lock, Plus, Search, Pencil, Trash2, LayoutGrid, List, FileText, FileCheck, ScrollText, Shield, FileBarChart, Award, File } from "lucide-react";
+import {
+  Lock, Plus, Search, Pencil, Trash2, LayoutGrid, List, FileText, FileCheck,
+  ScrollText, Shield, FileBarChart, Award, File, Folder, FolderOpen, ChevronDown,
+  ChevronRight, CheckSquare, Square, FolderPlus, ArrowLeft, Sparkles, X, Move,
+} from "lucide-react";
+import { DocumentPreview } from "@/components/document-preview";
+import { AIPanel } from "@/components/ai-panel";
 
 const FILE_TYPES = ["pdf", "contract", "tax", "insurance", "statement", "deed", "certificate", "other"];
 const curYear = String(new Date().getFullYear());
@@ -28,9 +34,10 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bord
   other:       { icon: File,        color: "text-muted-foreground", border: "border-border", bg: "bg-muted/10" },
 };
 
-type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean; ocrText: string };
-const emptyForm: DocForm = { title: "", description: "", fileType: "pdf", year: curYear, encrypted: true, ocrText: "" };
+type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean; ocrText: string; folder: string };
+const emptyForm: DocForm = { title: "", description: "", fileType: "pdf", year: curYear, encrypted: true, ocrText: "", folder: "" };
 type ViewMode = "canvas" | "list";
+type Doc = { id: number; title: string; fileType: string; year?: number | null; encrypted: boolean; ocrText?: string | null; description?: string | null; folder?: string | null };
 
 export default function Vault() {
   const qc = useQueryClient();
@@ -47,16 +54,39 @@ export default function Vault() {
   const [form, setForm] = useState<DocForm>(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [isolatedFolder, setIsolatedFolder] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<Doc | null>(null);
+  const [folderAiOpen, setFolderAiOpen] = useState(false);
+  const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [moveToFolderOpen, setMoveToFolderOpen] = useState(false);
+
   const filtered = (documents ?? []).filter((d) => {
     const matchSearch = !search || d.title.toLowerCase().includes(search.toLowerCase()) || (d.description ?? "").toLowerCase().includes(search.toLowerCase());
     const matchType = typeFilter === "all" || d.fileType === typeFilter;
-    return matchSearch && matchType;
+    const matchIsolated = isolatedFolder === null || d.folder === isolatedFolder;
+    return matchSearch && matchType && matchIsolated;
   });
 
+  const folderMap = useMemo(() => {
+    const map: Record<string, Doc[]> = {};
+    (documents ?? []).forEach((d) => {
+      if (d.folder) (map[d.folder] ??= []).push(d as Doc);
+    });
+    return map;
+  }, [documents]);
+
+  const folderNames = Object.keys(folderMap).sort();
+  const unfiledDocs = filtered.filter((d) => !d.folder);
+  const filteredFolderDocs = (folder: string) => filtered.filter((d) => d.folder === folder);
+
   function openAdd() { setEditId(null); setForm(emptyForm); setOpen(true); }
-  function openEdit(d: NonNullable<typeof documents>[number]) {
+  function openEdit(d: Doc) {
     setEditId(d.id);
-    setForm({ title: d.title, description: d.description ?? "", fileType: d.fileType, year: d.year ? String(d.year) : "", encrypted: d.encrypted, ocrText: d.ocrText ?? "" });
+    setForm({ title: d.title, description: d.description ?? "", fileType: d.fileType, year: d.year ? String(d.year) : "", encrypted: d.encrypted, ocrText: d.ocrText ?? "", folder: d.folder ?? "" });
     setOpen(true);
   }
 
@@ -65,7 +95,7 @@ export default function Vault() {
     if (!form.title) return;
     setSaving(true);
     try {
-      const payload = { title: form.title, description: form.description || undefined, fileType: form.fileType as any, year: form.year ? parseInt(form.year) : undefined, encrypted: form.encrypted, ocrText: form.ocrText || undefined };
+      const payload = { title: form.title, description: form.description || undefined, fileType: form.fileType as any, year: form.year ? parseInt(form.year) : undefined, encrypted: form.encrypted, ocrText: form.ocrText || undefined, folder: form.folder || undefined };
       if (editId !== null) await updateDoc.mutateAsync({ id: editId, data: payload as any });
       else await createDoc.mutateAsync(payload as any);
       await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
@@ -80,6 +110,71 @@ export default function Vault() {
     await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
   }
 
+  async function handleSaveContent(id: number, updates: { ocrText?: string }) {
+    await updateDoc.mutateAsync({ id, data: updates as any });
+    await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
+  }
+
+  function toggleSelect(id: number, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set(filtered.map((d) => d.id)));
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  }
+
+  async function createFolder() {
+    if (!newFolderName.trim() || selectedIds.size === 0) return;
+    const name = newFolderName.trim();
+    await Promise.all(
+      Array.from(selectedIds).map((id) =>
+        updateDoc.mutateAsync({ id, data: { folder: name } as any })
+      )
+    );
+    await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
+    setExpandedFolders((prev) => new Set([...prev, name]));
+    setNewFolderOpen(false);
+    setNewFolderName("");
+    clearSelection();
+  }
+
+  async function moveToFolder(folderName: string | null) {
+    await Promise.all(
+      Array.from(selectedIds).map((id) =>
+        updateDoc.mutateAsync({ id, data: { folder: folderName } as any })
+      )
+    );
+    await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
+    setMoveToFolderOpen(false);
+    clearSelection();
+  }
+
+  async function deleteFolderDocs(folderName: string) {
+    if (!confirm(`Remove folder "${folderName}"? Documents will become unfiled.`)) return;
+    const inFolder = (documents ?? []).filter((d) => d.folder === folderName);
+    await Promise.all(inFolder.map((d) => updateDoc.mutateAsync({ id: d.id, data: { folder: null } as any })));
+    await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
+    if (isolatedFolder === folderName) setIsolatedFolder(null);
+  }
+
+  function toggleFolder(name: string) {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -89,16 +184,117 @@ export default function Vault() {
     );
   }
 
+  const docCardClass = (doc: Doc, selected: boolean) => {
+    const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
+    return `group relative rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20 ${cfg.border} ${cfg.bg} ${selected ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`;
+  };
+
+  function DocCard({ doc, compact = false }: { doc: Doc; compact?: boolean }) {
+    const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
+    const Icon = cfg.icon;
+    const selected = selectedIds.has(doc.id);
+    return (
+      <div
+        onClick={(e) => {
+          if (selectMode) { toggleSelect(doc.id, e); return; }
+          setPreviewDoc(doc);
+        }}
+        className={docCardClass(doc, selected)}
+      >
+        {selectMode && (
+          <div className="absolute top-2 left-2 z-10" onClick={(e) => toggleSelect(doc.id, e)}>
+            {selected ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+          </div>
+        )}
+        <div className="flex items-start justify-between mb-3">
+          <Icon className={`w-6 h-6 ${cfg.color}`} />
+          {doc.encrypted && <Lock className="w-3 h-3 text-muted-foreground/60" />}
+        </div>
+        <h3 className="font-medium text-sm text-foreground leading-snug line-clamp-2 mb-2">{doc.title}</h3>
+        {doc.description && !compact && <p className="text-xs text-muted-foreground/70 line-clamp-1 mb-2">{doc.description}</p>}
+        <div className="flex items-center justify-between mt-auto">
+          <span className={`text-[10px] font-mono uppercase ${cfg.color}`}>{doc.fileType}</span>
+          {doc.year && <span className="text-[10px] text-muted-foreground font-mono">{doc.year}</span>}
+        </div>
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-all" onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => openEdit(doc)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60"><Pencil className="w-3 h-3" /></button>
+          <button onClick={(e) => handleDelete(doc.id, e)} className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"><Trash2 className="w-3 h-3" /></button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isolatedFolder !== null) {
+    const folderDocs = (documents ?? []).filter((d) => d.folder === isolatedFolder);
+    return (
+      <div className="space-y-6 pb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsolatedFolder(null)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="w-4 h-4" /> Back to Vault
+            </button>
+            <span className="text-muted-foreground">/</span>
+            <div className="flex items-center gap-2">
+              <FolderOpen className="w-5 h-5 text-primary" />
+              <h1 className="text-2xl font-serif text-foreground">{isolatedFolder}</h1>
+            </div>
+            <Badge variant="outline" className="bg-muted/30 border-border text-muted-foreground text-xs">
+              {folderDocs.length} documents
+            </Badge>
+          </div>
+          <Button onClick={() => setFolderAiOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+            <Sparkles className="w-4 h-4" /> Ask AI about this folder
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {folderDocs.map((doc) => (
+            <DocCard key={doc.id} doc={doc as Doc} />
+          ))}
+          {folderDocs.length === 0 && (
+            <div className="col-span-4 text-center py-12 text-muted-foreground text-sm">This folder is empty.</div>
+          )}
+        </div>
+
+        <AIPanel
+          open={folderAiOpen}
+          onClose={() => setFolderAiOpen(false)}
+          title={`Folder: ${isolatedFolder}`}
+          suggestions={[
+            `What documents are in the "${isolatedFolder}" folder?`,
+            "Summarize the key terms and obligations across all documents in this folder",
+            "Are there any upcoming deadlines or renewal dates?",
+            "Identify any cross-document dependencies or conflicts",
+            "Draft a professional summary of this folder for a lawyer",
+          ]}
+        />
+
+        {previewDoc && (
+          <DocumentPreview doc={previewDoc} onClose={() => setPreviewDoc(null)} onSave={handleSaveContent} />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-8">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-serif text-foreground mb-1">Document Vault</h1>
-          <p className="text-muted-foreground text-sm">{documents?.length ?? 0} documents · AES-256 encrypted storage.</p>
+          <p className="text-muted-foreground text-sm">
+            {documents?.length ?? 0} documents · {folderNames.length} folders · AES-256 encrypted
+          </p>
         </div>
-        <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> Add Document
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => { setSelectMode((s) => { if (s) clearSelection(); return !s; }); }}
+            variant="outline"
+            className={`gap-2 border-border text-sm ${selectMode ? "border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <CheckSquare className="w-4 h-4" /> {selectMode ? "Exit Select" : "Select"}
+          </Button>
+          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="w-4 h-4" /> Add Document
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3">
@@ -125,38 +321,83 @@ export default function Vault() {
         </div>
       </div>
 
+      {selectMode && selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+          <span className="text-sm text-primary font-medium">{selectedIds.size} selected</span>
+          <div className="flex gap-2 ml-auto">
+            <Button onClick={() => setNewFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border">
+              <FolderPlus className="w-3.5 h-3.5" /> New Folder
+            </Button>
+            {folderNames.length > 0 && (
+              <Button onClick={() => setMoveToFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border">
+                <Move className="w-3.5 h-3.5" /> Move to Folder
+              </Button>
+            )}
+            <Button onClick={() => moveToFolder(null)} size="sm" variant="outline" className="text-xs gap-1.5 border-border text-muted-foreground">
+              <X className="w-3.5 h-3.5" /> Unfiled
+            </Button>
+            <button onClick={clearSelection} className="text-xs text-muted-foreground hover:text-foreground px-2">Cancel</button>
+          </div>
+        </div>
+      )}
+
       {view === "canvas" ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map((doc) => {
-            const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
-            const Icon = cfg.icon;
+        <div className="space-y-6">
+          {folderNames.map((folderName) => {
+            const docs = filteredFolderDocs(folderName);
+            if (docs.length === 0 && search) return null;
+            const expanded = expandedFolders.has(folderName);
             return (
-              <div key={doc.id} onClick={() => openEdit(doc)}
-                className={`group relative rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20 ${cfg.border} ${cfg.bg}`}>
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-5 h-5 ${cfg.color}`} />
+              <div key={folderName} className="rounded-xl border border-border bg-card/50 overflow-hidden">
+                <div
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/20 transition-colors select-none"
+                  onClick={() => toggleFolder(folderName)}
+                >
+                  {expanded ? <FolderOpen className="w-4 h-4 text-primary" /> : <Folder className="w-4 h-4 text-primary" />}
+                  <span className="font-medium text-sm text-foreground flex-1">{folderName}</span>
+                  <span className="text-xs text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">{folderMap[folderName]?.length ?? 0}</span>
+                  <div className="flex items-center gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => setIsolatedFolder(folderName)}
+                      className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> View
+                    </button>
+                    <button onClick={() => deleteFolderDocs(folderName)}
+                      className="text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors flex items-center gap-1">
+                      <X className="w-3 h-3" /> Ungroup
+                    </button>
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); openEdit(doc); }} className="text-muted-foreground hover:text-foreground p-1 rounded"><Pencil className="w-3 h-3" /></button>
-                    <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1 rounded"><Trash2 className="w-3 h-3" /></button>
-                  </div>
+                  {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                 </div>
-                <h3 className="text-sm font-medium text-foreground leading-tight mb-1 line-clamp-2">{doc.title}</h3>
-                {doc.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{doc.description}</p>}
-                <div className="flex items-center justify-between mt-auto pt-2">
-                  <span className={`text-[10px] font-medium uppercase tracking-wider ${cfg.color}`}>{doc.fileType}</span>
-                  <div className="flex items-center gap-1.5">
-                    {doc.year && <span className="text-[10px] text-muted-foreground font-mono">{doc.year}</span>}
-                    {doc.encrypted && <Lock className="w-3 h-3 text-emerald-500" />}
+                {expanded && (
+                  <div className="p-4 pt-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 border-t border-border/50">
+                    {docs.map((doc) => (
+                      <DocCard key={doc.id} doc={doc as Doc} compact />
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
+
+          {unfiledDocs.length > 0 && (
+            <div>
+              {folderNames.length > 0 && (
+                <div className="flex items-center gap-2 mb-3">
+                  <File className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Unfiled</span>
+                </div>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {unfiledDocs.map((doc) => (
+                  <DocCard key={doc.id} doc={doc as Doc} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {filtered.length === 0 && (
-            <div className="col-span-full h-40 flex items-center justify-center text-muted-foreground text-sm">
-              {search ? "No documents match your search." : "No documents yet. Add your first record."}
+            <div className="text-center py-16 text-muted-foreground text-sm">
+              {search ? "No documents match your search." : "No documents yet. Add your first document."}
             </div>
           )}
         </div>
@@ -166,51 +407,47 @@ export default function Vault() {
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border hover:bg-transparent">
+                  {selectMode && <TableHead className="w-10" />}
                   <TableHead className="font-medium text-muted-foreground">Title</TableHead>
-                  <TableHead className="font-medium text-muted-foreground w-28">Type</TableHead>
-                  <TableHead className="font-medium text-muted-foreground w-20">Year</TableHead>
-                  <TableHead className="font-medium text-muted-foreground w-28">Status</TableHead>
+                  <TableHead className="font-medium text-muted-foreground">Type</TableHead>
+                  <TableHead className="font-medium text-muted-foreground">Folder</TableHead>
+                  <TableHead className="font-medium text-muted-foreground w-16">Year</TableHead>
+                  <TableHead className="w-16 font-medium text-muted-foreground">Enc.</TableHead>
                   <TableHead className="w-16" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((doc) => {
-                  const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
-                  const Icon = cfg.icon;
-                  return (
-                    <TableRow key={doc.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => openEdit(doc)}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2.5">
-                          <Icon className={`w-4 h-4 flex-shrink-0 ${cfg.color}`} />
-                          <div>
-                            <span>{doc.title}</span>
-                            {doc.description && <p className="text-xs text-muted-foreground mt-0.5">{doc.description}</p>}
-                          </div>
-                        </div>
+                {filtered.map((doc) => (
+                  <TableRow key={doc.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => selectMode ? toggleSelect(doc.id, { stopPropagation: () => {} } as any) : setPreviewDoc(doc as Doc)}>
+                    {selectMode && (
+                      <TableCell onClick={(e) => { e.stopPropagation(); toggleSelect(doc.id, e); }}>
+                        {selectedIds.has(doc.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={`rounded-sm capitalize text-xs border ${cfg.border} ${cfg.color} bg-transparent`}>{doc.fileType}</Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
-                      <TableCell>
-                        {doc.encrypted && (
-                          <div className="flex items-center gap-1.5 text-emerald-500 text-xs font-medium">
-                            <Lock className="w-3 h-3" /> Encrypted
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                          <button onClick={() => openEdit(doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                          <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    )}
+                    <TableCell className="font-medium">{doc.title}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs capitalize">{doc.fileType}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {doc.folder ? (
+                        <span className="flex items-center gap-1 text-primary/80">
+                          <Folder className="w-3 h-3" /> {doc.folder}
+                        </span>
+                      ) : "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
+                    <TableCell>{doc.encrypted ? <Lock className="w-3.5 h-3.5 text-emerald-500" /> : null}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => openEdit(doc as Doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-sm">
+                    <TableCell colSpan={7} className="h-28 text-center text-muted-foreground text-sm">
                       {search ? "No documents match your search." : "No documents yet."}
                     </TableCell>
                   </TableRow>
@@ -221,8 +458,52 @@ export default function Vault() {
         </Card>
       )}
 
+      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">Create Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground">Folder Name</Label>
+              <Input value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") createFolder(); }}
+                placeholder="e.g. Tax 2024, Trust Deeds, Insurance"
+                className="bg-muted/30 border-border" autoFocus />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {selectedIds.size} document{selectedIds.size !== 1 ? "s" : ""} will be added to this folder.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNewFolderOpen(false)} className="text-muted-foreground">Cancel</Button>
+            <Button onClick={createFolder} disabled={!newFolderName.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <FolderPlus className="w-4 h-4 mr-2" /> Create Folder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={moveToFolderOpen} onOpenChange={setMoveToFolderOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl">Move to Folder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 mt-2">
+            {folderNames.map((f) => (
+              <button key={f} onClick={() => moveToFolder(f)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/20 border border-border hover:border-primary/40 hover:text-foreground text-sm text-muted-foreground transition-colors">
+                <Folder className="w-4 h-4 text-primary" />
+                {f}
+                <span className="ml-auto text-xs text-muted-foreground/60">{folderMap[f]?.length ?? 0} docs</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Document" : "Add Document"}</DialogTitle>
           </DialogHeader>
@@ -248,19 +529,26 @@ export default function Vault() {
                 <Input type="number" min="1900" max="2100" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="2025" className="bg-muted/30 border-border font-mono" />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground">Folder <span className="text-muted-foreground/50">(optional)</span></Label>
+              <Input value={form.folder} onChange={(e) => setForm({ ...form, folder: e.target.value })}
+                placeholder="e.g. Tax 2024, Insurance, Trust Deeds"
+                list="folder-list"
+                className="bg-muted/30 border-border" />
+              <datalist id="folder-list">
+                {folderNames.map((f) => <option key={f} value={f} />)}
+              </datalist>
+            </div>
             <div className="flex items-center gap-2.5">
               <input id="enc" type="checkbox" checked={form.encrypted} onChange={(e) => setForm({ ...form, encrypted: e.target.checked })} className="w-4 h-4 accent-primary" />
               <Label htmlFor="enc" className="text-sm text-muted-foreground cursor-pointer">Mark as encrypted</Label>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm text-muted-foreground">Document Content <span className="text-muted-foreground/50">(for AI search &amp; RAG)</span></Label>
-              <textarea
-                value={form.ocrText}
-                onChange={(e) => setForm({ ...form, ocrText: e.target.value })}
-                placeholder="Paste document text, key clauses, or extracted OCR content here. Used by AI to answer questions about this document."
+              <Label className="text-sm text-muted-foreground">Document Content <span className="text-muted-foreground/50">(for AI search &amp; preview)</span></Label>
+              <textarea value={form.ocrText} onChange={(e) => setForm({ ...form, ocrText: e.target.value })}
+                placeholder="Paste document text, key clauses, or extracted content here…"
                 rows={4}
-                className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-              />
+                className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
@@ -271,6 +559,10 @@ export default function Vault() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {previewDoc && (
+        <DocumentPreview doc={previewDoc} onClose={() => setPreviewDoc(null)} onSave={handleSaveContent} />
+      )}
     </div>
   );
 }

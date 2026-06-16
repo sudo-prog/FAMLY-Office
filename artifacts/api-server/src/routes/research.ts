@@ -254,4 +254,231 @@ router.delete("/research/components/:id", async (req, res) => {
   } catch { res.status(400).json({ error: "Failed to delete" }); }
 });
 
+// ─── Tools Status ─────────────────────────────────────────────────────────────
+
+router.get("/research/tools/status", async (_req, res) => {
+  const localOnline = await fetch(
+    `${process.env.LOCAL_LLM_URL || "http://localhost:11434/v1"}/models`,
+    { signal: AbortSignal.timeout(2000) }
+  ).then(() => true).catch(() => false);
+
+  res.json({
+    webSearch: {
+      duckduckgo: { available: true, label: "DuckDuckGo", note: "Free · No key required", keyRequired: false },
+      brave:      { available: !!process.env.BRAVE_SEARCH_KEY, label: "Brave Search", note: "Richer results · Fresher data", keyRequired: true, envVar: "BRAVE_SEARCH_KEY" },
+    },
+    github: {
+      available: !!process.env.GITHUB_TOKEN,
+      label: "GitHub",
+      note: "Public repos work without a token. Token unlocks private repos + higher rate limits (5 000 vs 60 req/hr).",
+      keyRequired: false,
+      envVar: "GITHUB_TOKEN",
+    },
+    cloudAI: {
+      available: !!(process.env.CLOUD_AI_KEY || process.env.OPENAI_API_KEY),
+      label: "Cloud AI",
+      note: process.env.CLOUD_AI_URL ? "Custom endpoint" : "OpenAI",
+      keyRequired: true,
+      envVar: "CLOUD_AI_KEY",
+      model: process.env.CLOUD_AI_MODEL || "gpt-4o-mini",
+    },
+    localAI: {
+      available: !!process.env.LOCAL_LLM_URL,
+      online: localOnline,
+      label: "Local AI (Ollama)",
+      note: "Full portfolio context · 100% private · Zero data leaves device",
+      keyRequired: false,
+      envVar: "LOCAL_LLM_URL",
+      url: process.env.LOCAL_LLM_URL || "http://localhost:11434/v1",
+      model: process.env.LOCAL_LLM_MODEL || "llama3.2",
+    },
+  });
+});
+
+// ─── GitHub Analysis ──────────────────────────────────────────────────────────
+
+function parseGitHubUrl(url: string): { owner: string; repo: string } | null {
+  const match = url.trim().match(/github\.com\/([^/]+)\/([^/\s?#]+)/);
+  if (!match) return null;
+  return { owner: match[1], repo: match[2].replace(/\.git$/, "") };
+}
+
+async function ghFetch(path: string, token?: string): Promise<any> {
+  const headers: Record<string, string> = {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "FamilyOfficeWealthOS/1.0",
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`https://api.github.com${path}`, { headers, signal: AbortSignal.timeout(10000) });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+router.post("/research/github", async (req, res) => {
+  const { repoUrl, depth = "standard", focus = [] } = req.body as {
+    repoUrl: string; depth: string; focus: string[];
+  };
+
+  const parsed = parseGitHubUrl(repoUrl);
+  if (!parsed) return res.status(400).json({ error: "Invalid GitHub URL. Use format: https://github.com/owner/repo" });
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+
+  const { owner, repo } = parsed;
+  const token = process.env.GITHUB_TOKEN;
+
+  sse(res, { type: "step", step: "init", message: `Connecting to GitHub API for ${owner}/${repo}…` });
+
+  const gh = (path: string) => ghFetch(path, token);
+
+  // Fetch core repo data
+  sse(res, { type: "step", step: "metadata", message: "Fetching repository metadata…" });
+  const [repoData, languages, contributors] = await Promise.all([
+    gh(`/repos/${owner}/${repo}`),
+    gh(`/repos/${owner}/${repo}/languages`),
+    gh(`/repos/${owner}/${repo}/contributors?per_page=10&anon=false`),
+  ]);
+
+  if (!repoData) {
+    sse(res, { type: "error", error: "Repository not found or access denied. For private repos, add a GITHUB_TOKEN secret." });
+    return res.end();
+  }
+
+  sse(res, { type: "repo", data: {
+    name: repoData.full_name,
+    description: repoData.description,
+    stars: repoData.stargazers_count,
+    forks: repoData.forks_count,
+    language: repoData.language,
+    license: repoData.license?.name,
+    openIssues: repoData.open_issues_count,
+    createdAt: repoData.created_at,
+    pushedAt: repoData.pushed_at,
+    size: repoData.size,
+    topics: repoData.topics,
+    languages: languages ?? {},
+  }});
+
+  sse(res, { type: "step", step: "content", message: "Fetching README, commits, and issues…" });
+  const [readmeRes, commits, issues, releases, pkgRes, workflowsRes] = await Promise.all([
+    gh(`/repos/${owner}/${repo}/readme`),
+    gh(`/repos/${owner}/${repo}/commits?per_page=15`),
+    gh(`/repos/${owner}/${repo}/issues?state=open&per_page=10`),
+    gh(`/repos/${owner}/${repo}/releases?per_page=5`),
+    gh(`/repos/${owner}/${repo}/contents/package.json`),
+    gh(`/repos/${owner}/${repo}/actions/workflows`),
+  ]);
+
+  const readme = readmeRes?.content
+    ? Buffer.from(readmeRes.content.replace(/\n/g, ""), "base64").toString("utf-8").slice(0, 4000)
+    : "";
+
+  let pkg: any = null;
+  if (pkgRes?.content) {
+    try { pkg = JSON.parse(Buffer.from(pkgRes.content.replace(/\n/g, ""), "base64").toString("utf-8")); } catch {}
+  }
+
+  sse(res, { type: "step", step: "analyzing", message: "AI is analysing the repository…" });
+
+  const totalLangBytes = Object.values(languages ?? {}).reduce((s: number, v: any) => s + v, 0) as number;
+  const langBreakdown = Object.entries(languages ?? {})
+    .sort(([, a]: any, [, b]: any) => b - a)
+    .map(([lang, bytes]: any) => `${lang}: ${((bytes / totalLangBytes) * 100).toFixed(1)}%`)
+    .join(", ");
+
+  const focusInstructions = focus.length > 0
+    ? `Focus especially on: ${focus.join(", ")}.`
+    : "Provide a balanced analysis covering architecture, code quality, dependencies, and integration opportunities.";
+
+  const depthInstr = depth === "deep"
+    ? `Write a COMPREHENSIVE Deep Analysis with ALL sections:
+## Repository Overview
+## Architecture & Code Structure
+## Technology Stack Analysis
+## Language Breakdown
+## Dependencies & Security Assessment
+## Code Quality Indicators
+## Recent Activity & Team Dynamics
+## Open Issues & Pain Points
+## Integration Opportunities
+Detailed table:
+| Integration Point | Effort | Value | Priority |
+|---|---|---|---|
+| ... | ... | ... | ... |
+## Recommended Integration Plan (step-by-step)
+## Component Extraction Opportunities (React/UI components that could be adapted)
+## Security & Risk Assessment
+## Strategic Recommendations`
+    : depth === "quick"
+    ? "Write a concise 3–4 paragraph Quick Summary covering: what the repo does, tech stack, key strengths/weaknesses, and integration value."
+    : `Write a Standard Report with sections:
+## Repository Overview
+## Technology Stack
+## Architecture Assessment
+## Integration Opportunities
+## Security & Dependencies
+## Recommendations`;
+
+  const systemPrompt = `You are a world-class software architect and technical analyst embedded in a private Australian Family Office system.
+
+GITHUB REPOSITORY: ${owner}/${repo}
+URL: https://github.com/${owner}/${repo}
+Description: ${repoData.description || "No description"}
+Primary Language: ${repoData.language || "Unknown"}
+Stars: ${repoData.stargazers_count?.toLocaleString()} | Forks: ${repoData.forks_count?.toLocaleString()} | Open Issues: ${repoData.open_issues_count}
+Created: ${new Date(repoData.created_at).toLocaleDateString("en-AU")} | Last pushed: ${new Date(repoData.pushed_at).toLocaleDateString("en-AU")}
+Size: ${Math.round((repoData.size ?? 0) / 1024)} MB
+License: ${repoData.license?.name || "None"}
+Topics: ${(repoData.topics ?? []).join(", ") || "None"}
+CI/CD: ${workflowsRes?.total_count > 0 ? `${workflowsRes.total_count} workflow(s)` : "None detected"}
+
+LANGUAGE BREAKDOWN: ${langBreakdown || "Unknown"}
+
+TOP CONTRIBUTORS:
+${(contributors ?? []).slice(0, 5).map((c: any) => `  ${c.login}: ${c.contributions} commits`).join("\n")}
+
+RECENT COMMITS (last ${(commits ?? []).length}):
+${(commits ?? []).slice(0, 10).map((c: any) => `  ${c.commit?.author?.date?.slice(0, 10)} | ${c.commit?.message?.split("\n")[0]?.slice(0, 80)} [${c.commit?.author?.name}]`).join("\n")}
+
+OPEN ISSUES (${(issues ?? []).length} shown):
+${(issues ?? []).slice(0, 8).map((i: any) => `  #${i.number}: ${i.title} [${(i.labels ?? []).map((l: any) => l.name).join(", ") || "no labels"}]`).join("\n")}
+
+LATEST RELEASES: ${(releases ?? []).map((r: any) => r.tag_name).join(", ") || "None"}
+
+${pkg ? `PACKAGE.JSON:
+  Name: ${pkg.name} v${pkg.version}
+  Dependencies: ${Object.keys(pkg.dependencies ?? {}).slice(0, 20).join(", ")}
+  Dev Dependencies: ${Object.keys(pkg.devDependencies ?? {}).slice(0, 10).join(", ")}
+  Scripts: ${Object.keys(pkg.scripts ?? {}).join(", ")}` : ""}
+
+README (first 4000 chars):
+${readme || "No README found."}
+
+ANALYSIS INSTRUCTIONS: ${focusInstructions}
+
+${depthInstr}
+
+FORMAT: Use markdown headers, tables, bullet points. Be specific, cite actual repo details, and provide actionable recommendations. Where relevant, suggest how this repo could be integrated into or inspire components for a dark premium (Bloomberg-meets-Apple) Australian Family Office wealth management PWA.`;
+
+  const useCloud = !!(process.env.CLOUD_AI_KEY || process.env.OPENAI_API_KEY);
+  if (useCloud) {
+    await streamCloudLLM([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Analyse this GitHub repository: https://github.com/${owner}/${repo}` },
+    ], res);
+  } else {
+    await streamLocalLLM(
+      [{ role: "user", content: `Analyse this GitHub repository: https://github.com/${owner}/${repo}` }],
+      systemPrompt, res
+    );
+  }
+
+  sse(res, { type: "done" });
+  if (!res.writableEnded) res.end();
+});
+
 export default router;

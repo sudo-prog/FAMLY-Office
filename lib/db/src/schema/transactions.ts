@@ -14,6 +14,7 @@ export const transactionsTable = pgTable("transactions", {
   assetId: integer("asset_id"),
   entityId: integer("entity_id"),
   taxDeductible: boolean("tax_deductible").notNull().default(false),
+  taxTag: text("tax_tag"),
   tags: text("tags"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

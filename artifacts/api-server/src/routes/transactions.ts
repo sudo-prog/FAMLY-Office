@@ -99,6 +99,7 @@ function formatTransaction(t: typeof transactionsTable.$inferSelect) {
     assetId: t.assetId ?? null,
     entityId: t.entityId ?? null,
     taxDeductible: t.taxDeductible,
+    taxTag: (t as any).taxTag ?? null,
     tags: t.tags ?? null,
     createdAt: t.createdAt.toISOString(),
   };

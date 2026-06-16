@@ -4,7 +4,7 @@ import { useListAssets, useListTransactions } from "@workspace/api-client-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2 } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 
 function fmt(v: number) {
@@ -28,6 +28,12 @@ export default function Settings() {
   const [exportDone, setExportDone] = useState(false);
   const [purging, setPurging] = useState(false);
   const [purgeError, setPurgeError] = useState("");
+  const [aiStatus, setAiStatus] = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetch("/api/ai/status").then(r => r.json()).then(d => { setAiStatus(d); setAiLoading(false); }).catch(() => setAiLoading(false));
+  }, []);
 
   function handleCurrencyChange(c: Currency) {
     setCurrencyState(c);
@@ -129,6 +135,86 @@ export default function Settings() {
               <span className="text-xs font-mono bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded flex-shrink-0 ml-4">{item.badge}</span>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Shield className="w-4 h-4 text-primary" />
+            AI Configuration — Zero-Trust
+          </CardTitle>
+          <CardDescription className="text-sm">Local LLM handles all sensitive financial data. Cloud AI is research-only with automatic sanitization.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {aiLoading ? (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" /> Checking AI status…
+            </div>
+          ) : (
+            <>
+              <div className="p-4 border border-border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-emerald-500" />
+                    <span className="font-medium text-sm">Local LLM (Ollama)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${aiStatus?.local?.online ? "bg-emerald-500" : "bg-muted"}`} />
+                    <span className={`text-xs font-mono ${aiStatus?.local?.online ? "text-emerald-500" : "text-muted-foreground"}`}>
+                      {aiStatus?.local?.online ? "ONLINE" : "OFFLINE"}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p><strong className="text-foreground">URL:</strong> <code className="bg-muted px-1 rounded">{aiStatus?.local?.url}</code> — set via <code className="bg-muted px-1 rounded">LOCAL_LLM_URL</code> secret</p>
+                  <p><strong className="text-foreground">Model:</strong> <code className="bg-muted px-1 rounded">{aiStatus?.local?.model}</code> — set via <code className="bg-muted px-1 rounded">LOCAL_LLM_MODEL</code> secret</p>
+                  {aiStatus?.local?.availableModels?.length > 0 && (
+                    <p><strong className="text-foreground">Available:</strong> {aiStatus.local.availableModels.join(", ")}</p>
+                  )}
+                  {!aiStatus?.local?.online && (
+                    <div className="mt-2 p-3 bg-muted/20 rounded border border-border space-y-1.5">
+                      <p className="font-medium text-foreground">Setup guide:</p>
+                      <p>1. Install: <code className="bg-muted px-1 rounded text-[10px]">brew install ollama</code> or visit <span className="text-primary">ollama.com</span></p>
+                      <p>2. Run a model: <code className="bg-muted px-1 rounded text-[10px]">ollama run llama3.2</code></p>
+                      <p>3. Add secret <code className="bg-muted px-1 rounded text-[10px]">LOCAL_LLM_URL</code> = your Ollama endpoint</p>
+                      <p className="text-muted-foreground/70">For remote access: expose via ngrok or deploy on a VPS alongside your app.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 border border-border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Cloud className="w-4 h-4 text-blue-400" />
+                    <span className="font-medium text-sm">Cloud AI (Research Only)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${aiStatus?.cloud?.configured ? "bg-blue-400" : "bg-muted"}`} />
+                    <span className={`text-xs font-mono ${aiStatus?.cloud?.configured ? "text-blue-400" : "text-muted-foreground"}`}>
+                      {aiStatus?.cloud?.configured ? "CONFIGURED" : "NOT SET"}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p><strong className="text-foreground">Model:</strong> <code className="bg-muted px-1 rounded">{aiStatus?.cloud?.model}</code> — set via <code className="bg-muted px-1 rounded">CLOUD_AI_MODEL</code> secret</p>
+                  {!aiStatus?.cloud?.configured && (
+                    <p>Add <code className="bg-muted px-1 rounded">CLOUD_AI_KEY</code> secret (OpenAI API key) to enable research queries.</p>
+                  )}
+                  {aiStatus?.cloud?.configured && (
+                    <p className="text-amber-500/80">⚠ Only sanitized, non-sensitive research queries are ever routed to cloud AI.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-3 bg-muted/10 border border-border rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">Zero-Trust Policy:</strong> Portfolio values, asset names, entity details, transactions, and document content are <strong className="text-foreground">never</strong> sent to cloud AI. The auto-classifier routes all sensitive queries to local only. Force local mode in the AI widget at any time.
+                </p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

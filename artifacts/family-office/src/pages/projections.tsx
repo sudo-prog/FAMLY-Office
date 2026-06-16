@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useListAssets, useGetDashboardSummary } from "@workspace/api-client-react";
+import { AIPanel } from "@/components/ai-panel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { TrendingUp, Info } from "lucide-react";
+import { TrendingUp, Info, Sparkles } from "lucide-react";
 
 const SCENARIOS = {
   conservative: { label: "Conservative", color: "text-blue-400", rates: { bank_account: 0.045, property: 0.04, investment: 0.06, crypto: 0.05, superannuation: 0.06, business: 0.05, bond: 0.04, other: 0.04 } },
@@ -49,6 +50,7 @@ export default function Projections() {
   const { data: summary } = useGetDashboardSummary();
   const [scenario, setScenario] = useState<ScenarioKey>("moderate");
   const [customRates, setCustomRates] = useState<Record<string, number>>({});
+  const [aiOpen, setAiOpen] = useState(false);
 
   const categories = useMemo(() => {
     const cats: Record<string, number> = {};
@@ -111,7 +113,11 @@ export default function Projections() {
             10-year compound growth model across {Object.keys(categories).length} asset categories.
           </p>
         </div>
-        <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-md p-1">
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+            <Sparkles className="w-4 h-4" /> AI Analyze
+          </Button>
+          <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-md p-1">
           {(Object.keys(SCENARIOS) as ScenarioKey[]).map((s) => (
             <button key={s} onClick={() => setScenario(s)}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
@@ -120,8 +126,23 @@ export default function Projections() {
               {SCENARIOS[s].label}
             </button>
           ))}
+          </div>
         </div>
       </div>
+
+      <AIPanel
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        title="Projections Analysis"
+        suggestions={[
+          `Analyze my ${SCENARIOS[scenario].label.toLowerCase()} scenario — are the growth rates realistic?`,
+          "What are the key risks to my 10-year projections?",
+          "Which asset category is driving the most growth and is it sustainable?",
+          "How should I adjust my portfolio to reach a specific net worth target?",
+          "What inflation and tax drag should I apply to my real return estimates?",
+          "Compare my projected growth to typical Australian family office benchmarks",
+        ]}
+      />
 
       <div className="grid grid-cols-3 gap-4">
         <Card className="bg-card border-border">

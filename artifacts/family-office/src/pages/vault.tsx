@@ -28,8 +28,8 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bord
   other:       { icon: File,        color: "text-muted-foreground", border: "border-border", bg: "bg-muted/10" },
 };
 
-type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean };
-const emptyForm: DocForm = { title: "", description: "", fileType: "pdf", year: curYear, encrypted: true };
+type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean; ocrText: string };
+const emptyForm: DocForm = { title: "", description: "", fileType: "pdf", year: curYear, encrypted: true, ocrText: "" };
 type ViewMode = "canvas" | "list";
 
 export default function Vault() {
@@ -56,7 +56,7 @@ export default function Vault() {
   function openAdd() { setEditId(null); setForm(emptyForm); setOpen(true); }
   function openEdit(d: NonNullable<typeof documents>[number]) {
     setEditId(d.id);
-    setForm({ title: d.title, description: d.description ?? "", fileType: d.fileType, year: d.year ? String(d.year) : "", encrypted: d.encrypted });
+    setForm({ title: d.title, description: d.description ?? "", fileType: d.fileType, year: d.year ? String(d.year) : "", encrypted: d.encrypted, ocrText: d.ocrText ?? "" });
     setOpen(true);
   }
 
@@ -65,7 +65,7 @@ export default function Vault() {
     if (!form.title) return;
     setSaving(true);
     try {
-      const payload = { title: form.title, description: form.description || undefined, fileType: form.fileType as any, year: form.year ? parseInt(form.year) : undefined, encrypted: form.encrypted };
+      const payload = { title: form.title, description: form.description || undefined, fileType: form.fileType as any, year: form.year ? parseInt(form.year) : undefined, encrypted: form.encrypted, ocrText: form.ocrText || undefined };
       if (editId !== null) await updateDoc.mutateAsync({ id: editId, data: payload as any });
       else await createDoc.mutateAsync(payload as any);
       await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
@@ -251,6 +251,16 @@ export default function Vault() {
             <div className="flex items-center gap-2.5">
               <input id="enc" type="checkbox" checked={form.encrypted} onChange={(e) => setForm({ ...form, encrypted: e.target.checked })} className="w-4 h-4 accent-primary" />
               <Label htmlFor="enc" className="text-sm text-muted-foreground cursor-pointer">Mark as encrypted</Label>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm text-muted-foreground">Document Content <span className="text-muted-foreground/50">(for AI search &amp; RAG)</span></Label>
+              <textarea
+                value={form.ocrText}
+                onChange={(e) => setForm({ ...form, ocrText: e.target.value })}
+                placeholder="Paste document text, key clauses, or extracted OCR content here. Used by AI to answer questions about this document."
+                rows={4}
+                className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              />
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>

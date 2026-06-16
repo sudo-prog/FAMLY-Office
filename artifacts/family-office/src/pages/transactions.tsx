@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Sparkles } from "lucide-react";
+import { AIPanel } from "@/components/ai-panel";
 
 const CATEGORIES = [
   "salary", "dividend", "rental", "interest", "investment",
@@ -49,6 +50,7 @@ export default function Transactions() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<TxForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const filtered = (transactions ?? []).filter((tx) => {
     const matchType = typeFilter === "all" || tx.type === typeFilter;
@@ -109,9 +111,14 @@ export default function Transactions() {
             <span className="text-muted-foreground"> expenses</span>
           </p>
         </div>
-        <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> New Transaction
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setAiOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+            <Sparkles className="w-4 h-4" /> AI Insights
+          </Button>
+          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="w-4 h-4" /> New Transaction
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3">
@@ -182,6 +189,20 @@ export default function Transactions() {
           </Table>
         </div>
       </Card>
+
+      <AIPanel
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+        title="Transaction Insights"
+        suggestions={[
+          "Analyze my spending patterns over the past 12 months",
+          "Which expense categories have the highest tax deductible potential?",
+          "Identify unusual or recurring transactions worth reviewing",
+          "What is my net cash flow trend and is it improving?",
+          "Summarize all tax-deductible expenses for this financial year",
+          "Flag any transactions that look like they could be categorized differently",
+        ]}
+      />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
         <DialogContent className="bg-card border-border max-w-md">

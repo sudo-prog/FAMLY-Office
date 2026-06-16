@@ -85,6 +85,19 @@ router.post("/ai/chat", async (req, res) => {
     const byCategory: Record<string, number> = {};
     assets.forEach((a) => { byCategory[a.category] = (byCategory[a.category] ?? 0) + Number(a.value); });
 
+    // RAG: keyword-match documents with ocrText content
+    const queryWords = message.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+    const ragDocs = queryWords.length > 0
+      ? documents.filter((d) => {
+          if (!d.ocrText) return false;
+          const lower = d.ocrText.toLowerCase();
+          return queryWords.some((w) => lower.includes(w));
+        }).slice(0, 3)
+      : [];
+    const docRAGSection = ragDocs.length > 0
+      ? `\nRAG — MATCHED DOCUMENT CONTENT:\n${ragDocs.map((d) => `[${d.title}]:\n${d.ocrText!.slice(0, 1500)}`).join("\n\n")}\n`
+      : "";
+
     const system = `You are a world-class sovereign wealth management AI embedded in a private Family Office system. All data is local and confidential.
 
 PORTFOLIO SNAPSHOT:
@@ -109,8 +122,8 @@ RECENT TRANSACTIONS:
 ${recentTx.slice(0, 15).map((t) => `  ${t.date} | ${t.type.toUpperCase()} | ${t.description} | $${Number(t.amount).toLocaleString()}${t.taxDeductible ? " [TAX DEDUCTIBLE]" : ""}`).join("\n")}
 
 DOCUMENT VAULT: ${documents.length} documents
-${documents.map((d) => `  ${d.title} (${d.fileType}, ${d.year ?? "undated"})${d.encrypted ? " [ENCRYPTED]" : ""}`).join("\n")}
-
+${documents.map((d) => `  ${d.title} (${d.fileType}, ${d.year ?? "undated"})${d.encrypted ? " [ENCRYPTED]" : ""}${d.ocrText ? " [has content]" : ""}`).join("\n")}
+${docRAGSection}
 ${documentText ? `\nUSER UPLOADED DOCUMENT:\n${documentText.slice(0, 6000)}\n` : ""}
 
 Guidelines:

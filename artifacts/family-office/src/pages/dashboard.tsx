@@ -644,6 +644,21 @@ export default function Dashboard() {
 
   const { data: summary } = useGetDashboardSummary();
   const { data: history } = useGetNetWorthHistory();
+  const [snapHistory, setSnapHistory] = useState<{ month: string; value: number }[]>([]);
+
+  useEffect(() => {
+    async function captureAndFetch() {
+      try {
+        await fetch(`${BASE_URL}/api/snapshots/record`, { method: "POST" });
+        const res = await fetch(`${BASE_URL}/api/snapshots`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) setSnapHistory(data);
+        }
+      } catch {}
+    }
+    captureAndFetch();
+  }, []);
   const { data: cashFlow } = useGetCashFlow();
   const { data: byCategory } = useGetAssetsByCategory();
   const { data: recentTx } = useGetRecentTransactions();
@@ -682,7 +697,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-3 gap-4">
         {activeWidgets.map((id) => {
           switch (id) {
-            case "net-worth": return <NetWorthWidget key={id} summary={summary} history={history ?? []} />;
+            case "net-worth": return <NetWorthWidget key={id} summary={summary} history={snapHistory.length >= 2 ? snapHistory : (history ?? [])} />;
             case "asset-stats": return <AssetStatsWidget key={id} summary={summary} />;
             case "allocation": return <AllocationWidget key={id} byCategory={byCategory ?? []} />;
             case "cash-flow": return <CashFlowWidget key={id} cashFlow={cashFlow ?? []} summary={summary} />;

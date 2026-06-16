@@ -14,7 +14,9 @@ import {
   Gem, Leaf, Landmark, Flame, DollarSign, ChevronDown, ChevronUp,
   Briefcase, ChevronRight, Play, Github, Star, GitFork, Code2,
   Bug, Package, GitBranch, Users, Cpu, AlertCircle, CheckCircle2,
-  ArrowRight,
+  ArrowRight, Lightbulb, Target, PieChart, Rocket, Award, Search,
+  FileText, ClipboardList, BadgeDollarSign, HandCoins, Building,
+  RefreshCw, Plus, Minus, ChevronLeft,
 } from "lucide-react";
 
 const BASE = (import.meta.env.BASE_URL ?? "").replace(/\/$/, "");
@@ -28,7 +30,7 @@ type ResearchReport = {
   webSearched: boolean; createdAt: string;
 };
 type Component = { id: number; name: string; description: string; code: string; createdAt: string };
-type Tab = "research" | "reports" | "github" | "builder";
+type Tab = "research" | "reports" | "github" | "bizplan" | "grants" | "builder";
 
 // ─── Config ────────────────────────────────────────────────────────────────────
 
@@ -867,11 +869,597 @@ function GitHubPanel({ onSendToBuilder }: { onSendToBuilder: (desc: string) => v
   );
 }
 
+// ─── Business Plan Generator ──────────────────────────────────────────────────
+
+const BIZ_STAGES = ["Pre-idea", "Idea / Concept", "MVP / Prototype", "Early Revenue", "Growth", "Scale-up", "Established"];
+const BIZ_INDUSTRIES = [
+  "FinTech", "PropTech", "HealthTech", "EdTech", "SaaS / B2B Software",
+  "E-Commerce / Retail", "AI / Machine Learning", "CleanTech / GreenTech",
+  "AgriTech", "Logistics / Supply Chain", "Media / Content", "Biotech / MedTech",
+  "Cybersecurity", "Legal Tech", "HR Tech", "Marketplace", "Hardware / IoT",
+  "Professional Services", "Food & Beverage", "Other",
+];
+
+function usePlanStream() {
+  const [phase, setPhase] = useState<"idle"|"running"|"done"|"error">("idle");
+  const [steps, setSteps] = useState<{step: string; message: string}[]>([]);
+  const [text, setText] = useState("");
+  const [sources, setSources] = useState<Source[]>([]);
+  const [err, setErr] = useState<string|null>(null);
+  const ctrl = useRef<AbortController|null>(null);
+
+  const run = useCallback(async (endpoint: string, params: object) => {
+    setText(""); setSteps([]); setSources([]); setErr(null);
+    setPhase("running");
+    ctrl.current = new AbortController();
+    try {
+      await readSSE(`${BASE}${endpoint}`, params, ctrl.current.signal, (data) => {
+        if (data.type === "step")    setSteps(s => [...s, { step: data.step, message: data.message }]);
+        else if (data.type === "sources") setSources(data.sources ?? []);
+        else if (data.type === "done")    setPhase("done");
+        else if (data.type === "error" || data.error) { setErr(data.error); setPhase("error"); }
+        else if (data.choices?.[0]?.delta?.content)   setText(t => t + data.choices[0].delta.content);
+      });
+      setPhase(p => p === "running" ? "done" : p);
+    } catch (e: any) {
+      if (e.name !== "AbortError") { setErr(e.message); setPhase("error"); }
+      else setPhase("idle");
+    }
+  }, []);
+
+  const stop  = useCallback(() => { ctrl.current?.abort(); setPhase("idle"); }, []);
+  const reset = useCallback(() => { ctrl.current?.abort(); setText(""); setSteps([]); setSources([]); setErr(null); setPhase("idle"); }, []);
+  return { phase, steps, text, sources, err, run, stop, reset };
+}
+
+function BusinessPlanPanel() {
+  const [mode, setMode] = useState<"executive"|"full">("executive");
+  const [step, setStep] = useState<"form"|"result">("form");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<number|null>(null);
+  const [saveTitle, setSaveTitle] = useState("");
+  const saveReport = useSaveReport();
+
+  const [form, setForm] = useState({
+    businessName: "", description: "", industry: "SaaS / B2B Software", stage: "MVP / Prototype",
+    problem: "", solution: "", revenueModel: "", targetMarket: "", competitors: "",
+    traction: "", teamSize: "2-5", teamBackground: "", fundingAsk: "", useOfFunds: "",
+    includeResearch: true,
+  });
+
+  const { phase, steps, text, sources, err, run, stop, reset } = usePlanStream();
+  const isRunning = phase === "running";
+  const isDone    = phase === "done";
+
+  function set(k: string, v: any) { setForm(f => ({ ...f, [k]: v })); }
+
+  async function handleGenerate() {
+    if (!form.businessName.trim() || !form.description.trim()) return;
+    setSavedId(null); setSaveTitle("");
+    await run("/api/research/business-plan", { ...form, mode });
+    setStep("result");
+  }
+
+  async function handleSave() {
+    if (!text) return;
+    setSaving(true);
+    const title = saveTitle.trim() || `${form.businessName} — ${mode === "executive" ? "Executive Summary" : "Full Business Plan"}`;
+    try {
+      const r = await saveReport.mutateAsync({ title, query: `Business plan: ${form.businessName}`, depth: mode, report: text, summary: text.slice(0, 400), sources, portfolioIncluded: false, webSearched: form.includeResearch });
+      setSavedId(r.id);
+    } finally { setSaving(false); }
+  }
+
+  const InputRow = ({ label, k, placeholder, textarea }: { label: string; k: string; placeholder: string; textarea?: boolean }) => (
+    <div>
+      <label className="block text-xs font-medium text-muted-foreground mb-1">{label}</label>
+      {textarea
+        ? <textarea value={(form as any)[k]} onChange={e => set(k, e.target.value)} placeholder={placeholder} rows={2}
+            className="w-full px-3 py-2 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+        : <input value={(form as any)[k]} onChange={e => set(k, e.target.value)} placeholder={placeholder}
+            className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+      }
+    </div>
+  );
+
+  if (step === "result" || isRunning) return (
+    <div className="space-y-5">
+      {/* Header bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => { reset(); setStep("form"); setSavedId(null); }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="w-3.5 h-3.5" /> Back
+          </button>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
+              {mode === "executive" ? <FileText className="w-3 h-3 text-primary" /> : <ClipboardList className="w-3 h-3 text-primary" />}
+            </div>
+            <span className="text-sm font-medium text-foreground">{form.businessName || "Business Plan"}</span>
+            <Badge variant="outline" className={`text-[10px] border-border ${mode === "executive" ? "text-emerald-400 border-emerald-400/30" : "text-purple-400 border-purple-400/30"}`}>
+              {mode === "executive" ? "Executive Summary" : "Full VC-Grade Plan"}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {isRunning && <button onClick={stop} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/60 text-destructive hover:bg-destructive/10 text-xs transition-colors"><StopCircle className="w-3 h-3" /> Stop</button>}
+          {isDone && !savedId && (
+            <>
+              <input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…"
+                className="h-7 w-40 px-2 text-xs rounded-md border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:outline-none" />
+              <button onClick={handleSave} disabled={saving}
+                className="flex items-center gap-1 h-7 px-2.5 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
+              </button>
+            </>
+          )}
+          {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
+        </div>
+      </div>
+
+      {/* Progress */}
+      {steps.length > 0 && (
+        <div className="space-y-1.5 px-1">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${i < steps.length - 1 ? "bg-emerald-500" : isRunning ? "bg-primary animate-pulse" : "bg-emerald-500"}`} />
+              {s.message}
+            </div>
+          ))}
+          {isRunning && <div className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 text-primary animate-spin" /><span className="text-xs text-muted-foreground italic">{text ? "Writing plan…" : "Researching market…"}</span></div>}
+        </div>
+      )}
+
+      {err && (
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm text-destructive">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div><p className="font-medium">Generation failed</p><p className="text-xs mt-0.5 opacity-80">{err}</p></div>
+        </div>
+      )}
+
+      {/* Sources */}
+      {sources.length > 0 && !isRunning && (
+        <div className="flex flex-wrap gap-1.5">
+          {sources.slice(0, 6).map((s, i) => (
+            <a key={i} href={s.url} target="_blank" rel="noreferrer"
+              className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors max-w-[200px] truncate">
+              <Globe className="w-2.5 h-2.5 shrink-0" />{s.title.slice(0, 30)}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Document */}
+      {text && (
+        <div className="bg-card border border-border rounded-xl p-6">
+          <MarkdownReport content={text} />
+          {isRunning && <span className="inline-block w-1.5 h-4 bg-primary/80 animate-pulse ml-1 rounded-sm align-middle" />}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Hero */}
+      <div className="text-center py-4">
+        <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
+          <Rocket className="w-7 h-7 text-primary" />
+        </div>
+        <h2 className="text-2xl font-serif text-foreground mb-1">Business Plan Generator</h2>
+        <p className="text-muted-foreground text-sm max-w-lg mx-auto">AI-powered, research-backed business plans that meet the standard of the world's top VC firms. From 1-page executive summaries to full investment-committee ready documents.</p>
+      </div>
+
+      {/* Mode selector */}
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { id: "executive" as const, icon: FileText, label: "Executive Summary", badge: "1-Page", desc: "Investor-ready 1-pager with key metrics, unit economics, funding ask, and market data. Perfect for initial outreach and warm intros.", color: "emerald" },
+          { id: "full" as const, icon: ClipboardList, label: "Full Business Plan", badge: "VC-Grade", desc: "Complete 13-section document: market analysis, 5-year financials, competitive matrix, risk assessment, GTM strategy, and exit planning.", color: "purple" },
+        ].map(m => (
+          <button key={m.id} onClick={() => setMode(m.id)}
+            className={`p-4 rounded-xl border text-left transition-all ${mode === m.id ? `border-primary bg-primary/10` : "border-border hover:bg-muted/20"}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${mode === m.id ? "bg-primary/20" : "bg-muted/40"}`}>
+                <m.icon className={`w-3.5 h-3.5 ${mode === m.id ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <span className={`text-sm font-semibold ${mode === m.id ? "text-foreground" : "text-muted-foreground"}`}>{m.label}</span>
+              <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded-full border ${mode === m.id ? `border-primary/40 bg-primary/10 text-primary` : "border-border bg-muted/20 text-muted-foreground"}`}>{m.badge}</span>
+            </div>
+            <p className={`text-xs leading-relaxed ${mode === m.id ? "text-muted-foreground" : "text-muted-foreground/60"}`}>{m.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Form */}
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Building className="w-3.5 h-3.5 text-primary" /> Business Details
+        </h3>
+
+        <div className="grid grid-cols-2 gap-3">
+          <InputRow label="Business / Startup Name *" k="businessName" placeholder="e.g. Acme AI" />
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Industry *</label>
+            <select value={form.industry} onChange={e => set("industry", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {BIZ_INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <InputRow label="Business Description *" k="description" placeholder="What does your business do? What's the core product or service?" textarea />
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Stage</label>
+            <select value={form.stage} onChange={e => set("stage", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {BIZ_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <InputRow label="Funding Ask" k="fundingAsk" placeholder="e.g. $500K, $2M Seed" />
+        </div>
+
+        <InputRow label="Problem Being Solved" k="problem" placeholder="What specific pain point or problem does your business solve?" textarea />
+        <InputRow label="Solution / Product" k="solution" placeholder="How does your product/service solve this problem? What's unique about it?" textarea />
+
+        <div className="grid grid-cols-2 gap-3">
+          <InputRow label="Revenue Model" k="revenueModel" placeholder="e.g. SaaS subscription, marketplace commission, licensing" />
+          <InputRow label="Target Market" k="targetMarket" placeholder="e.g. SMEs in Australia, enterprise HR departments" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <InputRow label="Traction / Validation" k="traction" placeholder="e.g. 50 paying customers, $30K MRR, LOIs from 3 enterprise clients" />
+          <InputRow label="Key Competitors" k="competitors" placeholder="e.g. Salesforce, HubSpot, local startup XYZ" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <InputRow label="Team Size" k="teamSize" placeholder="e.g. 3 co-founders" />
+          <InputRow label="Team Background" k="teamBackground" placeholder="e.g. Ex-Google CTO, 10yr finance background" />
+        </div>
+
+        <InputRow label="Use of Funds" k="useOfFunds" placeholder="e.g. 60% product dev, 30% sales & marketing, 10% ops" />
+
+        <div className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/10">
+          <button onClick={() => set("includeResearch", !form.includeResearch)}
+            className={`w-8 h-4 rounded-full transition-colors relative ${form.includeResearch ? "bg-primary" : "bg-muted/60"}`}>
+            <div className={`w-3 h-3 rounded-full bg-white absolute top-0.5 transition-all ${form.includeResearch ? "left-4" : "left-0.5"}`} />
+          </button>
+          <span className="text-xs text-muted-foreground">Include live market research (searches current TAM data, competitor analysis, VC funding trends)</span>
+        </div>
+      </div>
+
+      <button onClick={handleGenerate} disabled={!form.businessName.trim() || !form.description.trim()}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:opacity-40">
+        <Sparkles className="w-4 h-4" />
+        Generate {mode === "executive" ? "Executive Summary" : "Full Business Plan"}
+      </button>
+    </div>
+  );
+}
+
+// ─── Grant Research & Proposal Panel ─────────────────────────────────────────
+
+const GRANT_INDUSTRIES = [
+  "Technology / SaaS", "Manufacturing", "Agriculture / AgriTech", "Clean Energy / GreenTech",
+  "HealthTech / Biotech", "Export / International Trade", "Education", "Creative Industries",
+  "Social Enterprise", "Mining / Resources", "Construction", "Food & Beverage",
+  "Professional Services", "Tourism", "Transport / Logistics", "Cybersecurity", "AI / ML", "Other",
+];
+const GRANT_STAGES = ["Pre-revenue", "Early Stage (<$500K revenue)", "Growth ($500K–$5M revenue)", "Established (>$5M revenue)"];
+const GRANT_TYPES = ["Any", "Government Grants", "R&D / Innovation", "Export Grants", "Employment / Jobs", "Equity Free / Non-dilutive", "State / Territory", "Federal", "Private / Corporate"];
+const LOCATIONS = ["New South Wales", "Victoria", "Queensland", "South Australia", "Western Australia", "Tasmania", "ACT", "Northern Territory", "National (Australia-wide)"];
+
+function GrantPanel() {
+  const [grantStep, setGrantStep] = useState<"search"|"results"|"proposal">("search");
+  const [selectedGrant, setSelectedGrant] = useState<{name: string; org?: string; amount?: string} | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<number|null>(null);
+  const [saveTitle, setSaveTitle] = useState("");
+  const saveReport = useSaveReport();
+
+  const [form, setForm] = useState({
+    businessDescription: "", industry: "Technology / SaaS", stage: "Early Stage (<$500K revenue)",
+    location: "National (Australia-wide)", businessType: "For-profit", employeeCount: "1-10",
+    annualRevenue: "", researchFocus: "",
+  });
+
+  const [propForm, setPropForm] = useState({
+    businessName: "", problem: "", solution: "", traction: "", teamBackground: "", fundingUse: "",
+  });
+
+  const { phase, steps, text, sources, err, run, stop, reset } = usePlanStream();
+  const isRunning = phase === "running";
+  const isDone    = phase === "done";
+
+  function setF(k: string, v: any) { setForm(f => ({ ...f, [k]: v })); }
+  function setP(k: string, v: any) { setPropForm(f => ({ ...f, [k]: v })); }
+
+  async function handleSearch() {
+    setSavedId(null);
+    await run("/api/research/grants", form);
+    setGrantStep("results");
+  }
+
+  async function handleProposal() {
+    if (!selectedGrant || !propForm.businessName.trim()) return;
+    setSavedId(null);
+    await run("/api/research/grant-proposal", {
+      grantName: selectedGrant.name,
+      grantOrganisation: selectedGrant.org,
+      grantAmount: selectedGrant.amount,
+      businessDescription: form.businessDescription,
+      industry: form.industry,
+      stage: form.stage,
+      ...propForm,
+    });
+  }
+
+  async function handleSave() {
+    if (!text) return;
+    setSaving(true);
+    const title = saveTitle.trim() || (grantStep === "proposal" && selectedGrant ? `Grant Proposal: ${selectedGrant.name}` : `Grant Research: ${form.industry}`);
+    try {
+      const r = await saveReport.mutateAsync({ title, query: `Grant research: ${form.industry} ${form.stage}`, depth: "standard", report: text, summary: text.slice(0, 400), sources, portfolioIncluded: false, webSearched: true });
+      setSavedId(r.id);
+    } finally { setSaving(false); }
+  }
+
+  const ResultHeader = ({ icon: Icon, title, badge }: { icon: React.ElementType; title: string; badge?: string }) => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => { reset(); setGrantStep("search"); setSavedId(null); }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <ChevronLeft className="w-3.5 h-3.5" /> Back
+        </button>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2">
+          <Icon className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">{title}</span>
+          {badge && <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">{badge}</Badge>}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {isRunning && <button onClick={stop} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/60 text-destructive hover:bg-destructive/10 text-xs"><StopCircle className="w-3 h-3" /> Stop</button>}
+        {isDone && !savedId && (
+          <>
+            <input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…"
+              className="h-7 w-40 px-2 text-xs rounded-md border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:outline-none" />
+            <button onClick={handleSave} disabled={saving}
+              className="flex items-center gap-1 h-7 px-2.5 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+              <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
+            </button>
+          </>
+        )}
+        {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
+      </div>
+    </div>
+  );
+
+  const StreamOutput = () => (
+    <div className="space-y-4">
+      {steps.length > 0 && (
+        <div className="space-y-1.5 px-1">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${i < steps.length - 1 ? "bg-emerald-500" : isRunning ? "bg-primary animate-pulse" : "bg-emerald-500"}`} />
+              {s.message}
+            </div>
+          ))}
+          {isRunning && <div className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 text-primary animate-spin" /><span className="text-xs text-muted-foreground italic">{text ? "Writing report…" : "Searching grants database…"}</span></div>}
+        </div>
+      )}
+
+      {err && (
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm text-destructive">
+          <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div><p className="font-medium">Search failed</p><p className="text-xs mt-0.5 opacity-80">{err}</p></div>
+        </div>
+      )}
+
+      {sources.length > 0 && !isRunning && (
+        <div className="flex flex-wrap gap-1.5">
+          {sources.slice(0, 6).map((s, i) => (
+            <a key={i} href={s.url} target="_blank" rel="noreferrer"
+              className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border border-border bg-muted/20 text-muted-foreground hover:text-foreground transition-colors max-w-[200px] truncate">
+              <Globe className="w-2.5 h-2.5 shrink-0" />{s.title.slice(0, 32)}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {text && (
+        <div className="bg-card border border-border rounded-xl p-6">
+          <MarkdownReport content={text} />
+          {isRunning && <span className="inline-block w-1.5 h-4 bg-primary/80 animate-pulse ml-1 rounded-sm align-middle" />}
+        </div>
+      )}
+    </div>
+  );
+
+  if (grantStep === "results") return (
+    <div className="space-y-5">
+      <ResultHeader icon={HandCoins} title={`Grant Research — ${form.industry}`} badge={form.location} />
+      <StreamOutput />
+      {isDone && text && (
+        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5">
+          <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-primary" /> Generate a Grant Proposal
+          </p>
+          <p className="text-xs text-muted-foreground mb-3">Found a grant you want to apply for? Enter the grant name and your business details to generate a full, submission-ready proposal.</p>
+          <div className="flex gap-2">
+            <input placeholder="Grant name (e.g. R&D Tax Incentive, Austrade EMDG…)"
+              className="flex-1 h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+              onKeyDown={e => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value; if (v.trim()) { setSelectedGrant({ name: v.trim() }); setGrantStep("proposal"); reset(); } } }}
+              onChange={e => setSelectedGrant(g => g ? { ...g, name: e.target.value } : { name: e.target.value })} />
+            <button onClick={() => { if (selectedGrant?.name) { setGrantStep("proposal"); reset(); } }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm transition-colors">
+              <FileText className="w-3.5 h-3.5" /> Write Proposal
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (grantStep === "proposal") return (
+    <div className="space-y-5">
+      <ResultHeader icon={ClipboardList} title={selectedGrant?.name || "Grant Proposal"} badge="Full Proposal" />
+
+      {!text && !isRunning && (
+        <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Building className="w-3.5 h-3.5 text-primary" /> Proposal Details
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Grant Name *</label>
+              <input value={selectedGrant?.name ?? ""} onChange={e => setSelectedGrant(g => ({ ...g, name: e.target.value }))}
+                className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Grant Organisation</label>
+              <input placeholder="e.g. ATO, Austrade, Business Victoria"
+                onChange={e => setSelectedGrant(g => ({ ...g, org: e.target.value }))}
+                className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+          </div>
+          {[
+            { label: "Business / Applicant Name *", k: "businessName", p: "Legal entity name" },
+            { label: "Problem Being Solved", k: "problem", p: "What pain point does your business solve?" },
+            { label: "Solution / Product", k: "solution", p: "What is your product/service?" },
+            { label: "Traction & Validation", k: "traction", p: "Customers, revenue, milestones, awards…" },
+            { label: "Team Background", k: "teamBackground", p: "Relevant experience and qualifications" },
+            { label: "Proposed Use of Grant Funds", k: "fundingUse", p: "How will the grant money be spent?" },
+          ].map(({ label, k, p }) => (
+            <div key={k}>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">{label}</label>
+              <textarea value={(propForm as any)[k]} onChange={e => setP(k, e.target.value)} placeholder={p} rows={2}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+            </div>
+          ))}
+          <button onClick={handleProposal} disabled={!propForm.businessName.trim() || isRunning}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:opacity-40">
+            <Sparkles className="w-4 h-4" /> Generate Full Grant Proposal
+          </button>
+        </div>
+      )}
+
+      <StreamOutput />
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Hero */}
+      <div className="text-center py-4">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+          <HandCoins className="w-7 h-7 text-emerald-400" />
+        </div>
+        <h2 className="text-2xl font-serif text-foreground mb-1">Grant Finder & Proposal Creator</h2>
+        <p className="text-muted-foreground text-sm max-w-lg mx-auto">AI searches federal, state, and private grant databases to find the best opportunities for your business — then writes a complete, submission-ready proposal.</p>
+      </div>
+
+      {/* Search form */}
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Search className="w-3.5 h-3.5 text-primary" /> Tell us about your business
+        </h3>
+
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Business Description *</label>
+          <textarea value={form.businessDescription} onChange={e => setF("businessDescription", e.target.value)}
+            placeholder="Describe your business — what it does, who it serves, and what makes it unique. The more detail you provide, the better the grant matches."
+            rows={3} className="w-full px-3 py-2 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Industry</label>
+            <select value={form.industry} onChange={e => setF("industry", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {GRANT_INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Business Stage</label>
+            <select value={form.stage} onChange={e => setF("stage", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {GRANT_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Location</label>
+            <select value={form.location} onChange={e => setF("location", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Employees</label>
+            <select value={form.employeeCount} onChange={e => setF("employeeCount", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {["1 (solo)", "2-5", "6-20", "21-50", "51-200", "200+"].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Business Type</label>
+            <select value={form.businessType} onChange={e => setF("businessType", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {["For-profit", "Not-for-profit", "Social Enterprise", "Co-operative", "Start-up", "SME", "Mid-Market"].map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Annual Revenue</label>
+            <select value={form.annualRevenue} onChange={e => setF("annualRevenue", e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              {["Pre-revenue", "< $50K", "$50K–$250K", "$250K–$1M", "$1M–$5M", "$5M–$20M", "$20M+"].map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">R&D / Innovation Focus (optional)</label>
+          <input value={form.researchFocus} onChange={e => setF("researchFocus", e.target.value)}
+            placeholder="e.g. AI-powered diagnostics, sustainable packaging, export market expansion to Asia"
+            className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 p-3 rounded-lg border border-border bg-muted/10">
+          {[
+            { icon: Building, label: "Government & Federal", desc: "Austrade, ARC, ARENA, ATO" },
+            { icon: Globe, label: "State Programs",         desc: "Business Victoria, Investment NSW" },
+            { icon: Award, label: "Private & Corporate",    desc: "Accelerators, CVC programs" },
+          ].map(b => (
+            <div key={b.label} className="text-center p-2">
+              <b.icon className="w-4 h-4 text-primary mx-auto mb-1" />
+              <p className="text-[10px] font-medium text-foreground">{b.label}</p>
+              <p className="text-[10px] text-muted-foreground/70">{b.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={handleSearch} disabled={!form.businessDescription.trim() || isRunning}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors disabled:opacity-40">
+        {isRunning ? <><Loader2 className="w-4 h-4 animate-spin" /> Searching grants database…</> : <><Search className="w-4 h-4" /> Find Matching Grants</>}
+      </button>
+    </div>
+  );
+}
+
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "research", label: "Research",          icon: BrainCircuit },
   { id: "reports",  label: "Saved Reports",      icon: BookOpen },
   { id: "github",   label: "GitHub",             icon: Github },
-  { id: "builder",  label: "Component Builder",  icon: FileCode },
+  { id: "bizplan",  label: "Business Plan",      icon: Rocket },
+  { id: "grants",   label: "Grants",             icon: HandCoins },
+  { id: "builder",  label: "Components",         icon: FileCode },
 ];
 
 export default function Research() {
@@ -914,6 +1502,8 @@ export default function Research() {
       {tab === "research" && <ResearchPanel />}
       {tab === "reports"  && <SavedReports />}
       {tab === "github"   && <GitHubPanel onSendToBuilder={sendToBuilder} />}
+      {tab === "bizplan"  && <BusinessPlanPanel />}
+      {tab === "grants"   && <GrantPanel />}
       {tab === "builder"  && <ComponentBuilder seedDescription={builderSeed} />}
     </div>
   );

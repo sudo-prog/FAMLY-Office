@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
-  Briefcase, Search,
+  Briefcase, Search, Sparkles,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
 
 const BUSINESS_ITEMS = [
   { href: "/home-office", label: "Home Office", icon: Briefcase },
+  { href: "/research",    label: "AI Research",  icon: Sparkles },
 ];
 
 interface LayoutProps { children: React.ReactNode; onOpenPalette?: () => void }

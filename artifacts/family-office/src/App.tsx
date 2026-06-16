@@ -17,6 +17,7 @@ import Settings from "@/pages/settings";
 import Report from "@/pages/report";
 import Projections from "@/pages/projections";
 import HomeOffice from "@/pages/home-office";
+import Research from "@/pages/research";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ function Router() {
           <Route path="/report" component={Report} />
           <Route path="/projections" component={Projections} />
           <Route path="/home-office" component={HomeOffice} />
+          <Route path="/research" component={Research} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

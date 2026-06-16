@@ -9,6 +9,7 @@ import systemRouter from "./system";
 import aiRouter from "./ai";
 import snapshotsRouter from "./snapshots";
 import businessRouter from "./business";
+import researchRouter from "./research";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(systemRouter);
 router.use(aiRouter);
 router.use(snapshotsRouter);
 router.use(businessRouter);
+router.use(researchRouter);
 
 export default router;

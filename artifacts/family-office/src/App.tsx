@@ -13,6 +13,7 @@ import Entities from "@/pages/entities";
 import EntityDetail from "@/pages/entity-detail";
 import Settings from "@/pages/settings";
 import Report from "@/pages/report";
+import Projections from "@/pages/projections";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function Router() {
         <Route path="/entities" component={Entities} />
         <Route path="/entities/:id" component={EntityDetail} />
         <Route path="/report" component={Report} />
+        <Route path="/projections" component={Projections} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

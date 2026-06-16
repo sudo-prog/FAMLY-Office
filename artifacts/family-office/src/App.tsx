@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PinLock } from "@/components/pin-lock";
+import { CommandPalette } from "@/components/command-palette";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import Assets from "@/pages/assets";
@@ -15,26 +16,44 @@ import EntityDetail from "@/pages/entity-detail";
 import Settings from "@/pages/settings";
 import Report from "@/pages/report";
 import Projections from "@/pages/projections";
+import HomeOffice from "@/pages/home-office";
 import { Layout } from "@/components/layout";
 
 const queryClient = new QueryClient();
 
 function Router() {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen(o => !o);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/assets" component={Assets} />
-        <Route path="/transactions" component={Transactions} />
-        <Route path="/vault" component={Vault} />
-        <Route path="/entities" component={Entities} />
-        <Route path="/entities/:id" component={EntityDetail} />
-        <Route path="/report" component={Report} />
-        <Route path="/projections" component={Projections} />
-        <Route path="/settings" component={Settings} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <>
+      <Layout onOpenPalette={() => setPaletteOpen(true)}>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/assets" component={Assets} />
+          <Route path="/transactions" component={Transactions} />
+          <Route path="/vault" component={Vault} />
+          <Route path="/entities" component={Entities} />
+          <Route path="/entities/:id" component={EntityDetail} />
+          <Route path="/report" component={Report} />
+          <Route path="/projections" component={Projections} />
+          <Route path="/home-office" component={HomeOffice} />
+          <Route path="/settings" component={Settings} />
+          <Route component={NotFound} />
+        </Switch>
+      </Layout>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+    </>
   );
 }
 

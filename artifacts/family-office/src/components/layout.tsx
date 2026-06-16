@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users, Settings as SettingsIcon, FileText } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -11,11 +11,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/transactions", label: "Ledger", icon: ArrowLeftRight },
     { href: "/vault", label: "Vault", icon: FileKey },
     { href: "/entities", label: "Entities", icon: Users },
+    { href: "/report", label: "Report", icon: FileText },
   ];
+
+  function isActive(href: string) {
+    if (href === "/") return location === "/";
+    return location.startsWith(href);
+  }
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
-      {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-sidebar flex flex-col flex-shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-border">
           <div className="flex items-center gap-2">
@@ -29,18 +34,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">Command Center</div>
           {navItems.map((item) => {
-            const isActive = location === item.href;
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                  isActive 
-                    ? "bg-primary/10 text-primary font-medium" 
+                  active
+                    ? "bg-primary/10 text-primary font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />
+                <item.icon className={`w-4 h-4 ${active ? "text-primary" : ""}`} />
                 {item.label}
               </Link>
             );
@@ -52,7 +57,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             href="/settings"
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
               location === "/settings"
-                ? "bg-primary/10 text-primary font-medium" 
+                ? "bg-primary/10 text-primary font-medium"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
           >
@@ -62,9 +67,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Topbar */}
         <header className="h-16 border-b border-border bg-background flex items-center justify-between px-8 flex-shrink-0">
           <div className="flex items-center gap-4">
             <span className="text-sm font-mono text-muted-foreground">STATUS: <span className="text-emerald-500">ENCRYPTED</span></span>
@@ -76,7 +79,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Page Content */}
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-7xl mx-auto h-full">
             {children}

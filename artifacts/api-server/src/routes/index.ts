@@ -5,6 +5,7 @@ import transactionsRouter from "./transactions";
 import documentsRouter from "./documents";
 import entitiesRouter from "./entities";
 import dashboardRouter from "./dashboard";
+import systemRouter from "./system";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(transactionsRouter);
 router.use(documentsRouter);
 router.use(entitiesRouter);
 router.use(dashboardRouter);
+router.use(systemRouter);
 
 export default router;

@@ -2,7 +2,36 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Delete } from "lucide-react";
 
 const PIN_KEY = 'fo-pin';
+const PIN_KEY_V2 = 'fo-pin-v2';
 const PIN_LENGTH = 6;
+
+async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`fo-salt-2025-${pin}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyPin(input: string): Promise<boolean> {
+  const storedV2 = localStorage.getItem(PIN_KEY_V2);
+  if (storedV2) {
+    const hash = await hashPin(input);
+    return hash === storedV2;
+  }
+  const storedV1 = localStorage.getItem(PIN_KEY);
+  if (storedV1 && input === storedV1) {
+    const hash = await hashPin(input);
+    localStorage.setItem(PIN_KEY_V2, hash);
+    localStorage.removeItem(PIN_KEY);
+    return true;
+  }
+  return false;
+}
+
+function hasStoredPin(): boolean {
+  return !!(localStorage.getItem(PIN_KEY_V2) || localStorage.getItem(PIN_KEY));
+}
 
 interface PinLockProps {
   onUnlock: () => void;
@@ -18,8 +47,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(PIN_KEY);
-    if (!stored) setMode('setup');
+    if (!hasStoredPin()) setMode('setup');
     else setMode('unlock');
   }, []);
 
@@ -58,7 +86,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
     setError('');
   }
 
-  function handleComplete(pin: string) {
+  async function handleComplete(pin: string) {
     if (mode === 'setup') {
       setSetupFirst(pin);
       setMode('setup-confirm');
@@ -66,7 +94,9 @@ export function PinLock({ onUnlock }: PinLockProps) {
       setError('');
     } else if (mode === 'setup-confirm') {
       if (pin === setupFirst) {
-        localStorage.setItem(PIN_KEY, pin);
+        const hash = await hashPin(pin);
+        localStorage.setItem(PIN_KEY_V2, hash);
+        localStorage.removeItem(PIN_KEY);
         onUnlock();
       } else {
         setSetupFirst('');
@@ -74,8 +104,8 @@ export function PinLock({ onUnlock }: PinLockProps) {
         triggerShake('PINs did not match — try again');
       }
     } else {
-      const stored = localStorage.getItem(PIN_KEY);
-      if (pin === stored) {
+      const ok = await verifyPin(pin);
+      if (ok) {
         onUnlock();
       } else {
         triggerShake('Incorrect PIN');
@@ -86,7 +116,11 @@ export function PinLock({ onUnlock }: PinLockProps) {
   const KEYS = [['1','2','3'], ['4','5','6'], ['7','8','9'], ['','0','⌫']];
 
   const title = mode === 'setup' ? 'Create Your PIN' : mode === 'setup-confirm' ? 'Confirm Your PIN' : 'Enter PIN';
-  const subtitle = mode === 'setup' ? `Choose a ${PIN_LENGTH}-digit PIN to protect your wealth data` : mode === 'setup-confirm' ? 'Enter your PIN again to confirm' : 'Family Office is locked';
+  const subtitle = mode === 'setup'
+    ? `Choose a ${PIN_LENGTH}-digit PIN to protect your wealth data`
+    : mode === 'setup-confirm'
+    ? 'Enter your PIN again to confirm'
+    : 'Family Office is locked';
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background" style={{ background: '#0d1117' }}>
@@ -145,6 +179,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
           <button
             onClick={() => {
               localStorage.removeItem(PIN_KEY);
+              localStorage.removeItem(PIN_KEY_V2);
               setMode('setup');
               setDigits('');
               setError('');

@@ -18,7 +18,9 @@ import Report from "@/pages/report";
 import Projections from "@/pages/projections";
 import HomeOffice from "@/pages/home-office";
 import Research from "@/pages/research";
+import TaxReport from "@/pages/tax-report";
 import { Layout } from "@/components/layout";
+import { fetchLiveRates } from "@/lib/currency";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,7 @@ function Router() {
           <Route path="/projections" component={Projections} />
           <Route path="/home-office" component={HomeOffice} />
           <Route path="/research" component={Research} />
+          <Route path="/tax-report" component={TaxReport} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
@@ -61,7 +64,10 @@ function Router() {
 
 function App() {
   const [unlocked, setUnlocked] = useState(false);
-  useEffect(() => { initTheme(); }, []);
+  useEffect(() => {
+    initTheme();
+    fetchLiveRates();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

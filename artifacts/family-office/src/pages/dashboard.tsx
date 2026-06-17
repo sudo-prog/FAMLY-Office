@@ -617,7 +617,14 @@ function InsightsWidget() {
   async function fetchInsights() {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/ai/insights`);
+      const t = JSON.parse(localStorage.getItem("fo-insight-thresholds") || "{}");
+      const params = new URLSearchParams({
+        concentrationHigh: String(t.concentrationHigh ?? 60),
+        concentrationMedium: String(t.concentrationMedium ?? 45),
+        cryptoThreshold: String(t.cryptoThreshold ?? 25),
+        idleCashThreshold: String(t.idleCashThreshold ?? 30),
+      });
+      const res = await fetch(`${BASE_URL}/api/ai/insights?${params}`);
       if (res.ok) {
         const data = await res.json();
         setInsights(data.insights ?? []);

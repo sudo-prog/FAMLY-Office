@@ -1,11 +1,12 @@
 - [Family Office stack](family-office-stack.md) — 4-artifact PWA: web app (React/Vite at `/`), API server (Express on :8080), pitch deck slides, video (deferred).
-- [PIN lock pattern](pin-lock-pattern.md) — PIN stored in localStorage as plain string; screenshot tool always shows lock screen (fresh session); this is correct behavior.
+- [PIN lock pattern](pin-lock-pattern.md) — PIN now stored as SHA-256 hash in fo-pin-v2 localStorage key; backwards-compat reads old fo-pin plain key and auto-upgrades; screenshot tool shows lock screen (correct behavior).
 - [API client hooks](api-client-hooks.md) — generated hooks live in lib/api-client-react; useUpdateAsset/Transaction/Document/Entity all exist; getList*QueryKey() used for invalidation.
-- [FX currency util](fx-currency-util.md) — src/lib/currency.ts; hardcoded mid-2025 rates; preferred currency in localStorage key fo-currency; reloads page on change.
+- [FX currency util](fx-currency-util.md) — src/lib/currency.ts; live rates fetched from /api/fx/rates (Frankfurter/ECB) on app startup; 1hr localStorage cache at fo-fx-rates-v2; fallback to hardcoded rates; fetchLiveRates() called from App.tsx useEffect.
 - [Zero-Trust AI Architecture](zero-trust-ai.md) — local LLM for sensitive data (portfolio context), cloud AI for research only (sanitized); 20+ signal classifier in ai.ts; fail-secure = local.
 - [Net Worth Snapshots](snapshots-schema.md) — wealth_snapshots table (snapshotDate TEXT unique per day); dashboard auto-records on mount via POST /api/snapshots/record; real sparkline uses GET /api/snapshots.
 - [Document RAG](document-rag.md) — ocrText column on documents table; keyword-matching in ai.ts on query words >3 chars; top 3 matching docs injected as RAG context into local LLM system prompt.
 - [Shared AIPanel component](ai-panel-component.md) — artifacts/family-office/src/components/ai-panel.tsx; used on assets, transactions, projections pages; mode prop controls local/cloud/auto routing.
 - [PWA service worker path](pwa-sw-path.md) — SW must register at BASE_URL-prefixed path, not hardcoded /sw.js; use `${base}/sw.js` with scope `base + "/"`. SVG-only icons sufficient for installability; remove PNG refs that don't exist.
-- [AI Insight Engine](ai-insights-engine.md) — Rule-based GET /api/ai/insights in ai.ts; 9 checks (concentration, crypto, idle cash, cash flow, diversification, entities, tax, vault, super); always fast, no LLM needed.
+- [AI Insight Engine](ai-insights-engine.md) — Rule-based GET /api/ai/insights in ai.ts; 9 checks; thresholds now configurable via query params (concentrationHigh, concentrationMedium, cryptoThreshold, idleCashThreshold); stored in fo-insight-thresholds localStorage.
 - [Tax Tag column](tax-tag-schema.md) — tax_tag TEXT column added to transactions table; drizzle "no changes" if column already in DB; always verify via psql column query before troubleshooting push.
+- [Price Feed routes](price-feed-routes.md) — GET /api/prices/crypto?ids=bitcoin,ethereum (CoinGecko free tier) and GET /api/prices/equity?ticker=AAPL (Yahoo Finance); detect-crypto endpoint for name→coinId mapping.

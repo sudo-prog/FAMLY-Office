@@ -3,8 +3,9 @@ import { Link } from "wouter";
 import { useListAssets, useListTransactions } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 
@@ -21,6 +22,13 @@ function downloadCSV(filename: string, rows: string[][], headers: string[]) {
   URL.revokeObjectURL(url);
 }
 
+const DEFAULT_THRESHOLDS = { concentrationHigh: 60, concentrationMedium: 45, cryptoThreshold: 25, idleCashThreshold: 30 };
+
+function loadThresholds() {
+  try { return { ...DEFAULT_THRESHOLDS, ...JSON.parse(localStorage.getItem("fo-insight-thresholds") || "{}") }; }
+  catch { return { ...DEFAULT_THRESHOLDS }; }
+}
+
 export default function Settings() {
   const { data: assets } = useListAssets();
   const { data: transactions } = useListTransactions();
@@ -28,6 +36,7 @@ export default function Settings() {
   const { theme, updateTheme, resetTheme } = useTheme();
   const [currency, setCurrencyState] = useState<Currency>(getStoredCurrency());
   const [exportDone, setExportDone] = useState(false);
+  const [thresholds, setThresholdsState] = useState(loadThresholds);
   const [fontImportInput, setFontImportInput] = useState(theme.fontImportUrl);
   const [purging, setPurging] = useState(false);
   const [purgeError, setPurgeError] = useState("");
@@ -95,6 +104,17 @@ export default function Settings() {
     }
     setExportDone(true);
     setTimeout(() => setExportDone(false), 3000);
+  }
+
+  function updateThreshold(key: string, value: number) {
+    const next = { ...thresholds, [key]: value };
+    setThresholdsState(next);
+    localStorage.setItem("fo-insight-thresholds", JSON.stringify(next));
+  }
+
+  function resetThresholds() {
+    setThresholdsState({ ...DEFAULT_THRESHOLDS });
+    localStorage.setItem("fo-insight-thresholds", JSON.stringify(DEFAULT_THRESHOLDS));
   }
 
   async function handlePurge() {
@@ -636,6 +656,42 @@ export default function Settings() {
               <div><div className="text-muted-foreground">Portfolio Value</div><div className="font-mono text-primary mt-0.5">{fmt((assets ?? []).reduce((s, a) => s + a.value, 0))}</div></div>
               <div><div className="text-muted-foreground">Transactions</div><div className="font-mono text-foreground mt-0.5">{transactions?.length ?? 0} records</div></div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <SlidersHorizontal className="w-4 h-4 text-primary" />
+            AI Insight Thresholds
+          </CardTitle>
+          <CardDescription className="text-sm">Tune the sensitivity of the AI Insight Engine. Insights trigger when your portfolio crosses these thresholds.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {([
+            { key: "concentrationHigh", label: "Concentration — High Alert", min: 40, max: 90, desc: "Fires a 'high severity' warning when any single asset class exceeds this % of total portfolio." },
+            { key: "concentrationMedium", label: "Concentration — Medium Alert", min: 25, max: 70, desc: "Fires a 'medium severity' warning when any single asset class exceeds this % of total portfolio." },
+            { key: "cryptoThreshold", label: "Crypto Exposure Limit", min: 5, max: 60, desc: "Alerts when crypto/digital assets exceed this % of total portfolio." },
+            { key: "idleCashThreshold", label: "Idle Cash Alert", min: 5, max: 60, desc: "Flags excess idle cash when bank accounts exceed this % of total portfolio." },
+          ] as const).map(({ key, label, min, max, desc }) => (
+            <div key={key} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm text-foreground">{label}</Label>
+                <span className="text-sm font-mono text-primary">{thresholds[key]}%</span>
+              </div>
+              <input
+                type="range" min={min} max={max} step="1"
+                value={thresholds[key]}
+                onChange={(e) => updateThreshold(key, Number(e.target.value))}
+                className="w-full h-1.5 accent-primary rounded cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+          ))}
+          <div className="flex items-center justify-between pt-1 border-t border-border">
+            <p className="text-xs text-muted-foreground">Thresholds saved locally — changes take effect on next Dashboard refresh.</p>
+            <button onClick={resetThresholds} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Reset to defaults</button>
           </div>
         </CardContent>
       </Card>

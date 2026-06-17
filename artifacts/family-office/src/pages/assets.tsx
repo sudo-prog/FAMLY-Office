@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Plus, Search, Trash2, Pencil, Sparkles, Scale, ArrowRight, ArrowLeft } from "lucide-react";
+import { Plus, Search, Trash2, Pencil, Sparkles, Scale, ArrowRight, ArrowLeft, RefreshCw, Loader2, CheckCircle2 } from "lucide-react";
 import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
 import { AIPanel } from "@/components/ai-panel";
 
@@ -38,6 +38,31 @@ function formatCategory(cat: string) {
 
 function fmtNum(v: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(v));
+}
+
+const CRYPTO_IDS: Record<string, string> = {
+  bitcoin: "bitcoin", btc: "bitcoin",
+  ethereum: "ethereum", eth: "ethereum",
+  solana: "solana", sol: "solana",
+  ripple: "ripple", xrp: "ripple",
+  cardano: "cardano", ada: "cardano",
+  polkadot: "polkadot", dot: "polkadot",
+  dogecoin: "dogecoin", doge: "dogecoin",
+  litecoin: "litecoin", ltc: "litecoin",
+  chainlink: "chainlink", link: "chainlink",
+  "binance coin": "binancecoin", bnb: "binancecoin",
+  avalanche: "avalanche-2", avax: "avalanche-2",
+  polygon: "matic-network", matic: "matic-network",
+  stellar: "stellar", xlm: "stellar",
+  uniswap: "uniswap", uni: "uniswap",
+  cosmos: "cosmos", atom: "cosmos",
+  tron: "tron", trx: "tron",
+  monero: "monero", xmr: "monero",
+};
+
+function detectCoinId(name: string): string {
+  const lower = name.toLowerCase();
+  return Object.entries(CRYPTO_IDS).find(([key]) => lower.includes(key))?.[1] ?? "";
 }
 
 function loadTargets(): Record<string, number> {
@@ -181,6 +206,217 @@ function RebalancingSheet({
   );
 }
 
+type PriceFetch = { price: number; currency: string; source: string; name?: string };
+
+const BASE_URL = (import.meta.env.BASE_URL ?? "").replace(/\/$/, "");
+
+function PriceRefreshSheet({
+  open, onClose, assets,
+}: {
+  open: boolean;
+  onClose: () => void;
+  assets: NonNullable<ReturnType<typeof useListAssets>["data"]>;
+}) {
+  const qc = useQueryClient();
+  const updateAsset = useUpdateAsset();
+
+  const cryptoAssets = assets.filter((a) => a.category === "crypto");
+  const equityAssets = assets.filter((a) => a.category === "investment");
+
+  const [coinIds, setCoinIds] = React.useState<Record<number, string>>({});
+  const [tickers, setTickers] = React.useState<Record<number, string>>({});
+  const [fetched, setFetched] = React.useState<Record<number, PriceFetch>>({});
+  const [loadingCrypto, setLoadingCrypto] = React.useState(false);
+  const [loadingEquity, setLoadingEquity] = React.useState<Record<number, boolean>>({});
+  const [applying, setApplying] = React.useState(false);
+  const [done, setDone] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setFetched({});
+    setDone(false);
+    const detected: Record<number, string> = {};
+    cryptoAssets.forEach((a) => {
+      const id = detectCoinId(a.name);
+      if (id) detected[a.id] = id;
+    });
+    setCoinIds(detected);
+  }, [open]);
+
+  async function fetchCryptoPrices() {
+    const validPairs = Object.entries(coinIds).filter(([, id]) => id.trim());
+    if (validPairs.length === 0) return;
+    setLoadingCrypto(true);
+    try {
+      const allIds = [...new Set(validPairs.map(([, id]) => id))];
+      const res = await fetch(`${BASE_URL}/api/prices/crypto?ids=${allIds.join(",")}`);
+      if (!res.ok) throw new Error("Fetch failed");
+      const data = await res.json() as { prices: Record<string, { aud?: number; usd?: number }> };
+      const next: Record<number, PriceFetch> = { ...fetched };
+      for (const [assetIdStr, coinId] of validPairs) {
+        const assetId = Number(assetIdStr);
+        const p = data.prices[coinId];
+        if (p) {
+          next[assetId] = { price: p.aud ?? p.usd ?? 0, currency: p.aud ? "AUD" : "USD", source: "CoinGecko" };
+        }
+      }
+      setFetched(next);
+    } catch {}
+    setLoadingCrypto(false);
+  }
+
+  async function fetchEquityPrice(assetId: number) {
+    const ticker = tickers[assetId]?.trim();
+    if (!ticker) return;
+    setLoadingEquity((prev) => ({ ...prev, [assetId]: true }));
+    try {
+      const res = await fetch(`${BASE_URL}/api/prices/equity?ticker=${encodeURIComponent(ticker)}`);
+      if (!res.ok) throw new Error("Not found");
+      const data = await res.json();
+      setFetched((prev) => ({ ...prev, [assetId]: { price: data.price, currency: data.currency || "USD", source: "Yahoo Finance", name: data.name } }));
+    } catch {}
+    setLoadingEquity((prev) => ({ ...prev, [assetId]: false }));
+  }
+
+  async function applyPrices() {
+    setApplying(true);
+    try {
+      await Promise.all(
+        Object.entries(fetched).map(([idStr, { price, currency }]) =>
+          updateAsset.mutateAsync({ id: Number(idStr), data: { value: price, currency } as any })
+        )
+      );
+      await qc.invalidateQueries({ queryKey: getListAssetsQueryKey() });
+      setDone(true);
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  const hasFetched = Object.keys(fetched).length > 0;
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent side="right" className="bg-card border-border w-[560px] max-w-[95vw] overflow-y-auto">
+        <SheetHeader className="mb-6">
+          <SheetTitle className="font-serif text-xl flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-primary" /> Market Price Refresh
+          </SheetTitle>
+          <p className="text-sm text-muted-foreground">Fetch live prices from CoinGecko (crypto) and Yahoo Finance (equities), then apply them to your holdings.</p>
+        </SheetHeader>
+
+        <div className="space-y-6">
+          {cryptoAssets.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground">Crypto / Digital Assets</h3>
+                <Button size="sm" variant="outline" onClick={fetchCryptoPrices} disabled={loadingCrypto} className="gap-1.5 text-xs h-7 border-border">
+                  {loadingCrypto ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                  {loadingCrypto ? "Fetching…" : "Fetch All"}
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {cryptoAssets.map((asset) => {
+                  const p = fetched[asset.id];
+                  return (
+                    <div key={asset.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-foreground truncate">{asset.name}</div>
+                        <div className="text-xs text-muted-foreground font-mono">
+                          Current: {formatDisplay(Number(asset.value), asset.currency)}
+                        </div>
+                      </div>
+                      <Input
+                        placeholder="e.g. bitcoin"
+                        value={coinIds[asset.id] ?? ""}
+                        onChange={(e) => setCoinIds((prev) => ({ ...prev, [asset.id]: e.target.value.toLowerCase().trim() }))}
+                        className="w-32 h-7 text-xs bg-muted/30 border-border font-mono"
+                      />
+                      {p && (
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-mono text-emerald-400">{p.currency} {p.price.toFixed(2)}</div>
+                          <div className="text-[10px] text-muted-foreground">{p.source}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">CoinGecko IDs: bitcoin, ethereum, solana, ripple, cardano, polkadot, etc. Auto-detected from asset names.</p>
+            </div>
+          )}
+
+          {equityAssets.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Investment / Equities</h3>
+              <div className="space-y-2">
+                {equityAssets.map((asset) => {
+                  const p = fetched[asset.id];
+                  const loading = loadingEquity[asset.id];
+                  return (
+                    <div key={asset.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/20">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-foreground truncate">{asset.name}</div>
+                        {p?.name
+                          ? <div className="text-[10px] text-muted-foreground">{p.name}</div>
+                          : <div className="text-xs text-muted-foreground font-mono">Current: {formatDisplay(Number(asset.value), asset.currency)}</div>
+                        }
+                      </div>
+                      <Input
+                        placeholder="Ticker"
+                        value={tickers[asset.id] ?? ""}
+                        onChange={(e) => setTickers((prev) => ({ ...prev, [asset.id]: e.target.value.toUpperCase() }))}
+                        className="w-24 h-7 text-xs bg-muted/30 border-border font-mono"
+                      />
+                      <Button size="sm" variant="outline" onClick={() => fetchEquityPrice(asset.id)} disabled={loading || !tickers[asset.id]?.trim()} className="h-7 text-xs border-border px-2 shrink-0">
+                        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                      </Button>
+                      {p && (
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-mono text-emerald-400">{p.currency} {p.price.toFixed(2)}</div>
+                          <div className="text-[10px] text-muted-foreground">{p.source}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">Enter exchange tickers. ASX stocks: add .AX suffix (CBA.AX, BHP.AX). ETFs: VAS.AX, SPY, QQQ.</p>
+            </div>
+          )}
+
+          {cryptoAssets.length === 0 && equityAssets.length === 0 && (
+            <div className="text-center py-10 text-muted-foreground text-sm">
+              No crypto or investment assets. Add assets with category "Crypto" or "Investment" to use live price refresh.
+            </div>
+          )}
+
+          {hasFetched && (
+            <div className="pt-2 border-t border-border space-y-2">
+              {done ? (
+                <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                  <CheckCircle2 className="w-4 h-4" />
+                  {Object.keys(fetched).length} asset{Object.keys(fetched).length !== 1 ? "s" : ""} updated successfully
+                </div>
+              ) : (
+                <Button onClick={applyPrices} disabled={applying} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                  {applying && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  {applying ? "Applying…" : `Apply ${Object.keys(fetched).length} Price Update${Object.keys(fetched).length !== 1 ? "s" : ""}`}
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">This overwrites the current value and currency for each updated asset.</p>
+            </div>
+          )}
+
+          <div className="text-[11px] text-muted-foreground bg-muted/20 border border-border rounded-lg px-4 py-3">
+            <strong className="text-foreground">Note:</strong> Prices from CoinGecko and Yahoo Finance are indicative only and may be delayed up to 15 minutes. Use your broker or custodian statement for official valuations.
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 export default function Assets() {
   const qc = useQueryClient();
   const { data: assets, isLoading } = useListAssets();
@@ -195,6 +431,7 @@ export default function Assets() {
   const [saving, setSaving] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [rebalanceOpen, setRebalanceOpen] = useState(false);
+  const [priceRefreshOpen, setPriceRefreshOpen] = useState(false);
 
   const filtered = (assets ?? []).filter((a) =>
     !search || a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -260,6 +497,9 @@ export default function Assets() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setPriceRefreshOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+            <RefreshCw className="w-4 h-4" /> Market Prices
+          </Button>
           <Button onClick={() => setRebalanceOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
             <Scale className="w-4 h-4" /> Rebalance
           </Button>
@@ -338,6 +578,12 @@ export default function Assets() {
           </Table>
         </div>
       </Card>
+
+      <PriceRefreshSheet
+        open={priceRefreshOpen}
+        onClose={() => setPriceRefreshOpen(false)}
+        assets={assets ?? []}
+      />
 
       <RebalancingSheet
         open={rebalanceOpen}

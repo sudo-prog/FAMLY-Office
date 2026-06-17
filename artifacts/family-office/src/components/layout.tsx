@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
-  Briefcase, Search, Sparkles,
+  Briefcase, Search, Sparkles, Receipt,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/entities", label: "Entities", icon: Users },
   { href: "/projections", label: "Projections", icon: TrendingUp },
   { href: "/report", label: "Report", icon: FileText },
+  { href: "/tax-report", label: "Tax Report", icon: Receipt },
 ];
 
 const BUSINESS_ITEMS = [

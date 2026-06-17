@@ -10,6 +10,8 @@ import aiRouter from "./ai";
 import snapshotsRouter from "./snapshots";
 import businessRouter from "./business";
 import researchRouter from "./research";
+import pricesRouter from "./prices";
+import fxRouter from "./fx";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(aiRouter);
 router.use(snapshotsRouter);
 router.use(businessRouter);
 router.use(researchRouter);
+router.use(pricesRouter);
+router.use(fxRouter);
 
 export default router;

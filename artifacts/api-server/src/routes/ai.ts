@@ -153,8 +153,13 @@ interface Insight {
 
 function fmtCat(c: string) { return c.replace(/_/g, " ").replace(/\b\w/g, (x) => x.toUpperCase()); }
 
-router.get("/ai/insights", async (_req, res) => {
+router.get("/ai/insights", async (req, res) => {
   try {
+    const concentrationHigh = Number(req.query.concentrationHigh) || 60;
+    const concentrationMedium = Number(req.query.concentrationMedium) || 45;
+    const cryptoThreshold = Number(req.query.cryptoThreshold) || 25;
+    const idleCashThreshold = Number(req.query.idleCashThreshold) || 30;
+
     const [assets, allTx, entities, documents] = await Promise.all([
       db.select().from(assetsTable),
       db.select().from(transactionsTable).orderBy(desc(transactionsTable.createdAt)).limit(100),
@@ -177,21 +182,21 @@ router.get("/ai/insights", async (_req, res) => {
     } else {
       Object.entries(byCategory).forEach(([cat, val]) => {
         const pct = (val / totalValue) * 100;
-        if (pct > 60) {
-          insights.push({ type: "warning", category: "concentration", severity: "high", title: `High concentration — ${fmtCat(cat)} at ${pct.toFixed(0)}%`, detail: `${fmtCat(cat)} represents ${pct.toFixed(0)}% of your portfolio (A$${Math.round(val).toLocaleString()}). Concentration above 60% significantly increases single-asset-class risk.`, action: "Rebalance" });
-        } else if (pct > 45) {
-          insights.push({ type: "warning", category: "concentration", severity: "medium", title: `Elevated ${fmtCat(cat)} allocation (${pct.toFixed(0)}%)`, detail: `${fmtCat(cat)} is at ${pct.toFixed(0)}% of total portfolio — approaching the typical 45% ceiling for a single class. Consider reviewing your target allocation.`, action: "Review Allocation" });
+        if (pct > concentrationHigh) {
+          insights.push({ type: "warning", category: "concentration", severity: "high", title: `High concentration — ${fmtCat(cat)} at ${pct.toFixed(0)}%`, detail: `${fmtCat(cat)} represents ${pct.toFixed(0)}% of your portfolio (A$${Math.round(val).toLocaleString()}). Concentration above ${concentrationHigh}% significantly increases single-asset-class risk.`, action: "Rebalance" });
+        } else if (pct > concentrationMedium) {
+          insights.push({ type: "warning", category: "concentration", severity: "medium", title: `Elevated ${fmtCat(cat)} allocation (${pct.toFixed(0)}%)`, detail: `${fmtCat(cat)} is at ${pct.toFixed(0)}% of total portfolio — approaching the ${concentrationMedium}% ceiling for a single class. Consider reviewing your target allocation.`, action: "Review Allocation" });
         }
       });
 
       const cryptoPct = ((byCategory["crypto"] ?? 0) / totalValue) * 100;
-      if (cryptoPct > 25) {
-        insights.push({ type: "warning", category: "risk", severity: "high", title: `Crypto exposure at ${cryptoPct.toFixed(0)}% — high volatility risk`, detail: `Crypto/digital assets at ${cryptoPct.toFixed(0)}% exceeds the typical 5–15% range for family offices. High drawdown potential — consider trimming to reduce sequence-of-returns risk.`, action: "Review Crypto" });
+      if (cryptoPct > cryptoThreshold) {
+        insights.push({ type: "warning", category: "risk", severity: "high", title: `Crypto exposure at ${cryptoPct.toFixed(0)}% — high volatility risk`, detail: `Crypto/digital assets at ${cryptoPct.toFixed(0)}% exceeds your ${cryptoThreshold}% threshold. High drawdown potential — consider trimming to reduce sequence-of-returns risk.`, action: "Review Crypto" });
       }
 
       const cashPct = ((byCategory["bank_account"] ?? 0) / totalValue) * 100;
-      if (cashPct > 30) {
-        insights.push({ type: "opportunity", category: "cashflow", severity: "medium", title: `Idle cash — A$${Math.round(byCategory["bank_account"] ?? 0).toLocaleString()} sitting at ${cashPct.toFixed(0)}%`, detail: `Cash/bank accounts at ${cashPct.toFixed(0)}% of portfolio exceeds the typical 5–15% liquidity buffer. With potentially declining rates, deploying surplus could improve long-term returns.`, action: "Review Strategy" });
+      if (cashPct > idleCashThreshold) {
+        insights.push({ type: "opportunity", category: "cashflow", severity: "medium", title: `Idle cash — A$${Math.round(byCategory["bank_account"] ?? 0).toLocaleString()} sitting at ${cashPct.toFixed(0)}%`, detail: `Cash/bank accounts at ${cashPct.toFixed(0)}% of portfolio exceeds your ${idleCashThreshold}% idle cash threshold. Deploying surplus could improve long-term returns.`, action: "Review Strategy" });
       }
 
       if (allTx.length > 0 && recentExpenses > 0) {

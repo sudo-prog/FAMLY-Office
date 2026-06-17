@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListDocuments, getListDocumentsQueryKey,
   useCreateDocument, useUpdateDocument, useDeleteDocument,
+  useCreateTransaction, getListTransactionsQueryKey,
 } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,12 +17,130 @@ import {
   Lock, Plus, Search, Pencil, Trash2, LayoutGrid, List, FileText, FileCheck,
   ScrollText, Shield, FileBarChart, Award, File, Folder, FolderOpen, ChevronDown,
   ChevronRight, CheckSquare, Square, FolderPlus, ArrowLeft, Sparkles, X, Move,
+  Upload, TableProperties, CheckCircle2, AlertCircle, Loader2,
 } from "lucide-react";
 import { DocumentPreview } from "@/components/document-preview";
 import { AIPanel } from "@/components/ai-panel";
 
 const FILE_TYPES = ["pdf", "contract", "tax", "insurance", "statement", "deed", "certificate", "other"];
 const curYear = String(new Date().getFullYear());
+
+// ─── CSV Auto-Import ───────────────────────────────────────────────────────────
+
+interface CsvRow {
+  date: string;
+  description: string;
+  amount: number;
+  type: "income" | "expense" | "transfer";
+  category: string;
+  selected: boolean;
+}
+
+function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let current = "";
+  let inQuotes = false;
+  let row: string[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === "," && !inQuotes) { row.push(current.trim()); current = ""; continue; }
+    if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      if (current.trim() || row.length > 0) { row.push(current.trim()); rows.push(row); row = []; current = ""; }
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      continue;
+    }
+    current += ch;
+  }
+  if (current.trim() || row.length > 0) { row.push(current.trim()); rows.push(row); }
+  return rows.filter((r) => r.some((c) => c.length > 0));
+}
+
+function normalizeDate(raw?: string): string {
+  if (!raw) return new Date().toISOString().slice(0, 10);
+  const cleaned = raw.replace(/['"]/g, "").trim();
+  const patterns = [
+    /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+    /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
+  ];
+  for (const p of patterns) {
+    const m = cleaned.match(p);
+    if (m) {
+      const [, a, b, c] = m;
+      if (p === patterns[0]) return `${a}-${b.padStart(2, "0")}-${c.padStart(2, "0")}`;
+      return `${c}-${a.padStart(2, "0")}-${b.padStart(2, "0")}`;
+    }
+  }
+  try {
+    const d = new Date(cleaned);
+    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  } catch {}
+  return new Date().toISOString().slice(0, 10);
+}
+
+function detectAndParseFinancialCSV(text: string): CsvRow[] | null {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return null;
+  const headers = rows[0].map((h) => h.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim());
+
+  const findCol = (...terms: string[]) => headers.findIndex((h) => terms.some((t) => h.includes(t)));
+
+  const dateCol = findCol("date", "transaction date", "value date", "posted");
+  const descCol = findCol("description", "desc", "narration", "memo", "reference", "particulars", "details", "narrative");
+  const amtCol = findCol("amount", "value", "net amount");
+  const debitCol = findCol("debit", "withdrawal", "dr", "charge");
+  const creditCol = findCol("credit", "deposit", "cr", "payment");
+
+  if (dateCol < 0 && descCol < 0) return null;
+  if (amtCol < 0 && debitCol < 0 && creditCol < 0) return null;
+
+  const result: CsvRow[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.every((c) => !c)) continue;
+
+    const date = normalizeDate(dateCol >= 0 ? row[dateCol] : undefined);
+    const description = (descCol >= 0 ? row[descCol] : row[1])?.replace(/['"]/g, "").trim() || "Imported transaction";
+
+    let amount = 0;
+    let type: "income" | "expense" | "transfer" = "expense";
+
+    if (amtCol >= 0) {
+      const raw = (row[amtCol] ?? "").replace(/[,$\s'"]/g, "");
+      const n = parseFloat(raw);
+      if (!isNaN(n)) { amount = Math.abs(n); type = n < 0 ? "expense" : "income"; }
+    } else {
+      const dRaw = (row[debitCol] ?? "").replace(/[,$\s'"]/g, "");
+      const cRaw = (row[creditCol] ?? "").replace(/[,$\s'"]/g, "");
+      const d = parseFloat(dRaw);
+      const c = parseFloat(cRaw);
+      if (!isNaN(d) && d > 0) { amount = d; type = "expense"; }
+      else if (!isNaN(c) && c > 0) { amount = c; type = "income"; }
+    }
+
+    if (amount === 0) continue;
+
+    const catKeywords: Record<string, string[]> = {
+      salary: ["salary", "payroll", "wages", "pay "],
+      rental: ["rent", "rental", "lease"],
+      dividend: ["dividend", "div "],
+      mortgage: ["mortgage", "home loan", "homeloan"],
+      utilities: ["electricity", "gas ", "water ", "internet", "phone", "telco"],
+      insurance: ["insurance", "insur"],
+      investment: ["brokerage", "shares", "etf", "managed fund"],
+      professional_services: ["accountant", "lawyer", "legal", "consult"],
+    };
+    let category = "other";
+    const descLower = description.toLowerCase();
+    for (const [cat, kws] of Object.entries(catKeywords)) {
+      if (kws.some((kw) => descLower.includes(kw))) { category = cat; break; }
+    }
+
+    result.push({ date, description, amount, type, category, selected: true });
+  }
+  return result.length > 0 ? result : null;
+}
 
 const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; border: string; bg: string }> = {
   pdf:         { icon: FileText,    color: "text-amber-400",   border: "border-amber-400/40",  bg: "bg-amber-500/5" },
@@ -45,6 +164,7 @@ export default function Vault() {
   const createDoc = useCreateDocument();
   const updateDoc = useUpdateDocument();
   const deleteDoc = useDeleteDocument();
+  const createTx = useCreateTransaction();
 
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("canvas");
@@ -63,6 +183,64 @@ export default function Vault() {
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [moveToFolderOpen, setMoveToFolderOpen] = useState(false);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [csvRows, setCsvRows] = useState<CsvRow[]>([]);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [csvImportDone, setCsvImportDone] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileRead = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const parsed = detectAndParseFinancialCSV(text);
+      const nameNoExt = file.name.replace(/\.[^.]+$/, "");
+      setForm((prev) => ({
+        ...prev,
+        title: prev.title || nameNoExt,
+        fileType: parsed ? "statement" : prev.fileType,
+        ocrText: text,
+      }));
+      if (parsed) {
+        setCsvRows(parsed);
+        setCsvImportOpen(true);
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) { if (!open) { setEditId(null); setForm(emptyForm); setOpen(true); } handleFileRead(file); }
+  }, [open, handleFileRead]);
+
+  async function importCsvTransactions() {
+    const toImport = csvRows.filter((r) => r.selected);
+    if (toImport.length === 0) return;
+    setCsvImporting(true);
+    try {
+      await Promise.all(
+        toImport.map((r) =>
+          createTx.mutateAsync({
+            description: r.description,
+            amount: String(r.amount),
+            type: r.type,
+            category: r.category,
+            date: r.date,
+          } as any)
+        )
+      );
+      await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+      setCsvImportDone(true);
+      setTimeout(() => { setCsvImportOpen(false); setCsvImportDone(false); setCsvRows([]); }, 1800);
+    } finally {
+      setCsvImporting(false);
+    }
+  }
 
   const filtered = (documents ?? []).filter((d) => {
     const matchSearch = !search || d.title.toLowerCase().includes(search.toLowerCase()) || (d.description ?? "").toLowerCase().includes(search.toLowerCase());
@@ -507,6 +685,24 @@ export default function Vault() {
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Document" : "Add Document"}</DialogTitle>
           </DialogHeader>
+          {!editId && (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFileRead(f); }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 cursor-pointer transition-all select-none
+                ${isDragging ? "border-primary bg-primary/10" : "border-border bg-muted/10 hover:border-primary/50 hover:bg-muted/20"}`}
+            >
+              <input ref={fileInputRef} type="file" accept=".csv,.txt,.pdf" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileRead(f); e.target.value = ""; }} />
+              <Upload className={`w-5 h-5 ${isDragging ? "text-primary" : "text-muted-foreground"}`} />
+              <p className="text-xs text-muted-foreground text-center">
+                <span className="font-medium text-foreground">Drop a file or click to upload</span>
+                <br />CSV bank exports are auto-detected and imported as transactions
+              </p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div className="space-y-1.5">
               <Label className="text-sm text-muted-foreground">Title *</Label>
@@ -563,6 +759,106 @@ export default function Vault() {
       {previewDoc && (
         <DocumentPreview doc={previewDoc} onClose={() => setPreviewDoc(null)} onSave={handleSaveContent} />
       )}
+
+      <Dialog open={csvImportOpen} onOpenChange={(o) => { if (!csvImporting) { setCsvImportOpen(o); if (!o) { setCsvRows([]); setCsvImportDone(false); } } }}>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+              <TableProperties className="w-5 h-5 text-primary" />
+              Import Transactions from CSV
+            </DialogTitle>
+          </DialogHeader>
+
+          {csvImportDone ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+              <p className="text-foreground font-medium">
+                {csvRows.filter((r) => r.selected).length} transactions imported successfully
+              </p>
+              <p className="text-xs text-muted-foreground">They are now visible in your Transaction Ledger.</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between px-1 py-2 shrink-0">
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-foreground font-medium">{csvRows.filter((r) => r.selected).length}</span> of {csvRows.length} rows selected for import
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => setCsvRows((r) => r.map((x) => ({ ...x, selected: true })))}
+                    className="text-xs text-primary hover:underline">Select all</button>
+                  <span className="text-muted-foreground">·</span>
+                  <button onClick={() => setCsvRows((r) => r.map((x) => ({ ...x, selected: false })))}
+                    className="text-xs text-muted-foreground hover:text-foreground hover:underline">Clear</button>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto flex-1 rounded-lg border border-border">
+                <Table>
+                  <TableHeader className="bg-muted/50 sticky top-0">
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="w-10" />
+                      <TableHead className="text-muted-foreground font-medium">Date</TableHead>
+                      <TableHead className="text-muted-foreground font-medium">Description</TableHead>
+                      <TableHead className="text-muted-foreground font-medium text-right">Amount</TableHead>
+                      <TableHead className="text-muted-foreground font-medium">Type</TableHead>
+                      <TableHead className="text-muted-foreground font-medium">Category</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {csvRows.map((row, i) => (
+                      <TableRow
+                        key={i}
+                        className={`border-border cursor-pointer transition-colors ${row.selected ? "hover:bg-muted/30" : "opacity-40 hover:opacity-60 hover:bg-muted/20"}`}
+                        onClick={() => setCsvRows((prev) => prev.map((r, j) => j === i ? { ...r, selected: !r.selected } : r))}
+                      >
+                        <TableCell>
+                          {row.selected
+                            ? <CheckSquare className="w-4 h-4 text-primary" />
+                            : <Square className="w-4 h-4 text-muted-foreground" />}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">{row.date}</TableCell>
+                        <TableCell className="text-sm max-w-[220px] truncate">{row.description}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">
+                          <span className={row.type === "income" ? "text-emerald-400" : "text-red-400"}>
+                            {row.type === "expense" ? "-" : "+"}${row.amount.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-xs rounded-sm border-border ${row.type === "income" ? "text-emerald-400 border-emerald-400/30" : "text-red-400 border-red-400/30"}`}>
+                            {row.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground capitalize">{row.category}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {csvRows.filter((r) => r.selected).length === 0 && (
+                <div className="flex items-center gap-2 px-1 py-1 text-xs text-amber-400">
+                  <AlertCircle className="w-3.5 h-3.5" /> Select at least one row to import
+                </div>
+              )}
+            </>
+          )}
+
+          {!csvImportDone && (
+            <DialogFooter className="mt-4 shrink-0">
+              <Button variant="ghost" onClick={() => { setCsvImportOpen(false); setCsvRows([]); }} disabled={csvImporting} className="text-muted-foreground">
+                Skip — save document only
+              </Button>
+              <Button
+                onClick={importCsvTransactions}
+                disabled={csvImporting || csvRows.filter((r) => r.selected).length === 0}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              >
+                {csvImporting ? <><Loader2 className="w-4 h-4 animate-spin" /> Importing…</> : `Import ${csvRows.filter((r) => r.selected).length} Transactions`}
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -9,3 +9,4 @@ export * from "./audit";
 export * from "./notifications";
 export * from "./watchlist";
 export * from "./users";
+export * from "./offices";

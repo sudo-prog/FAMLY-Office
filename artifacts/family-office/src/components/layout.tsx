@@ -31,6 +31,8 @@ const BUSINESS_ITEMS = [
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
   { href: "/report/export-pdf", label: "PDF Export", icon: Printer },
+  { href: "/white-label", label: "Multi-Office", icon: Building2 },
+  { href: "/admin/ocr", label: "Document OCR", icon: FileText },
 ];
 
 interface LayoutProps { children: React.ReactNode; onOpenPalette?: () => void }

@@ -18,6 +18,7 @@ import notificationsRouter from "./notifications";
 import bankFeedRouter from "./bank-feed";
 import usersRouter from "./users";
 import mcpRouter from "./mcp";
+import ocrRouter from "./ocr";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(notificationsRouter);
 router.use(bankFeedRouter);
 router.use(usersRouter);
 router.use(mcpRouter);
+router.use(ocrRouter);
 
 export default router;

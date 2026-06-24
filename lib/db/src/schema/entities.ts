@@ -6,6 +6,7 @@ export const entitiesTable = pgTable("entities", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(), // individual | sole_trader | company | trust | smsf | partnership | other
+  officeId: integer("office_id"),
   abn: text("abn"),
   acn: text("acn"),
   tfn: text("tfn"),

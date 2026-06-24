@@ -7,6 +7,7 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   role: text("role").notNull().default("member"), // admin | member | viewer
+  officeId: integer("office_id"),
   pinHash: text("pin_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

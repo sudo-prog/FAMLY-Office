@@ -29,8 +29,11 @@ import Benchmarks from "@/pages/benchmarks";
 import Watchlist from "@/pages/watchlist";
 import AssetPrices from "@/pages/asset-prices";
 import EstatePage from "@/pages/estate";
-import AdminUsers from "@/pages/admin-users";
+import WhiteLabelPage from '@/pages/white-label';
+import OCRPage from '@/pages/ocr';
+import AdminUsersPage from '@/pages/admin-users';
 import ExportPdf from "@/pages/export-pdf";
+import OcrPage from "@/pages/ocr";
 import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { fetchLiveRates } from "@/lib/currency";
@@ -77,8 +80,11 @@ function Router() {
           <Route path="/research/watchlist" component={Watchlist} />
           <Route path="/assets/prices" component={AssetPrices} />
           <Route path="/estate" element={<EstatePage />} />
-          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/white-label" component={WhiteLabelPage} />
+<Route path="/admin/ocr" component={OCRPage} />
+<Route path="/admin/users" component={AdminUsersPage} />
           <Route path="/report/export-pdf" component={ExportPdf} />
+          <Route path="/vault/ocr" component={OcrPage} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

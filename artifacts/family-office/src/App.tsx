@@ -56,6 +56,7 @@ function Router() {
           <Route path="/home-office" component={HomeOffice} />
           <Route path="/research" component={Research} />
           <Route path="/tax-report" component={TaxReport} />
+          <Route path="/report/tax-year" component={TaxReport} />
           <Route path="/admin/audit-log" component={AuditLog} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/settings" component={Settings} />

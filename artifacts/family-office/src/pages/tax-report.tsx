@@ -117,6 +117,47 @@ export default function TaxReport() {
     downloadCSV(rows, ["Date", "Description", "Type", "Amount (AUD)", "Category", "ATO Tax Tag", "Tax Deductible"], `family-office-tax-report-FY${selectedFY}.csv`);
   }
 
+  async function handleExportPDF() {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    const tagRows = Object.entries(byTag).sort((a, b) => b[1].total - a[1].total).map(([tag, { txs, total }]) =>
+      `<tr><td style="padding:8px;border-bottom:1px solid #333;">${TAX_TAG_LABELS[tag] ?? tag}</td><td style="padding:8px;border-bottom:1px solid #333;text-align:right;">${fmtAUD(total)}</td><td style="padding:8px;border-bottom:1px solid #333;text-align:center;">${txs.length}</td></tr>`
+    ).join("");
+    const html = `<!DOCTYPE html><html><head><title>Tax Report FY${selectedFY}</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#1a1a1a}
+h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;margin-top:32px;margin-bottom:12px;border-bottom:2px solid #C9A227;padding-bottom:8px}
+table{width:100%;border-collapse:collapse;margin:16px 0}th{text-align:left;padding:8px;background:#f5f5f5;border-bottom:2px solid #ddd;font-size:13px}
+td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}
+.summary{padding:16px;border:1px solid #ddd;border-radius:8px}
+.summary .label{font-size:12px;color:#666;text-transform:uppercase;letter-spacing:0.5px}
+.summary .value{font-size:22px;font-weight:600;margin-top:4px}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#888}
+@media print{body{padding:20px}}
+</style></head><body>
+<h1>Family Office — Tax Year Summary</h1>
+<p style="color:#666;font-size:14px;">FY ${selectedFY} · Generated ${new Date().toLocaleDateString("en-AU")} · ${fyTransactions.length} transactions</p>
+<h2>Summary</h2>
+<div class="summary-grid">
+<div class="summary"><div class="label">Total Income</div><div class="value" style="color:#16a34a;">${fmtAUD(totalIncome)}</div></div>
+<div class="summary"><div class="label">Total Expenses</div><div class="value" style="color:#dc2626;">${fmtAUD(totalExpenses)}</div></div>
+<div class="summary"><div class="label">Net Position</div><div class="value">${fmtAUD(totalIncome - totalExpenses)}</div></div>
+<div class="summary"><div class="label">Deductible Expenses</div><div class="value" style="color:#2563eb;">${fmtAUD(totalDeductible)}</div></div>
+<div class="summary"><div class="label">Net Capital Gains</div><div class="value" style="color:#9333ea;">${fmtAUD(netCGT)}</div></div>
+<div class="summary"><div class="label">GST Payable (est.)</div><div class="value" style="color:#ca8a04;">${fmtAUD(gstPayable)}</div></div>
+</div>
+<h2>Breakdown by Tax Tag</h2>
+<table><thead><tr><th>Tax Category</th><th style="text-align:right;">Amount</th><th style="text-align:center;">Txns</th></tr></thead><tbody>${tagRows}</tbody></table>
+<h2>Untagged Transactions (${untagged.length})</h2>
+<p style="font-size:13px;color:#666;">${untagged.length} transactions require ATO tax tagging. Tag these in the Ledger for accurate reporting.</p>
+<div class="footer">This report is for informational purposes only and does not constitute tax advice. Consult a qualified tax adviser. Amounts in AUD.</div>
+</body></html>`;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -149,9 +190,14 @@ export default function TaxReport() {
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           </div>
-          <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
-            <Download className="w-4 h-4" /> Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+              <Download className="w-4 h-4" /> CSV
+            </Button>
+            <Button onClick={handleExportPDF} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+              <FileBarChart className="w-4 h-4" /> PDF
+            </Button>
+          </div>
         </div>
       </div>
 

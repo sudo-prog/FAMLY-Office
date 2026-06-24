@@ -5,7 +5,7 @@ import {
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
   Briefcase, Search, Sparkles, Receipt, Shield, Bell, Target, TrendingUp as TrendingUpIcon,
   Bitcoin, Home as HomeIcon, FileBarChart, Users as UsersIcon, Globe, Wallet as WalletIcon,
-  BarChart3, PieChartIcon, Settings as SettingsIcon, Menu, X, ChevronRight, Eye,
+  BarChart3, PieChartIcon, Settings as SettingsIcon, Menu, X, ChevronRight, Eye, Landmark,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -27,6 +27,7 @@ const BUSINESS_ITEMS = [
   { href: "/report/benchmarks", label: "Benchmarks", icon: BarChart3 },
   { href: "/research/watchlist", label: "Watchlist", icon: Eye },
   { href: "/assets/prices", label: "Price Feeds", icon: DollarSign },
+  { href: "/estate", label: "Estate Planning", icon: Landmark },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
 ];

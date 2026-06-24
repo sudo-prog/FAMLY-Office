@@ -22,6 +22,7 @@ import TaxReport from "@/pages/tax-report";
 import AuditLog from "@/pages/audit-log";
 import Notifications from "@/pages/notifications";
 import { Layout } from "@/components/layout";
+import { OfflineIndicator } from "@/components/offline-indicator";
 import { fetchLiveRates } from "@/lib/currency";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ function App() {
           <Router />
         </WouterRouter>
         <Toaster />
+        <OfflineIndicator />
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -84,14 +84,14 @@ export default function Entities() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-4 md:space-y-6 pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-serif text-foreground mb-1">Legal Entities</h1>
-          <p className="text-muted-foreground text-sm">{entities?.length ?? 0} corporate structures and trusts. Click a row to view details.</p>
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Legal Entities</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">{entities?.length ?? 0} corporate structures and trusts. Click a row to view details.</p>
         </div>
-        <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" /> New Entity
+        <Button onClick={openAdd} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs flex-shrink-0">
+          <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Entity</span><span className="sm:hidden">Add</span>
         </Button>
       </div>
 
@@ -155,7 +155,7 @@ export default function Entities() {
       </Card>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Entity" : "New Entity"}</DialogTitle>
           </DialogHeader>
@@ -164,7 +164,7 @@ export default function Entities() {
               <Label className="text-sm text-muted-foreground">Name *</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Smith Family Trust" className="bg-muted/30 border-border" required />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Type *</Label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
@@ -177,7 +177,7 @@ export default function Entities() {
                 <Input value={form.jurisdiction} onChange={(e) => setForm({ ...form, jurisdiction: e.target.value })} placeholder="e.g. NSW, Australia" className="bg-muted/30 border-border" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">ABN</Label>
                 <Input value={form.abn} onChange={(e) => setForm({ ...form, abn: e.target.value })} placeholder="12 345 678 901" className="bg-muted/30 border-border font-mono" />

@@ -488,26 +488,26 @@ export default function Assets() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-4 md:space-y-6 pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-serif text-foreground mb-1">Asset Register</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Asset Register</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             {assets?.length ?? 0} holdings &middot; {sym[disp]}{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(totalValue))} total
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setPriceRefreshOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-            <RefreshCw className="w-4 h-4" /> Market Prices
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setPriceRefreshOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
+            <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Market Prices</span><span className="sm:hidden">Prices</span>
           </Button>
-          <Button onClick={() => setRebalanceOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-            <Scale className="w-4 h-4" /> Rebalance
+          <Button onClick={() => setRebalanceOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
+            <Scale className="w-3.5 h-3.5" /> Rebalance
           </Button>
-          <Button onClick={() => setAiOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-            <Sparkles className="w-4 h-4" /> AI Analysis
+          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
+            <Sparkles className="w-3.5 h-3.5" /> AI
           </Button>
-          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="w-4 h-4" /> New Asset
+          <Button onClick={openAdd} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
+            <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Asset</span><span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -607,7 +607,7 @@ export default function Assets() {
       />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Asset" : "New Asset"}</DialogTitle>
           </DialogHeader>
@@ -616,7 +616,7 @@ export default function Assets() {
               <Label className="text-sm text-muted-foreground">Name *</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Sydney Apartment" className="bg-muted/30 border-border" required />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Category *</Label>
                 <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}

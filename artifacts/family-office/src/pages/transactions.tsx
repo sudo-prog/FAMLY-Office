@@ -162,11 +162,11 @@ export default function Transactions() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex items-start justify-between">
+    <div className="space-y-4 md:space-y-6 pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-serif text-foreground mb-1">Transaction Ledger</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Transaction Ledger</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             <span className="text-emerald-500 font-mono">+{fmtCur(totalIncome)}</span>
             <span className="text-muted-foreground"> income &middot; </span>
             <span className="font-mono">{fmtCur(totalExpenses)}</span>
@@ -175,15 +175,15 @@ export default function Transactions() {
             <span className="text-muted-foreground"> deductible</span>
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowTaxSummary(!showTaxSummary)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-            <Tag className="w-4 h-4" /> Tax Summary
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setShowTaxSummary(!showTaxSummary)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
+            <Tag className="w-3.5 h-3.5" /> Tax Summary
           </Button>
-          <Button onClick={() => setAiOpen(true)} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-            <Sparkles className="w-4 h-4" /> AI Insights
+          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
+            <Sparkles className="w-3.5 h-3.5" /> AI
           </Button>
-          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="w-4 h-4" /> New Transaction
+          <Button onClick={openAdd} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
+            <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Transaction</span><span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function Transactions() {
               No tax tags assigned yet. Edit transactions to add ATO tax categories.
             </div>
           ) : (
-            <div className="p-4 grid grid-cols-2 gap-3">
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(taxTagSummary).map(([tag, { count, total }]) => (
                 <div key={tag} className={`flex items-center justify-between rounded-lg border px-4 py-3 ${TAX_TAG_COLORS[tag] ?? "border-border bg-muted/20"}`}>
                   <div>
@@ -227,15 +227,15 @@ export default function Transactions() {
         </Card>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search description or category…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border" />
         </div>
-        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1">
+        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1 overflow-x-auto">
           {(["all", "income", "expense", "transfer"] as const).map((t) => (
             <button key={t} onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`px-3 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -321,7 +321,7 @@ export default function Transactions() {
       />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Transaction" : "New Transaction"}</DialogTitle>
           </DialogHeader>
@@ -330,7 +330,7 @@ export default function Transactions() {
               <Label className="text-sm text-muted-foreground">Description *</Label>
               <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="e.g. Rental Income — Harbour Apt" className="bg-muted/30 border-border" required />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Type *</Label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
@@ -345,7 +345,7 @@ export default function Transactions() {
                 <Input type="number" step="0.01" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="0.00" className="bg-muted/30 border-border font-mono" required />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Category</Label>
                 <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}

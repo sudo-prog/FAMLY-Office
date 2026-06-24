@@ -162,7 +162,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
                 else if (key !== '') handleDigit(key);
               }}
               disabled={key === ''}
-              className={`h-16 rounded-xl text-xl font-medium transition-all select-none
+              className={`h-14 sm:h-16 rounded-xl text-lg sm:text-xl font-medium transition-all select-none
                 ${key === ''
                   ? 'opacity-0 cursor-default'
                   : key === '⌫'

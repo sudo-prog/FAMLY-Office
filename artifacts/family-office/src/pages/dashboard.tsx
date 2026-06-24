@@ -50,16 +50,16 @@ function fmtCat(c: string) { return c.replace(/_/g, " ").replace(/\b\w/g, (x) =>
 type WidgetId = "net-worth" | "asset-stats" | "allocation" | "cash-flow" | "recent-activity" | "vault" | "entities" | "quick-add" | "ai-assistant" | "insights";
 
 const WIDGET_META: Record<WidgetId, { label: string; desc: string; cols: string; icon: React.ElementType }> = {
-  "net-worth": { label: "Net Worth", desc: "Total portfolio value and trend", cols: "col-span-2", icon: TrendingUp },
-  "asset-stats": { label: "Asset Stats", desc: "Holdings count and value", cols: "col-span-1", icon: Wallet },
-  "allocation": { label: "Allocation", desc: "Asset allocation donut chart", cols: "col-span-1", icon: PieChartIcon },
-  "cash-flow": { label: "Cash Flow", desc: "Income vs expenses bars", cols: "col-span-2", icon: BarChart3 },
-  "recent-activity": { label: "Recent Activity", desc: "Latest transactions", cols: "col-span-2", icon: Activity },
-  "vault": { label: "Vault", desc: "Document vault status", cols: "col-span-1", icon: FileKey },
-  "entities": { label: "Entities", desc: "Legal entity overview", cols: "col-span-1", icon: Users },
-  "quick-add": { label: "Quick Add", desc: "Log a transaction fast", cols: "col-span-1", icon: Plus },
-  "insights": { label: "AI Insights", desc: "Proactive portfolio intelligence", cols: "col-span-3", icon: Sparkles },
-  "ai-assistant": { label: "AI Assistant", desc: "Local + Cloud AI with zero-trust routing", cols: "col-span-3", icon: Sparkles },
+  "net-worth": { label: "Net Worth", desc: "Total portfolio value and trend", cols: "md:col-span-2", icon: TrendingUp },
+  "asset-stats": { label: "Asset Stats", desc: "Holdings count and value", cols: "", icon: Wallet },
+  "allocation": { label: "Allocation", desc: "Asset allocation donut chart", cols: "", icon: PieChartIcon },
+  "cash-flow": { label: "Cash Flow", desc: "Income vs expenses bars", cols: "md:col-span-2", icon: BarChart3 },
+  "recent-activity": { label: "Recent Activity", desc: "Latest transactions", cols: "md:col-span-2", icon: Activity },
+  "vault": { label: "Vault", desc: "Document vault status", cols: "", icon: FileKey },
+  "entities": { label: "Entities", desc: "Legal entity overview", cols: "", icon: Users },
+  "quick-add": { label: "Quick Add", desc: "Log a transaction fast", cols: "", icon: Plus },
+  "insights": { label: "AI Insights", desc: "Proactive portfolio intelligence", cols: "md:col-span-2 xl:col-span-3", icon: Sparkles },
+  "ai-assistant": { label: "AI Assistant", desc: "Local + Cloud AI with zero-trust routing", cols: "md:col-span-2 xl:col-span-3", icon: Sparkles },
 };
 
 const DEFAULT_WIDGETS: WidgetId[] = [
@@ -660,13 +660,13 @@ function InsightsWidget() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[1, 2, 3].map((i) => <div key={i} className="h-16 bg-muted/30 rounded-xl animate-pulse" />)}
           </div>
         ) : insights.length === 0 ? (
           <div className="flex items-center justify-center h-16 text-muted-foreground text-sm">No insights available — add assets to begin analysis.</div>
         ) : (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {insights.map((ins, i) => (
               <button
                 key={i}
@@ -789,20 +789,20 @@ export default function Dashboard() {
   const cur = getStoredCurrency();
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 pb-8">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-serif text-foreground mb-1">Command Center</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Command Center</h1>
+          <p className="text-muted-foreground text-xs md:text-sm">
             {activeWidgets.length} widgets · {cur} display · {entities?.length ?? 0} entities
           </p>
         </div>
-        <Button onClick={() => setCustomizing(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground">
-          <Settings2 className="w-4 h-4" /> Customize
+        <Button onClick={() => setCustomizing(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground flex-shrink-0">
+          <Settings2 className="w-4 h-4" /> <span className="hidden sm:inline">Customize</span>
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
         {activeWidgets.map((id) => {
           switch (id) {
             case "net-worth": return <NetWorthWidget key={id} summary={summary} history={snapHistory.length >= 2 ? snapHistory : (history ?? [])} />;

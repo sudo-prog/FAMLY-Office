@@ -15,11 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -31,6 +28,23 @@ jobs:
           cache: pnpm
       - run: cd artifacts/family-office && pnpm install --no-frozen-lockfile
       - run: cd artifacts/family-office && pnpm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: artifacts/family-office/dist
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: artifacts/family-office/dist
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

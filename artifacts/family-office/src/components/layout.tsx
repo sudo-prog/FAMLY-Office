@@ -3,7 +3,9 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
-  Briefcase, Search, Sparkles, Receipt,
+  Briefcase, Search, Sparkles, Receipt, Shield, Bell, Target, TrendingUp as TrendingUpIcon,
+  Bitcoin, Home as HomeIcon, FileBarChart, Users as UsersIcon, Globe, Wallet as WalletIcon,
+  BarChart3, PieChartIcon, Settings as SettingsIcon, Menu, X, ChevronRight, Eye,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -20,6 +22,7 @@ const NAV_ITEMS = [
 const BUSINESS_ITEMS = [
   { href: "/home-office", label: "Home Office", icon: Briefcase },
   { href: "/research",    label: "AI Research",  icon: Sparkles },
+  { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
 ];
 
 interface LayoutProps { children: React.ReactNode; onOpenPalette?: () => void }

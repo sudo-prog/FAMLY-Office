@@ -19,6 +19,7 @@ import Projections from "@/pages/projections";
 import HomeOffice from "@/pages/home-office";
 import Research from "@/pages/research";
 import TaxReport from "@/pages/tax-report";
+import EntityTax from "@/pages/entity-tax";
 import AuditLog from "@/pages/audit-log";
 import Notifications from "@/pages/notifications";
 import { Layout } from "@/components/layout";
@@ -57,6 +58,7 @@ function Router() {
           <Route path="/research" component={Research} />
           <Route path="/tax-report" component={TaxReport} />
           <Route path="/report/tax-year" component={TaxReport} />
+          <Route path="/entities/:id/tax" component={EntityTax} />
           <Route path="/admin/audit-log" component={AuditLog} />
           <Route path="/notifications" component={Notifications} />
           <Route path="/settings" component={Settings} />

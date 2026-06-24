@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Building2, User, Shield, Lock } from "lucide-react";
+import { ArrowLeft, Building2, User, Shield, Lock, Calculator } from "lucide-react";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   trust: Shield,
@@ -180,6 +180,12 @@ export default function EntityDetail() {
           </div>
         </Card>
       )}
+
+      <Link href={`/entities/${entityId}/tax`}>
+        <Button variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+          <Calculator className="w-4 h-4" /> Tax Optimisation
+        </Button>
+      </Link>
     </div>
   );
 }

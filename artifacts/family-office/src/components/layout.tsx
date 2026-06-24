@@ -138,7 +138,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   }
 
   return (
-    <div className="pwa-canvas-bg flex h-[100dvh] w-full bg-background text-foreground overflow-hidden">
+    <div className="pwa-canvas-bg relative min-h-screen w-full overflow-x-hidden">
       {/* Security Ribbon */}
       <div className="security-ribbon-track fixed top-0 left-0 right-0 z-[100]"></div>
       {/* Mobile overlay backdrop */}

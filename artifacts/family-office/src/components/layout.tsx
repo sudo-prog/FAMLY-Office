@@ -138,7 +138,9 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   }
 
   return (
-    <div className="flex h-[100dvh] w-full bg-background text-foreground overflow-hidden">
+    <div className="pwa-canvas-bg flex h-[100dvh] w-full bg-background text-foreground overflow-hidden">
+      {/* Security Ribbon */}
+      <div className="security-ribbon-track fixed top-0 left-0 right-0 z-[100]"></div>
       {/* Mobile overlay backdrop */}
       {menuOpen && (
         <div
@@ -167,7 +169,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
             <div className="w-6 h-6 rounded bg-primary flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-primary-foreground rounded-sm" />
             </div>
-            <span className="font-serif font-bold text-lg tracking-wide text-foreground whitespace-nowrap md:hidden xl:block">Family Office</span>
+            <span className="effect-emboss-ink font-bold text-lg tracking-wide whitespace-nowrap md:hidden xl:block">Family Office</span>
           </div>
           {/* Mobile close button */}
           <button
@@ -207,6 +209,8 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        {/* Security Ribbon */}
+        <div className="security-ribbon-track" data-parallax="0.5"></div>
         {/* Top header bar */}
         <header className="h-14 md:h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-8 flex-shrink-0 relative z-30">
           <div className="flex items-center gap-3">

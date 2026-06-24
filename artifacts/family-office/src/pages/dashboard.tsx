@@ -87,7 +87,8 @@ function WidgetCard({ id, children, className = "", onClick }: { id: WidgetId; c
   return (
     <div
       onClick={onClick}
-      className={`bg-card border border-border rounded-2xl overflow-hidden flex flex-col relative transition-all duration-200 ${onClick ? "cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-black/20 group" : ""} ${WIDGET_META[id].cols} ${className}`}
+      data-parallax={id === "quick-add" ? "1.5" : id === "net-worth" ? "1.2" : "1"}
+      className={`bg-card border border-border rounded-2xl overflow-hidden flex flex-col relative transition-all duration-200 effect-emboss-blind ${onClick ? "cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-black/20 group" : ""} ${WIDGET_META[id].cols} ${className}`}
     >
       {children}
       {onClick && (
@@ -352,7 +353,7 @@ function QuickAddWidget() {
             </div>
             <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="bg-muted/30 border-border" required />
             <DialogFooter>
-              <Button type="submit" disabled={saving} className="w-full bg-primary text-primary-foreground">{saving ? "Saving…" : "Add Transaction"}</Button>
+              <button type="submit" disabled={saving} className="ovi-button w-full">{saving ? "Saving…" : "Add Transaction"}</button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -792,14 +793,14 @@ export default function Dashboard() {
     <div className="space-y-4 md:space-y-6 pb-8">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Command Center</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1 effect-emboss-ink">Command Center</h1>
           <p className="text-muted-foreground text-xs md:text-sm">
             {activeWidgets.length} widgets · {cur} display · {entities?.length ?? 0} entities
           </p>
         </div>
-        <Button onClick={() => setCustomizing(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground flex-shrink-0">
+        <button onClick={() => setCustomizing(true)} className="ovi-button gap-2 flex-shrink-0">
           <Settings2 className="w-4 h-4" /> <span className="hidden sm:inline">Customize</span>
-        </Button>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">

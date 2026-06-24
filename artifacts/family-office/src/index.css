@@ -212,3 +212,117 @@
     border-radius: 2px;
   }
 }
+
+/* ─── Currency / Banknote Design System ─────────────────────────────────────── */
+
+:root {
+  /* Canvas Backgrounds (The Dollar Fabric) */
+  --color-paper-base: #f1ebd9;
+  --color-paper-shadow: #e1d9be;
+  --color-paper-highlight: #f9f7ef;
+
+  /* Intaglio & Typographic Inks */
+  --color-ink-black: #111411;
+  --color-ink-green: #1a3a22;
+  --color-ink-green-bleed: #315c3d;
+
+  /* Security Features */
+  --color-ribbon-blue: #235fa4;
+  --color-ribbon-glint: #5793da;
+  --color-bell-copper: #c27d38;
+  --color-bell-green: #3b8e51;
+  --color-serial-green: #0a7337;
+
+  /* Typography */
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-interface: system-ui, -apple-system, sans-serif;
+  --font-security: "Courier New", "JetBrains Mono", monospace;
+  --weight-engraved: 800;
+  --weight-stamped: 600;
+  --weight-ui: 400;
+}
+
+/* Realistic Paper Canvas Background */
+.pwa-canvas-bg {
+  position: relative;
+  background-color: var(--color-paper-base);
+  background-image: 
+    radial-gradient(circle at 15% 25%, rgba(200, 30, 30, 0.15) 1px, transparent 2px),
+    radial-gradient(circle at 80% 55%, rgba(30, 80, 180, 0.18) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 50% 80%, rgba(200, 30, 30, 0.12) 1.2px, transparent 2px);
+  min-height: 100vh;
+  width: 100%;
+}
+
+.pwa-canvas-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.26;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Ink Bleed Stamped Effect */
+.effect-ink-bleed-stamped {
+  font-family: var(--font-security);
+  font-weight: var(--weight-stamped);
+  color: var(--color-ink-black);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 
+    0.3px 0.3px 0px rgba(17, 20, 17, 0.8),
+    -0.3px -0.3px 0px rgba(17, 20, 17, 0.8),
+    0px 0px 1.5px var(--color-ink-green-bleed);
+}
+
+/* Intaglio Heavy Emboss */
+.effect-emboss-ink {
+  font-family: var(--font-display);
+  font-weight: var(--weight-engraved);
+  color: var(--color-ink-green);
+  text-shadow: 
+    0px -1px 0px rgba(0, 0, 0, 0.7),
+    0px 1px 0px var(--color-paper-highlight),
+    1px 2px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Blind Emboss: borders and dashboard grids */
+.effect-emboss-blind {
+  border: 1px solid var(--color-paper-shadow);
+  box-shadow: 
+    inset 1px 1px 2px rgba(0, 0, 0, 0.1),
+    1px 1px 1px var(--color-paper-highlight);
+  background-color: transparent;
+}
+
+/* Security Ribbon Track */
+.security-ribbon-track {
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-ribbon-blue) 0px,
+    var(--color-ribbon-blue) 24px,
+    var(--color-ribbon-glint) 24px,
+    var(--color-ribbon-glint) 28px,
+    var(--color-paper-base) 28px,
+    var(--color-paper-base) 34px
+  );
+  width: 100%;
+}
+
+/* OVI Button (Optically Variable Ink) */
+.ovi-button {
+  background: linear-gradient(135deg, var(--color-bell-copper) 0%, #b06b28 100%);
+  color: var(--color-paper-highlight);
+  font-family: var(--font-interface);
+  font-weight: var(--weight-stamped);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 14px 28px;
+  border-radius: 4px;
+  transition: transform 0.1s ease;
+}
+.ovi-button:hover {
+  transform: scale(1.02);
+}

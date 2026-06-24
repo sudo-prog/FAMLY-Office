@@ -245,7 +245,7 @@
 /* Realistic Paper Canvas Background */
 .pwa-canvas-bg {
   position: relative;
-  background-color: var(--color-paper-base);
+  background-color: var(--color-paper-base) !important;
   background-image: 
     radial-gradient(circle at 15% 25%, rgba(200, 30, 30, 0.15) 1px, transparent 2px),
     radial-gradient(circle at 80% 55%, rgba(30, 80, 180, 0.18) 1.5px, transparent 2.5px),

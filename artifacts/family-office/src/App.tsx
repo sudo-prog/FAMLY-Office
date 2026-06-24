@@ -29,6 +29,8 @@ import Benchmarks from "@/pages/benchmarks";
 import Watchlist from "@/pages/watchlist";
 import AssetPrices from "@/pages/asset-prices";
 import EstatePage from "@/pages/estate";
+import AdminUsers from "@/pages/admin-users";
+import ExportPdf from "@/pages/export-pdf";
 import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { fetchLiveRates } from "@/lib/currency";
@@ -75,6 +77,8 @@ function Router() {
           <Route path="/research/watchlist" component={Watchlist} />
           <Route path="/assets/prices" component={AssetPrices} />
           <Route path="/estate" element={<EstatePage />} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/report/export-pdf" component={ExportPdf} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

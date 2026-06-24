@@ -5,7 +5,7 @@ import {
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
   Briefcase, Search, Sparkles, Receipt, Shield, Bell, Target, TrendingUp as TrendingUpIcon,
   Bitcoin, Home as HomeIcon, FileBarChart, Users as UsersIcon, Globe, Wallet as WalletIcon,
-  BarChart3, PieChartIcon, Settings as SettingsIcon, Menu, X, ChevronRight, Eye, Landmark,
+  BarChart3, PieChartIcon, Settings as SettingsIcon, Menu, X, ChevronRight, Eye, Landmark, Printer,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -30,6 +30,7 @@ const BUSINESS_ITEMS = [
   { href: "/estate", label: "Estate Planning", icon: Landmark },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
+  { href: "/report/export-pdf", label: "PDF Export", icon: Printer },
 ];
 
 interface LayoutProps { children: React.ReactNode; onOpenPalette?: () => void }

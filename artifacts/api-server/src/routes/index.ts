@@ -16,6 +16,8 @@ import watchlistRouter from "./watchlist";
 import auditRouter from "./audit";
 import notificationsRouter from "./notifications";
 import bankFeedRouter from "./bank-feed";
+import usersRouter from "./users";
+import mcpRouter from "./mcp";
 
 const router: IRouter = Router();
 
@@ -36,5 +38,7 @@ router.use(watchlistRouter);
 router.use(auditRouter);
 router.use(notificationsRouter);
 router.use(bankFeedRouter);
+router.use(usersRouter);
+router.use(mcpRouter);
 
 export default router;

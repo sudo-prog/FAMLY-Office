@@ -230,3 +230,4 @@ The app runs within the Replit environment:
 ## Pitch Deck
 
 A 10-slide investor/stakeholder pitch deck is available at `/family-office-pitch` covering: vision, problem, solution, technology, AI architecture, security model, modules, AI features, roadmap, and contact.
+# 1782322451

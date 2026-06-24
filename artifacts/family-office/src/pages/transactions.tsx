@@ -119,7 +119,7 @@ export default function Transactions() {
     setForm({
       description: tx.description, amount: String(tx.amount), type: tx.type,
       category: tx.category ?? "other", date: tx.date,
-      taxDeductible: tx.taxDeductible,
+      taxDeductible: tx.taxDeductible ?? false,
       taxTag: (tx as any).taxTag ?? "",
     });
     setOpen(true);
@@ -148,7 +148,7 @@ export default function Transactions() {
 
   async function handleDelete(id: number) {
     if (!confirm("Delete this transaction?")) return;
-    await deleteTx.mutateAsync(id);
+    await deleteTx.mutateAsync({ id });
     await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
   }
 

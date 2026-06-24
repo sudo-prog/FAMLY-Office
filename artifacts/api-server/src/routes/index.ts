@@ -14,6 +14,7 @@ import pricesRouter from "./prices";
 import fxRouter from "./fx";
 import auditRouter from "./audit";
 import notificationsRouter from "./notifications";
+import bankFeedRouter from "./bank-feed";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(pricesRouter);
 router.use(fxRouter);
 router.use(auditRouter);
 router.use(notificationsRouter);
+router.use(bankFeedRouter);
 
 export default router;

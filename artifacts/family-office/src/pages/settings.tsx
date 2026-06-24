@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal, Upload } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 
@@ -626,6 +626,32 @@ export default function Settings() {
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Upload className="w-4 h-4 text-primary" />
+            Bank Feed CSV Import
+          </CardTitle>
+          <CardDescription className="text-sm">Import bank statements via CSV auto-sync.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
+            <div>
+              <h3 className="font-medium text-sm">CSV Auto-Sync</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Drop CSV files or paste content. Auto-detects columns and categories.
+              </p>
+            </div>
+            <Link href="/settings/bank-feed">
+              <Button variant="outline" className="gap-2 border-border text-sm flex-shrink-0 ml-4">
+                <Upload className="w-4 h-4" />
+                Open Bank Feed
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
 

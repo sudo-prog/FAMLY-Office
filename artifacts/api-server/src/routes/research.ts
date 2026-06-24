@@ -518,7 +518,7 @@ router.post("/research/business-plan", async (req, res) => {
         competitors ? `${competitors} competitor analysis business model` : `${industry} competitive landscape key players`,
         `${businessName || industry} startup growth opportunities Australia`,
       ];
-      const results = await Promise.all(queries.map(q => webSearch(q, "standard")));
+      const results = await Promise.all(queries.map(q => webSearch(q, 3)));
       const flat = results.flat().filter(r => r.snippet).slice(0, 14);
       webContext = flat.map((s, i) => `[${i + 1}] ${s.title}\n${s.snippet}`).join("\n\n");
       sse(res, { type: "sources", sources: flat });
@@ -832,7 +832,7 @@ router.post("/research/grants", async (req, res) => {
 
   let sources: any[] = [];
   try {
-    const results = await Promise.all(queries.map(q => webSearch(q, "standard")));
+    const results = await Promise.all(queries.map(q => webSearch(q, 3)));
     sources = results.flat().filter(r => r.snippet).slice(0, 18);
     sse(res, { type: "sources", sources });
     sse(res, { type: "step", step: "analysing", message: `Found ${sources.length} grant program references. Identifying best matches…` });
@@ -972,7 +972,7 @@ router.post("/research/grant-proposal", async (req, res) => {
 
   let grantContext = "";
   try {
-    const results = await webSearch(`${grantName} ${grantOrganisation || ""} application criteria eligibility requirements successful examples`, "standard");
+    const results = await webSearch(`${grantName} ${grantOrganisation || ""} application criteria eligibility requirements successful examples`, 3);
     grantContext = results.slice(0, 5).map((r, i) => `[${i + 1}] ${r.title}\n${r.snippet}`).join("\n\n");
     sse(res, { type: "sources", sources: results.slice(0, 5) });
   } catch {}

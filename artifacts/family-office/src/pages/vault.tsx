@@ -284,7 +284,7 @@ export default function Vault() {
   async function handleDelete(id: number, e?: React.MouseEvent) {
     e?.stopPropagation();
     if (!confirm("Delete this document record?")) return;
-    await deleteDoc.mutateAsync(id);
+    await deleteDoc.mutateAsync({ id });
     await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
   }
 

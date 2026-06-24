@@ -25,6 +25,8 @@ export interface Transaction {
   entityId?: number | null;
   taxDeductible?: boolean;
   /** @nullable */
+  taxTag?: string | null;
+  /** @nullable */
   tags?: string | null;
   createdAt: string;
 }

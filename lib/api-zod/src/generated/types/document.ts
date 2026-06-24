@@ -21,6 +21,8 @@ export interface Document {
   year?: number | null;
   /** @nullable */
   ocrText?: string | null;
+  /** @nullable */
+  folder?: string | null;
   encrypted?: boolean;
   createdAt: string;
   /** @nullable */

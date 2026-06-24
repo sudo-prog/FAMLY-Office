@@ -22,6 +22,9 @@ import TaxReport from "@/pages/tax-report";
 import EntityTax from "@/pages/entity-tax";
 import AuditLog from "@/pages/audit-log";
 import Notifications from "@/pages/notifications";
+import BankFeed from "@/pages/bank-feed";
+import CashFlow from "@/pages/cash-flow";
+import NetWorthTargets from "@/pages/targets";
 import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { fetchLiveRates } from "@/lib/currency";
@@ -61,6 +64,9 @@ function Router() {
           <Route path="/entities/:id/tax" component={EntityTax} />
           <Route path="/admin/audit-log" component={AuditLog} />
           <Route path="/notifications" component={Notifications} />
+          <Route path="/settings/bank-feed" component={BankFeed} />
+          <Route path="/projections/cash-flow" component={CashFlow} />
+          <Route path="/targets" component={NetWorthTargets} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

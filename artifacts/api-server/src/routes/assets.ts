@@ -26,6 +26,7 @@ router.get("/assets/by-category", async (_req, res) => {
     res.json(rows.map((r) => ({ category: r.category, total: Number(r.total) || 0, count: Number(r.count) || 0 })));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch asset categories" });
+    return;
   }
 });
 
@@ -38,6 +39,7 @@ router.get("/assets", async (req, res) => {
     res.json(assets.map(formatAsset));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch assets" });
+    return;
   }
 });
 
@@ -48,6 +50,7 @@ router.post("/assets", async (req, res) => {
     res.status(201).json(formatAsset(asset));
   } catch (err) {
     res.status(400).json({ error: "Invalid asset data" });
+    return;
   }
 });
 
@@ -59,6 +62,7 @@ router.get("/assets/:id", async (req, res) => {
     res.json(formatAsset(asset));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch asset" });
+    return;
   }
 });
 
@@ -71,6 +75,7 @@ router.patch("/assets/:id", async (req, res) => {
     res.json(formatAsset(asset));
   } catch (err) {
     res.status(400).json({ error: "Invalid asset data" });
+    return;
   }
 });
 
@@ -81,6 +86,7 @@ router.delete("/assets/:id", async (req, res) => {
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: "Failed to delete asset" });
+    return;
   }
 });
 

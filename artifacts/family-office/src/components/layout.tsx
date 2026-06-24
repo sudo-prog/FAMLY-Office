@@ -22,6 +22,8 @@ const NAV_ITEMS = [
 const BUSINESS_ITEMS = [
   { href: "/home-office", label: "Home Office", icon: Briefcase },
   { href: "/research",    label: "AI Research",  icon: Sparkles },
+  { href: "/projections/cash-flow", label: "Cash Flow", icon: BarChart3 },
+  { href: "/targets", label: "Net Worth Targets", icon: Target },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
 ];

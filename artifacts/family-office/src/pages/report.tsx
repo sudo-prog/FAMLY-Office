@@ -253,7 +253,7 @@ export default function Report() {
                   </div>
                   <div className="p-5 bg-primary/5 rounded-lg border border-primary/20">
                     <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Tax-Deductible Expenses</div>
-                    <div className="text-2xl font-mono text-primary tabular-nums">{fmt(summary.taxDeductibleYTD)}</div>
+                    <div className="text-2xl font-mono text-primary tabular-nums">{fmt(summary.taxDeductibleYTD ?? 0)}</div>
                   </div>
                   <div className="p-5 bg-muted/20 rounded-lg border border-border">
                     <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Net Taxable Income (Est.)</div>

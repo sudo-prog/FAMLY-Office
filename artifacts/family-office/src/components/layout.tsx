@@ -24,6 +24,9 @@ const BUSINESS_ITEMS = [
   { href: "/research",    label: "AI Research",  icon: Sparkles },
   { href: "/projections/cash-flow", label: "Cash Flow", icon: BarChart3 },
   { href: "/targets", label: "Net Worth Targets", icon: Target },
+  { href: "/report/benchmarks", label: "Benchmarks", icon: BarChart3 },
+  { href: "/research/watchlist", label: "Watchlist", icon: Eye },
+  { href: "/assets/prices", label: "Price Feeds", icon: DollarSign },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
 ];

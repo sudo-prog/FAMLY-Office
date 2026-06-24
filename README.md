@@ -4,6 +4,14 @@
 
 ---
 
+## 🚀 Live Demo
+
+**https://sudo-prog.github.io/FAMLY-Office/**
+
+PIN: `000000` (first-run, you'll set your own)
+
+---
+
 ## Overview
 
 Family Office is a full-stack Progressive Web App (PWA) that gives a family office complete control over their financial life — assets, transactions, entities, documents, projections, reporting, AI analysis, and business administration — in a single sovereign system that runs locally with optional AI enhancement.

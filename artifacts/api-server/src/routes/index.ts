@@ -13,6 +13,7 @@ import researchRouter from "./research";
 import pricesRouter from "./prices";
 import fxRouter from "./fx";
 import auditRouter from "./audit";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(researchRouter);
 router.use(pricesRouter);
 router.use(fxRouter);
 router.use(auditRouter);
+router.use(notificationsRouter);
 
 export default router;

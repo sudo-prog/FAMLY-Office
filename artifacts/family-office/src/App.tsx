@@ -20,6 +20,7 @@ import HomeOffice from "@/pages/home-office";
 import Research from "@/pages/research";
 import TaxReport from "@/pages/tax-report";
 import AuditLog from "@/pages/audit-log";
+import Notifications from "@/pages/notifications";
 import { Layout } from "@/components/layout";
 import { fetchLiveRates } from "@/lib/currency";
 
@@ -55,6 +56,7 @@ function Router() {
           <Route path="/research" component={Research} />
           <Route path="/tax-report" component={TaxReport} />
           <Route path="/admin/audit-log" component={AuditLog} />
+          <Route path="/notifications" component={Notifications} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

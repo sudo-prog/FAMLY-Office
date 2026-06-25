@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   Settings as SettingsIcon, FileText, TrendingUp, Menu, X, ChevronRight,
   Briefcase, Search, Sparkles, Receipt, Shield, Bell, Target,
-  Eye, Landmark, Printer, DollarSign, Building2,
+  Eye, Landmark, Printer, DollarSign, Building2, BarChart3,
 } from "lucide-react";
 
 const NAV_ITEMS = [

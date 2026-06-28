@@ -81,6 +81,8 @@ export interface Transaction {
   entityId?: number | null;
   taxDeductible?: boolean;
   /** @nullable */
+  taxTag?: string | null;
+  /** @nullable */
   tags?: string | null;
   createdAt: string;
 }
@@ -98,6 +100,7 @@ export interface TransactionInput {
   /** @nullable */
   entityId?: number | null;
   taxDeductible?: boolean;
+  taxTag?: string;
   tags?: string;
 }
 
@@ -132,7 +135,11 @@ export interface Document {
   year?: number | null;
   /** @nullable */
   ocrText?: string | null;
+  /** @nullable */
+  extractedData?: string | null;
   encrypted?: boolean;
+  /** @nullable */
+  folder?: string | null;
   createdAt: string;
   /** @nullable */
   updatedAt?: string | null;
@@ -149,6 +156,7 @@ export interface DocumentInput {
   year?: number | null;
   ocrText?: string;
   encrypted?: boolean;
+  folder?: string;
 }
 
 export interface DocumentUpdate {
@@ -162,6 +170,7 @@ export interface DocumentUpdate {
   year?: number | null;
   ocrText?: string;
   encrypted?: boolean;
+  folder?: string;
 }
 
 export interface Entity {

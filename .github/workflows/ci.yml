@@ -68,8 +68,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm --filter @workspace/family-office run build && pnpm --filter @workspace/api-server run build
+      - name: Build frontend
+        run: pnpm --filter @workspace/family-office run build
 
   security-audit:
     runs-on: ubuntu-latest

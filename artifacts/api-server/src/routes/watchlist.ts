@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq, desc } from "drizzle-orm";
-import { db } from "../db.js";
-import { watchlistTable } from "../schema/watchlist.js";
+import { db } from "@workspace/db";
+import { watchlistTable } from "@workspace/db";
 
 const router = Router();
 

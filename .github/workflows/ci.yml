@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Clean TypeScript cache
+        run: find . -name "*.tsbuildinfo" -delete && rm -rf node_modules/.tmp 2>/dev/null; true
+
       - name: Typecheck
         run: pnpm run typecheck
 

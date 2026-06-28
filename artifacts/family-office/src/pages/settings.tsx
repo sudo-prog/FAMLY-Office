@@ -621,7 +621,7 @@ export default function Settings() {
               <div className="pt-1 border-t border-border">
                 <p className="text-xs text-muted-foreground/60 flex items-start gap-1.5">
                   <Key className="w-3 h-3 mt-0.5 shrink-0" />
-                  To add a secret: open the <strong className="text-muted-foreground">Replit Secrets</strong> panel (lock icon in the sidebar), add the environment variable name shown above, and restart the API server. Keys are never stored in the database.
+                  To add a secret: open the environment variables panel in your deployment platform, add the environment variable name shown above, and restart the API server. Keys are never stored in the database.
                 </p>
               </div>
             </>

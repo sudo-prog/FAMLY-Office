@@ -15,8 +15,7 @@ Architecture decisions, file structure, API patterns, and known issues.
 ## Monorepo Structure
 - `artifacts/family-office/` — React 19 frontend (Vite, Tailwind 4, shadcn/ui, Zustand, TanStack Query)
 - `artifacts/api-server/` — Express 5 backend (Drizzle ORM, PostgreSQL, Zod validation)
-- `artifacts/mockup-sandbox/` — Separate sandbox app (has Replit deps, keep separate)
-- `artifacts/family-office-pitch/` — Pitch deck app (has Replit deps, keep separate)
+
 - `lib/db/` — Shared database schema (Drizzle), migrations
 - `lib/api-zod/` — Shared Zod schemas, API client
 - `lib/api-client-react/` — Generated API client for frontend
@@ -79,10 +78,8 @@ Architecture decisions, file structure, API patterns, and known issues.
 - Rate limiter is in-memory (won't work across multiple instances, needs Redis for production)
 - chart.tsx dangerouslySetInnerHTML (low risk, shadcn/ui pattern)
 
-### Replit Dependencies
-- Only in `mockup-sandbox` and `family-office-pitch` (separate apps)
-- Main `family-office` app is clean of Replit coupling
-- Settings page has documentation reference to "Replit Secrets" (instructional text only)
+### Removed Dependencies
+
 
 ## Environment Variables
 ```

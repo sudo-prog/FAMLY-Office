@@ -16,7 +16,7 @@ const LOCKOUT_KEY = 'fo-pin-lockout';
  * - Timing-unsafe comparison
  */
 async function hashPin(pin: string, salt?: Uint8Array): Promise<{ hash: string; salt: string }> {
-  const saltBytes = salt ?? crypto.getRandomValues(new Uint8Array(16));
+  const saltBytes = salt ?? new Uint8Array(crypto.getRandomValues(new Uint8Array(16)));
   const saltHex = Array.from(saltBytes).map(b => b.toString(16).padStart(2, '0')).join('');
 
   const encoder = new TextEncoder();
@@ -32,7 +32,7 @@ async function hashPin(pin: string, salt?: Uint8Array): Promise<{ hash: string; 
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: saltBytes,
+      salt: saltBytes as BufferSource,
       iterations: 600_000,
       hash: 'SHA-256',
     },

@@ -4,6 +4,7 @@ import {
   useListAssets, getListAssetsQueryKey,
   useCreateAsset, useUpdateAsset, useDeleteAsset,
 } from "@workspace/api-client-react";
+import type { Asset } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -85,7 +86,7 @@ function RebalancingSheet({
   open, onClose, assets, totalValue,
 }: {
   open: boolean; onClose: () => void;
-  assets: NonNullable<ReturnType<typeof useListAssets>["data"]>;
+  assets: Asset[];
   totalValue: number;
 }) {
   const [targets, setTargets] = useState<Record<string, number>>(loadTargets);
@@ -216,7 +217,7 @@ function PriceRefreshSheet({
 }: {
   open: boolean;
   onClose: () => void;
-  assets: NonNullable<ReturnType<typeof useListAssets>["data"]>;
+  assets: Asset[];
 }) {
   const qc = useQueryClient();
   const updateAsset = useUpdateAsset();
@@ -492,7 +493,7 @@ export default function Assets() {
 
   function openAdd() { setEditId(null); setForm(emptyForm); setOpen(true); }
 
-  function openEdit(a: NonNullable<typeof assets>[number]) {
+  function openEdit(a: Asset) {
     setEditId(a.id);
     setForm({ name: a.name, category: a.category, value: String(a.value), currency: a.currency, institution: a.institution ?? "", notes: a.notes ?? "" });
     setOpen(true);

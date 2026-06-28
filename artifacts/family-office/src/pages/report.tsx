@@ -257,7 +257,7 @@ export default function Report() {
                   </div>
                   <div className="p-5 bg-muted/20 rounded-lg border border-border">
                     <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Net Taxable Income (Est.)</div>
-                    <div className="text-2xl font-mono text-foreground tabular-nums">{fmt(summary.totalIncome - summary.taxDeductibleYTD)}</div>
+                    <div className="text-2xl font-mono text-foreground tabular-nums">{fmt(summary.totalIncome - (summary.taxDeductibleYTD ?? 0))}</div>
                   </div>
                 </div>
               </div>

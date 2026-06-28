@@ -52,7 +52,7 @@ export default function EntityTax() {
   const [_match, params] = useRoute("/entities/:id/tax");
   const entityId = params?.id ? parseInt(params.id) : 0;
 
-  const { data: entity, isLoading: l1 } = useGetEntity(entityId, { query: { enabled: entityId > 0 } });
+  const { data: entity, isLoading: l1 } = useGetEntity(entityId, { query: { enabled: entityId > 0, queryKey: ["entity", entityId] } });
   const { data: allAssets, isLoading: l2 } = useListAssets();
   const { data: transactions, isLoading: l3 } = useListTransactions();
 

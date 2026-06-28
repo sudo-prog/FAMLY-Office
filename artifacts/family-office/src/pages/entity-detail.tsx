@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Building2, User, Shield, Lock, Calculator } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   trust: Shield,
@@ -27,7 +28,7 @@ export default function EntityDetail() {
   const [_match, params] = useRoute("/entities/:id");
   const entityId = params?.id ? parseInt(params.id) : 0;
 
-  const { data: entity, isLoading: loadingEntity } = useGetEntity(entityId, { query: { enabled: entityId > 0 } });
+  const { data: entity, isLoading: loadingEntity } = useGetEntity(entityId, { query: { enabled: entityId > 0, queryKey: ["entity", entityId] } });
   const { data: allAssets, isLoading: loadingAssets } = useListAssets();
   const { data: allDocs, isLoading: loadingDocs } = useListDocuments();
 

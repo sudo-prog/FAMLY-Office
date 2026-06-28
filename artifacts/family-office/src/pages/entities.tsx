@@ -71,7 +71,7 @@ export default function Entities() {
   async function handleDelete(id: number, ev: React.MouseEvent) {
     ev.stopPropagation();
     if (!confirm("Delete this entity?")) return;
-    await deleteEntity.mutateAsync(id);
+    await deleteEntity.mutateAsync({ id });
     await qc.invalidateQueries({ queryKey: getListEntitiesQueryKey() });
   }
 

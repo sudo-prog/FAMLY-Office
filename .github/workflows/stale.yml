@@ -1,0 +1,28 @@
+name: Close stale issues and PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: 'This issue has been automatically closed because it has been open for 30 days with no activity. If this is still relevant, please reopen or create a new issue.'
+          stale-pr-message: 'This pull request has been automatically closed because it has been open for 30 days with no activity. If this is still relevant, please reopen or create a new PR.'
+          close-issue-message: 'Closing due to 30 days of inactivity.'
+          close-pr-message: 'Closing due to 30 days of inactivity.'
+          days-before-stale: 30
+          days-before-close: 0
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,help wanted'
+          exempt-pr-labels: 'pinned,security'
+          operations-per-run: 100

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListTransactions, getListTransactionsQueryKey,
@@ -6,7 +6,8 @@ import {
 } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { VirtualizedTable } from "@/components/ui/virtualized-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,54 @@ const today = new Date().toISOString().slice(0, 10);
 type TxForm = { description: string; amount: string; type: string; category: string; date: string; taxDeductible: boolean; taxTag: string };
 const emptyForm: TxForm = { description: "", amount: "", type: "expense", category: "other", date: today, taxDeductible: false, taxTag: "" };
 
+// ─── Memoized Table Row ────────────────────────────────────────────────────────
+// Extracted from inline render to avoid re-rendering all rows when parent state
+// (search, filter) changes but individual tx objects remain the same.
+
+const TransactionRow = memo(function TransactionRow({ tx, onEdit, onDelete }: {
+  tx: any;
+  onEdit: (tx: any) => void;
+  onDelete: (id: number) => void;
+}) {
+  return (
+    <TableRow className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => onEdit(tx)}>
+      <TableCell className="text-muted-foreground text-sm tabular-nums">{formatDate(tx.date)}</TableCell>
+      <TableCell className="font-medium">
+        <div className="flex items-center gap-2">
+          {tx.description}
+          {tx.taxDeductible && (
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
+          {tx.type}
+        </span>
+      </TableCell>
+      <TableCell className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</TableCell>
+      <TableCell>
+        {(tx as any).taxTag ? (
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
+            {taxTagLabel((tx as any).taxTag)}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-sm">—</span>
+        )}
+      </TableCell>
+      <TableCell className={`text-right font-mono tabular-nums ${tx.type === "income" ? "text-emerald-500" : "text-foreground"}`}>
+        {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+          <button onClick={() => onEdit(tx)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+          <button onClick={() => onDelete(tx.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+});
+
 export default function Transactions() {
   const qc = useQueryClient();
   const { data: transactions, isLoading } = useListTransactions();
@@ -93,29 +142,33 @@ export default function Transactions() {
   const [aiOpen, setAiOpen] = useState(false);
   const [showTaxSummary, setShowTaxSummary] = useState(false);
 
-  const filtered = (transactions ?? []).filter((tx) => {
-    const matchType = typeFilter === "all" || tx.type === typeFilter;
-    const matchSearch = !search || tx.description.toLowerCase().includes(search.toLowerCase()) || (tx.category ?? "").toLowerCase().includes(search.toLowerCase());
-    return matchType && matchSearch;
-  });
+  const filtered = useMemo(() => {
+    return (transactions ?? []).filter((tx) => {
+      const matchType = typeFilter === "all" || tx.type === typeFilter;
+      const matchSearch = !search || tx.description.toLowerCase().includes(search.toLowerCase()) || (tx.category ?? "").toLowerCase().includes(search.toLowerCase());
+      return matchType && matchSearch;
+    });
+  }, [transactions, search, typeFilter]);
 
-  const totalIncome = (transactions ?? []).filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const totalExpenses = (transactions ?? []).filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
-  const totalDeductible = (transactions ?? []).filter((t) => t.taxDeductible).reduce((s, t) => s + Number(t.amount), 0);
+  const totalIncome = useMemo(() => (transactions ?? []).filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0), [transactions]);
+  const totalExpenses = useMemo(() => (transactions ?? []).filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0), [transactions]);
+  const totalDeductible = useMemo(() => (transactions ?? []).filter((t) => t.taxDeductible).reduce((s, t) => s + Number(t.amount), 0), [transactions]);
 
-  const taxTagSummary = TAX_TAGS.slice(1).reduce<Record<string, { count: number; total: number }>>((acc, tag) => {
-    const matching = (transactions ?? []).filter((t) => (t as any).taxTag === tag.value);
-    if (matching.length > 0) {
-      acc[tag.value] = {
-        count: matching.length,
-        total: matching.reduce((s, t) => s + Number(t.amount), 0),
-      };
-    }
-    return acc;
-  }, {});
+  const taxTagSummary = useMemo(() => {
+    return TAX_TAGS.slice(1).reduce<Record<string, { count: number; total: number }>>((acc, tag) => {
+      const matching = (transactions ?? []).filter((t) => (t as any).taxTag === tag.value);
+      if (matching.length > 0) {
+        acc[tag.value] = {
+          count: matching.length,
+          total: matching.reduce((s, t) => s + Number(t.amount), 0),
+        };
+      }
+      return acc;
+    }, {});
+  }, [transactions]);
 
-  function openAdd() { setEditId(null); setForm(emptyForm); setOpen(true); }
-  function openEdit(tx: NonNullable<typeof transactions>[number]) {
+  const openAdd = useCallback(() => { setEditId(null); setForm(emptyForm); setOpen(true); }, []);
+  const openEdit = useCallback((tx: NonNullable<typeof transactions>[number]) => {
     setEditId(tx.id);
     setForm({
       description: tx.description, amount: String(tx.amount), type: tx.type,
@@ -124,7 +177,7 @@ export default function Transactions() {
       taxTag: (tx as any).taxTag ?? "",
     });
     setOpen(true);
-  }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -151,7 +204,7 @@ export default function Transactions() {
     } finally { setSaving(false); }
   }
 
-  async function handleDelete(id: number) {
+  const handleDelete = useCallback(async (id: number) => {
     if (!confirm("Delete this transaction?")) return;
     try {
       await deleteTx.mutateAsync({ id });
@@ -160,7 +213,7 @@ export default function Transactions() {
     } catch (err) {
       toast.error("Failed to delete transaction");
     }
-  }
+  }, [deleteTx, qc]);
 
   if (isLoading) {
     return (
@@ -253,8 +306,15 @@ export default function Transactions() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
+        <VirtualizedTable
+          data={filtered}
+          getRowKey={(tx) => tx.id}
+          colCount={7}
+          rowHeight={52}
+          overscan={8}
+          maxHeight={640}
+          className="overflow-x-auto"
+          header={
             <TableHeader className="bg-muted/50">
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="font-medium text-muted-foreground w-32">Date</TableHead>
@@ -266,54 +326,47 @@ export default function Transactions() {
                 <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {filtered.map((tx) => (
-                <TableRow key={tx.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => openEdit(tx)}>
-                  <TableCell className="text-muted-foreground text-sm tabular-nums">{formatDate(tx.date)}</TableCell>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {tx.description}
-                      {tx.taxDeductible && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
-                      {tx.type}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</TableCell>
-                  <TableCell>
-                    {(tx as any).taxTag ? (
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
-                        {taxTagLabel((tx as any).taxTag)}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className={`text-right font-mono tabular-nums ${tx.type === "income" ? "text-emerald-500" : "text-foreground"}`}>
-                    {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                      <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => handleDelete(tx.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-28 text-center text-muted-foreground text-sm">
-                    {search || typeFilter !== "all" ? "No transactions match your filters." : "No transactions yet."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+          }
+          rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
+          renderCells={(tx) => (
+            <>
+              <TableCell className="text-muted-foreground text-sm tabular-nums">{formatDate(tx.date)}</TableCell>
+              <TableCell className="font-medium">
+                <div className="flex items-center gap-2">
+                  {tx.description}
+                  {tx.taxDeductible && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
+                  {tx.type}
+                </span>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</TableCell>
+              <TableCell>
+                {(tx as any).taxTag ? (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
+                    {taxTagLabel((tx as any).taxTag)}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-sm">—</span>
+                )}
+              </TableCell>
+              <TableCell className={`text-right font-mono tabular-nums ${tx.type === "income" ? "text-emerald-500" : "text-foreground"}`}>
+                {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => handleDelete(tx.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </TableCell>
+            </>
+          )}
+          emptyState={search || typeFilter !== "all" ? "No transactions match your filters." : "No transactions yet."}
+        />
       </Card>
 
       <AIPanel

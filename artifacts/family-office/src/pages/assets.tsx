@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListAssets, getListAssetsQueryKey,
@@ -418,6 +418,52 @@ function PriceRefreshSheet({
   );
 }
 
+// ─── Memoized Table Row ───────────────────────────────────────────────────────
+
+const AssetRow = memo(function AssetRow({ asset, totalValue, onEdit, onDelete }: {
+  asset: any;
+  totalValue: number;
+  onEdit: (asset: any) => void;
+  onDelete: (id: number) => void;
+}) {
+  const disp = getStoredCurrency();
+  const val = convert(Number(asset.value), asset.currency as Currency, disp);
+  const pct = totalValue > 0 ? (val / totalValue) * 100 : 0;
+
+  return (
+    <TableRow className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => onEdit(asset)}>
+      <TableCell className="font-medium">{asset.name}</TableCell>
+      <TableCell>
+        <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
+          {formatCategory(asset.category)}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-muted-foreground text-sm">{asset.institution || "—"}</TableCell>
+      <TableCell className="text-right font-mono text-foreground tabular-nums">
+        {formatDisplay(Number(asset.value), asset.currency)}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-2">
+          <div className="w-16 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+            <div className="h-full bg-primary/70 rounded-full" style={{ width: `${Math.min(pct, 100)}%` }} />
+          </div>
+          <span className="text-xs text-muted-foreground tabular-nums w-8">{pct.toFixed(0)}%</span>
+        </div>
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+          <button onClick={(e) => { e.stopPropagation(); onEdit(asset); }} className="text-muted-foreground hover:text-foreground p-1">
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onDelete(asset.id); }} className="text-muted-foreground hover:text-destructive p-1">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+});
+
 export default function Assets() {
   const qc = useQueryClient();
   const { data: assets, isLoading } = useListAssets();
@@ -541,42 +587,9 @@ export default function Assets() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((asset) => {
-                const val = convert(Number(asset.value), asset.currency as Currency, disp);
-                const pct = totalValue > 0 ? (val / totalValue) * 100 : 0;
-                return (
-                  <TableRow key={asset.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => openEdit(asset)}>
-                    <TableCell className="font-medium">{asset.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
-                        {formatCategory(asset.category)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{asset.institution || "—"}</TableCell>
-                    <TableCell className="text-right font-mono text-foreground tabular-nums">
-                      {formatDisplay(Number(asset.value), asset.currency)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                          <div className="h-full bg-primary/70 rounded-full" style={{ width: `${Math.min(pct, 100)}%` }} />
-                        </div>
-                        <span className="text-xs text-muted-foreground tabular-nums w-8">{pct.toFixed(0)}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={(e) => { e.stopPropagation(); openEdit(asset); }} className="text-muted-foreground hover:text-foreground p-1">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }} className="text-muted-foreground hover:text-destructive p-1">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {filtered.map((asset) => (
+                <AssetRow key={asset.id} asset={asset} totalValue={totalValue} onEdit={openEdit} onDelete={handleDelete} />
+              ))}
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="h-28 text-center text-muted-foreground text-sm">

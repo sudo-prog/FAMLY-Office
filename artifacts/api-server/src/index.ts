@@ -1,19 +1,17 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { env, isEncryptionConfigured } from "./lib/env";
 
-const rawPort = process.env["PORT"];
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
+// Warn if encryption key is not set (don't crash — allows startup for debugging)
+if (!isEncryptionConfigured) {
+  logger.warn(
+    "FAMLY_ENCRYPTION_KEY environment variable is not set. " +
+    "Document encryption/decryption will fail. " +
+    "Set it to a 64-character hex key or a strong passphrase."
   );
 }
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
+const port = env.PORT;
 
 app.listen(port, (err) => {
   if (err) {

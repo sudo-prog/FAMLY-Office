@@ -309,6 +309,7 @@ export const CreateDocumentBody = zod.object({
   "entityId": zod.number().nullish(),
   "year": zod.number().nullish(),
   "ocrText": zod.string().optional(),
+  "extractedData": zod.string().optional(),
   "encrypted": zod.boolean().optional()
 })
 
@@ -329,6 +330,7 @@ export const GetDocumentResponse = zod.object({
   "entityId": zod.number().nullish(),
   "year": zod.number().nullish(),
   "ocrText": zod.string().nullish(),
+  "extractedData": zod.string().nullish(),
   "encrypted": zod.boolean().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().nullish()
@@ -350,6 +352,7 @@ export const UpdateDocumentBody = zod.object({
   "entityId": zod.number().nullish(),
   "year": zod.number().nullish(),
   "ocrText": zod.string().optional(),
+  "extractedData": zod.string().optional(),
   "encrypted": zod.boolean().optional()
 })
 
@@ -362,6 +365,7 @@ export const UpdateDocumentResponse = zod.object({
   "entityId": zod.number().nullish(),
   "year": zod.number().nullish(),
   "ocrText": zod.string().nullish(),
+  "extractedData": zod.string().nullish(),
   "encrypted": zod.boolean().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().nullish()

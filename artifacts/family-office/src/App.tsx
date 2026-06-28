@@ -11,6 +11,11 @@ import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchLiveRates } from "@/lib/currency";
+import {
+  OnboardingWizard,
+  hasSeenOnboarding,
+} from "@/components/onboarding/OnboardingWizard";
+import { HelpButton } from "@/components/onboarding/HelpButton";
 
 // Eagerly loaded: critical above-the-fold routes
 import Dashboard from "@/pages/dashboard";
@@ -114,10 +119,23 @@ function Router() {
 
 function App() {
   const [unlocked, setUnlocked] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(() => hasSeenOnboarding());
+
   useEffect(() => {
     initTheme();
     fetchLiveRates();
+    // Show onboarding on first visit after a brief delay for smoother UX
+    if (!hasSeenOnboarding()) {
+      const timer = setTimeout(() => setShowOnboarding(true), 600);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  const handleOnboardingComplete = () => {
+    setOnboardingDone(true);
+    setShowOnboarding(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -129,6 +147,14 @@ function App() {
           </WouterRouter>
           <Toaster richColors position="top-right" />
           <OfflineIndicator />
+          {/* Onboarding wizard: shows on first visit or when re-triggered */}
+          <OnboardingWizard
+            open={showOnboarding && !onboardingDone}
+            onClose={() => setShowOnboarding(false)}
+            onComplete={handleOnboardingComplete}
+          />
+          {/* Help button: always visible, can re-trigger tour */}
+          <HelpButton />
         </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>

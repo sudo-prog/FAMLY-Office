@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import {
@@ -101,9 +101,9 @@ function WidgetCard({ id, children, className = "", onClick }: { id: WidgetId; c
   );
 }
 
-// ─── Individual Widgets ───────────────────────────────────────────────────────
+// ─── Individual Widgets (memoized — receive stable data props from parent) ─────
 
-function NetWorthWidget({ summary, history }: { summary: any; history: any[] }) {
+const NetWorthWidget = memo(function NetWorthWidget({ summary, history }: { summary: any; history: any[] }) {
   const [, navigate] = useLocation();
   return (
     <WidgetCard id="net-worth" onClick={() => navigate("/assets")} className="min-h-[280px]">
@@ -134,9 +134,9 @@ function NetWorthWidget({ summary, history }: { summary: any; history: any[] }) 
       </div>
     </WidgetCard>
   );
-}
+});
 
-function AssetStatsWidget({ summary }: { summary: any }) {
+const AssetStatsWidget = memo(function AssetStatsWidget({ summary }: { summary: any }) {
   const [, navigate] = useLocation();
   return (
     <WidgetCard id="asset-stats" onClick={() => navigate("/assets")} className="min-h-[140px]">
@@ -153,9 +153,9 @@ function AssetStatsWidget({ summary }: { summary: any }) {
       </div>
     </WidgetCard>
   );
-}
+});
 
-function AllocationWidget({ byCategory }: { byCategory: any[] }) {
+const AllocationWidget = memo(function AllocationWidget({ byCategory }: { byCategory: any[] }) {
   const [, navigate] = useLocation();
   const top = (byCategory ?? []).slice(0, 4);
   return (
@@ -192,9 +192,9 @@ function AllocationWidget({ byCategory }: { byCategory: any[] }) {
       </div>
     </WidgetCard>
   );
-}
+});
 
-function CashFlowWidget({ cashFlow, summary }: { cashFlow: any[]; summary: any }) {
+const CashFlowWidget = memo(function CashFlowWidget({ cashFlow, summary }: { cashFlow: any[]; summary: any }) {
   const [, navigate] = useLocation();
   return (
     <WidgetCard id="cash-flow" onClick={() => navigate("/transactions")} className="min-h-[280px]">
@@ -225,9 +225,9 @@ function CashFlowWidget({ cashFlow, summary }: { cashFlow: any[]; summary: any }
       </div>
     </WidgetCard>
   );
-}
+});
 
-function RecentActivityWidget({ transactions }: { transactions: any[] }) {
+const RecentActivityWidget = memo(function RecentActivityWidget({ transactions }: { transactions: any[] }) {
   const [, navigate] = useLocation();
   return (
     <WidgetCard id="recent-activity" onClick={() => navigate("/transactions")} className="min-h-[280px]">
@@ -256,9 +256,9 @@ function RecentActivityWidget({ transactions }: { transactions: any[] }) {
       </div>
     </WidgetCard>
   );
-}
+});
 
-function VaultWidget({ documents }: { documents: any[] }) {
+const VaultWidget = memo(function VaultWidget({ documents }: { documents: any[] }) {
   const [, navigate] = useLocation();
   const encrypted = (documents ?? []).filter((d) => d.encrypted).length;
   return (
@@ -280,9 +280,9 @@ function VaultWidget({ documents }: { documents: any[] }) {
       </div>
     </WidgetCard>
   );
-}
+});
 
-function EntitiesWidget({ entities }: { entities: any[] }) {
+const EntitiesWidget = memo(function EntitiesWidget({ entities }: { entities: any[] }) {
   const [, navigate] = useLocation();
   const types = [...new Set((entities ?? []).map((e) => e.type))];
   return (
@@ -304,7 +304,7 @@ function EntitiesWidget({ entities }: { entities: any[] }) {
       </div>
     </WidgetCard>
   );
-}
+});
 
 function QuickAddWidget() {
   const qc = useQueryClient();
@@ -607,7 +607,7 @@ interface Insight {
   action: string;
 }
 
-function InsightsWidget() {
+const InsightsWidget = memo(function InsightsWidget() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -700,11 +700,11 @@ function InsightsWidget() {
       </div>
     </WidgetCard>
   );
-}
+});
 
 // ─── Customize Panel ──────────────────────────────────────────────────────────
 
-function CustomizePanel({ visible, onClose, activeWidgets, onToggle, onReset }: {
+const CustomizePanel = memo(function CustomizePanel({ visible, onClose, activeWidgets, onToggle, onReset }: {
   visible: boolean; onClose: () => void; activeWidgets: WidgetId[];
   onToggle: (id: WidgetId) => void; onReset: () => void;
 }) {
@@ -747,7 +747,7 @@ function CustomizePanel({ visible, onClose, activeWidgets, onToggle, onReset }: 
       </div>
     </>
   );
-}
+});
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
@@ -778,18 +778,18 @@ export default function Dashboard() {
   const { data: documents } = useListDocuments();
   const { data: entities } = useListEntities();
 
-  function toggleWidget(id: WidgetId) {
+  const toggleWidget = useCallback((id: WidgetId) => {
     setActiveWidgets((prev) => {
       const next = prev.includes(id) ? prev.filter((w) => w !== id) : [...prev, id];
       saveWidgets(next);
       return next;
     });
-  }
+  }, []);
 
-  function resetWidgets() {
+  const resetWidgets = useCallback(() => {
     setActiveWidgets(DEFAULT_WIDGETS);
     saveWidgets(DEFAULT_WIDGETS);
-  }
+  }, []);
 
   const cur = getStoredCurrency();
 

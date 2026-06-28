@@ -11,6 +11,7 @@ export const documentsTable = pgTable("documents", {
   entityId: integer("entity_id"),
   year: integer("year"),
   ocrText: text("ocr_text"),
+  extractedData: text("extracted_data"),
   folder: text("folder"),
   encrypted: boolean("encrypted").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),

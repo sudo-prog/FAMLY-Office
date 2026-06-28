@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback, memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListDocuments, getListDocumentsQueryKey,
@@ -8,6 +8,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { VirtualizedTable } from "@/components/ui/virtualized-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -367,7 +368,7 @@ export default function Vault() {
     return `group relative rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-black/20 ${cfg.border} ${cfg.bg} ${selected ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""}`;
   };
 
-  function DocCard({ doc, compact = false }: { doc: Doc; compact?: boolean }) {
+  const DocCard = memo(function DocCard({ doc, compact = false }: { doc: Doc; compact?: boolean }) {
     const cfg = TYPE_CONFIG[doc.fileType] ?? TYPE_CONFIG.other;
     const Icon = cfg.icon;
     const selected = selectedIds.has(doc.id);
@@ -400,7 +401,7 @@ export default function Vault() {
         </div>
       </div>
     );
-  }
+  });
 
   if (isolatedFolder !== null) {
     const folderDocs = (documents ?? []).filter((d) => d.folder === isolatedFolder);
@@ -581,8 +582,15 @@ export default function Vault() {
         </div>
       ) : (
         <Card className="bg-card border-border overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
+          <VirtualizedTable
+            data={filtered}
+            getRowKey={(doc) => doc.id}
+            colCount={selectMode ? 7 : 6}
+            rowHeight={52}
+            overscan={8}
+            maxHeight={640}
+            className="overflow-x-auto"
+            header={
               <TableHeader className="bg-muted/50">
                 <TableRow className="border-border hover:bg-transparent">
                   {selectMode && <TableHead className="w-10" />}
@@ -594,45 +602,38 @@ export default function Vault() {
                   <TableHead className="w-16" />
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {filtered.map((doc) => (
-                  <TableRow key={doc.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => selectMode ? toggleSelect(doc.id, { stopPropagation: () => {} } as any) : setPreviewDoc(doc as Doc)}>
-                    {selectMode && (
-                      <TableCell onClick={(e) => { e.stopPropagation(); toggleSelect(doc.id, e); }}>
-                        {selectedIds.has(doc.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
-                      </TableCell>
-                    )}
-                    <TableCell className="font-medium">{doc.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs capitalize">{doc.fileType}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {doc.folder ? (
-                        <span className="flex items-center gap-1 text-primary/80">
-                          <Folder className="w-3 h-3" /> {doc.folder}
-                        </span>
-                      ) : "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
-                    <TableCell>{doc.encrypted ? <Lock className="w-3.5 h-3.5 text-emerald-500" /> : null}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => openEdit(doc as Doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-28 text-center text-muted-foreground text-sm">
-                      {search ? "No documents match your search." : "No documents yet."}
-                    </TableCell>
-                  </TableRow>
+            }
+            rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
+            renderCells={(doc) => (
+              <>
+                {selectMode && (
+                  <TableCell>
+                    {selectedIds.has(doc.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                  </TableCell>
                 )}
-              </TableBody>
-            </Table>
-          </div>
+                <TableCell className="font-medium">{doc.title}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs capitalize">{doc.fileType}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {doc.folder ? (
+                    <span className="flex items-center gap-1 text-primary/80">
+                      <Folder className="w-3 h-3" /> {doc.folder}
+                    </span>
+                  ) : "—"}
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
+                <TableCell>{doc.encrypted ? <Lock className="w-3.5 h-3.5 text-emerald-500" /> : null}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => openEdit(doc as Doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </TableCell>
+              </>
+            )}
+            emptyState={search ? "No documents match your search." : "No documents yet."}
+          />
         </Card>
       )}
 

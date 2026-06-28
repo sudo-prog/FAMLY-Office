@@ -8,6 +8,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { VirtualizedTable } from "@/components/ui/virtualized-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,8 +102,15 @@ export default function Entities() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
+        <VirtualizedTable
+          data={filtered}
+          getRowKey={(entity) => entity.id}
+          colCount={5}
+          rowHeight={52}
+          overscan={8}
+          maxHeight={640}
+          className="overflow-x-auto"
+          header={
             <TableHeader className="bg-muted/50">
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead className="font-medium text-muted-foreground">Name</TableHead>
@@ -112,46 +120,39 @@ export default function Entities() {
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {filtered.map((entity) => {
-                const Icon = TYPE_ICONS[entity.type] ?? Building2;
-                return (
-                  <TableRow key={entity.id} className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => navigate(`/entities/${entity.id}`)}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2.5">
-                        <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span>{entity.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
-                        {formatType(entity.type)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{entity.jurisdiction ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-sm">
-                      {entity.abn ? `ABN: ${entity.abn}` : entity.acn ? `ACN: ${entity.acn}` : "—"}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors" />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-sm">
-                    {search ? "No entities match your search." : "No entities yet. Add your first structure."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+          }
+          rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
+          renderCells={(entity) => {
+            const Icon = TYPE_ICONS[entity.type] ?? Building2;
+            return (
+              <>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span>{entity.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
+                    {formatType(entity.type)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground text-sm">{entity.jurisdiction ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground font-mono text-sm">
+                  {entity.abn ? `ABN: ${entity.abn}` : entity.acn ? `ACN: ${entity.acn}` : "—"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  </div>
+                </TableCell>
+              </>
+            );
+          }}
+          emptyState={search ? "No entities match your search." : "No entities yet. Add your first structure."}
+        />
       </Card>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>

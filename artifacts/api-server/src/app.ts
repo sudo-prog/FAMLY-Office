@@ -7,18 +7,13 @@ import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/auth";
 import { rateLimit } from "./middlewares/rate-limit";
 import { sanitizeInput } from "./middlewares/validate";
+import { corsOrigins } from "./lib/env";
 
 const app: Express = express();
 
 // ─── Security Middleware ─────────────────────────────────────────────────────
 
 // CORS: Restrict to known origins in production
-const corsOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-  : process.env.NODE_ENV === "production"
-    ? [] // No origins in production unless explicitly configured
-    : true; // Allow all in development
-
 app.use(
   cors({
     origin: corsOrigins,
@@ -51,7 +46,7 @@ app.use(
         };
       },
     },
-  }),
+  })
 );
 
 // Body parsing

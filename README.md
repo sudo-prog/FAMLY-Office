@@ -1,6 +1,6 @@
-# Family Office — Sovereign Wealth OS
+# FAMLY-Office — Sovereign Wealth OS
 
-> A private, local-first, sovereign wealth management system built for high-net-worth families and family offices. Bloomberg-meets-Apple aesthetic. Zero cloud exposure for sensitive financial data.
+> A private, local-first, sovereign wealth management platform built for high-net-worth families and family offices. Bloomberg-meets-Apple aesthetic. Zero cloud exposure for sensitive financial data.
 
 ---
 
@@ -14,7 +14,7 @@ PIN: `000000` (first-run, you'll set your own)
 
 ## Overview
 
-Family Office is a full-stack Progressive Web App (PWA) that gives a family office complete control over their financial life — assets, transactions, entities, documents, projections, reporting, AI analysis, and business administration — in a single sovereign system that runs locally with optional AI enhancement.
+FAMLY-Office is a full-stack Progressive Web App (PWA) that gives a family office complete control over their financial life — assets, transactions, entities, documents, projections, reporting, AI analysis, and business administration — in a single sovereign system that runs locally with optional AI enhancement.
 
 **Core principles:**
 - **Local-first** — all wealth data stays in your PostgreSQL database, never leaves your environment
@@ -89,9 +89,9 @@ Family Office is a full-stack Progressive Web App (PWA) that gives a family offi
 ### Frontend (`artifacts/family-office`)
 | Technology | Purpose |
 |---|---|
-| React 18 | UI framework |
+| React 19 | UI framework |
 | TypeScript | Type safety throughout |
-| Vite | Build tool and dev server |
+| Vite 5 | Build tool and dev server |
 | Tailwind CSS v4 (`@tailwindcss/vite`) | Utility-first styling |
 | wouter | Lightweight client-side routing |
 | @tanstack/react-query | Server state, caching, mutations |
@@ -102,7 +102,7 @@ Family Office is a full-stack Progressive Web App (PWA) that gives a family offi
 ### Backend (`artifacts/api-server`)
 | Technology | Purpose |
 |---|---|
-| Express.js | HTTP server and REST API |
+| Express.js 5 | HTTP server and REST API |
 | TypeScript | Type safety |
 | pino | Structured JSON logging |
 | Server-Sent Events | Streaming AI responses |
@@ -110,7 +110,8 @@ Family Office is a full-stack Progressive Web App (PWA) that gives a family offi
 ### Database (`lib/db`)
 | Technology | Purpose |
 |---|---|
-| PostgreSQL | Primary database (Replit-managed) |
+| PostgreSQL 16 | Primary database |
+| pgvector | Vector similarity search for AI features |
 | Drizzle ORM | Type-safe query builder and schema |
 | drizzle-kit | Migrations and schema push |
 | drizzle-zod | Auto-generated Zod validation schemas from Drizzle types |
@@ -135,33 +136,170 @@ Family Office is a full-stack Progressive Web App (PWA) that gives a family offi
 
 ---
 
+## Prerequisites
+
+- **Node.js** >= 20.x
+- **pnpm** >= 9.x (`npm install -g pnpm`)
+- **PostgreSQL** >= 14 (or Docker for containerized PostgreSQL)
+- **Git**
+
+---
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/sudo-prog/FAMLY-Office.git
+cd FAMLY-Office
+
+# Install dependencies
+pnpm install
+
+# Copy environment configuration
+cp .env.example .env
+# Edit .env and set your DATABASE_URL and other variables
+
+# Push database schema (creates tables)
+pnpm db:push
+
+# Start the development server
+pnpm dev
+```
+
+The frontend will be available at `http://localhost:5173` and the API server at `http://localhost:3001`.
+
+---
+
+## Docker Setup
+
+The project includes a `docker-compose.yml` with PostgreSQL 16 + pgvector:
+
+```bash
+# Start PostgreSQL in Docker
+pnpm db:up
+
+# Run the application (in another terminal)
+pnpn dev
+
+# Stop PostgreSQL
+pnpm db:down
+```
+
+### Docker Commands
+
+| Command | Description |
+|---|---|
+| `pnpm db:up` | Start PostgreSQL container |
+| `pnpm db:down` | Stop PostgreSQL container |
+| `pnpm db:push` | Push schema to database |
+| `pnpm db:studio` | Open Drizzle Studio (database GUI) |
+
+> **Note:** The `db:up`, `db:down`, and `db:studio` commands are configured in the `lib/db` package. If they're not available as root-level scripts, run them directly: `pnpm --filter @workspace/db run push`.
+
+---
+
+## Available Scripts
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Start all workspace packages in development mode |
+| `pnpm build` | Type-check and build all packages |
+| `pnpm typecheck` | Run TypeScript type checking across all packages |
+| `pnpm db:push` | Push Drizzle schema to database (creates/updates tables) |
+| `pnpm db:push-force` | Force push schema (drops and recreates) |
+| `pnpm db:up` | Start PostgreSQL Docker container |
+| `pnpm db:down` | Stop PostgreSQL Docker container |
+
+### Frontend-only scripts (from `artifacts/family-office/`)
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Start Vite dev server |
+| `pnpm build` | Production build |
+| `pnpm serve` | Preview production build |
+| `pnpm typecheck` | TypeScript type check |
+
+### API Server scripts (from `artifacts/api-server/`)
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Build and start API server |
+| `pnpm build` | Compile TypeScript |
+| `pnpm start` | Run compiled server |
+| `pnpm typecheck` | TypeScript type check |
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure as needed.
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `DATABASE_URL` | ✅ Yes | — | PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/famly_office`) |
+| `PORT` | ✅ Yes | `3001` | API server port |
+| `NODE_ENV` | ✅ Yes | `development` | Environment: `development`, `production`, or `test` |
+| `BASE_PATH` | Production | `/` | URL base path for frontend (use `/FAMLY-Office/` for GitHub Pages) |
+| `FAMLY_API_KEY` | Production | — | API key for `X-API-Key` header authentication |
+| `FAMLY_JWT_SECRET` | Production | — | JWT secret for HS256 token signing |
+| `FAMLY_ENCRYPTION_KEY` | Production | — | AES-256-GCM encryption key for document vault (generate: `openssl rand -hex 32`) |
+| `CORS_ORIGINS` | No | — | Comma-separated allowed CORS origins |
+| `LOCAL_LLM_URL` | No | `http://localhost:11434/v1` | Local LLM endpoint (Ollama/LM Studio) |
+| `LOCAL_LLM_MODEL` | No | `llama3.2` | Local LLM model name |
+| `OPENAI_API_KEY` | No | — | Cloud AI key for research queries |
+| `CLOUD_AI_KEY` | No | — | Alternative cloud AI key |
+| `CLOUD_AI_URL` | No | OpenAI default | Custom OpenAI-compatible endpoint URL |
+| `CLOUD_AI_MODEL` | No | `gpt-4o-mini` | Cloud AI model name |
+| `BRAVE_SEARCH_KEY` | No | — | Brave Search API key for web search |
+| `GITHUB_TOKEN` | No | — | GitHub token for private repo analysis |
+| `SERP_API_KEY` | No | — | SerpAPI key for AI deep research |
+| `LOG_LEVEL` | No | `info` | Logging level: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent` |
+| `POSTGRES_USER` | Docker | `famly` | PostgreSQL Docker user |
+| `POSTGRES_PASSWORD` | Docker | `famly_secret` | PostgreSQL Docker password |
+| `POSTGRES_DB` | Docker | `famly_office` | PostgreSQL Docker database name |
+
+---
+
 ## Project Structure
 
 ```
-/
+FAMLY-Office/
 ├── artifacts/
-│   ├── family-office/          # React + Vite frontend PWA
+│   ├── family-office/              # React 19 + Vite frontend PWA
 │   │   ├── src/
-│   │   │   ├── pages/          # Route-level pages (dashboard, assets, vault, etc.)
-│   │   │   ├── components/     # Shared components (layout, ai-panel, command-palette, etc.)
-│   │   │   ├── hooks/          # Custom hooks (use-theme)
-│   │   │   └── lib/            # Utilities (currency conversion, etc.)
-│   │   └── public/             # Static assets, manifest.webmanifest, sw.js, favicon.svg
+│   │   │   ├── pages/              # Route-level pages (dashboard, assets, vault, etc.)
+│   │   │   ├── components/         # Shared components (layout, ai-panel, command-palette, etc.)
+│   │   │   ├── hooks/              # Custom hooks (use-theme, etc.)
+│   │   │   └── lib/                # Utilities (currency conversion, etc.)
+│   │   ├── public/                 # Static assets, manifest.webmanifest, sw.js, favicon.svg
+│   │   └── vite.config.ts          # Vite configuration
 │   │
-│   ├── api-server/             # Express REST API
-│   │   └── src/
-│   │       ├── routes/         # Route handlers (assets, transactions, documents, ai, research, etc.)
-│   │       └── lib/            # Shared utilities (ai-router for zero-trust routing)
+│   ├── api-server/                 # Express 5 REST API
+│   │   ├── src/
+│   │   │   ├── routes/             # Route handlers (assets, transactions, documents, ai, research, etc.)
+│   │   │   └── lib/                # Shared utilities (ai-router for zero-trust routing)
+│   │   └── build.mjs               # esbuild build script
 │   │
-│   └── family-office-pitch/    # Pitch deck (10 slides)
+│   └── family-office-pitch/        # Pitch deck (10 slides)
 │
 ├── lib/
-│   ├── db/                     # Drizzle ORM schema + migrations
-│   │   └── src/schema/         # Table definitions (assets, transactions, documents, entities, etc.)
-│   ├── api-zod/                # Shared Zod validation schemas for API contracts
-│   └── api-client-react/       # Auto-generated React Query hooks from API spec
+│   ├── db/                         # Drizzle ORM schema + migrations
+│   │   ├── src/schema/             # Table definitions (assets, transactions, documents, entities, etc.)
+│   │   ├── drizzle.config.ts       # Drizzle Kit configuration
+│   │   └── package.json
+│   │
+│   ├── api-zod/                    # Shared Zod validation schemas for API contracts
+│   ├── api-spec/                   # API specification (OpenAPI/routes)
+│   └── api-client-react/           # Auto-generated React Query hooks from API spec
 │
-└── pnpm-workspace.yaml
+├── scripts/                        # Utility scripts
+│
+├── docker-compose.yml              # PostgreSQL 16 + pgvector container
+├── .env.example                    # Environment variable template
+├── pnpm-workspace.yaml             # Monorepo workspace configuration
+├── tsconfig.base.json              # Base TypeScript configuration
+├── tsconfig.json                   # Root TypeScript configuration
+└── package.json                    # Root workspace package
 ```
 
 ---
@@ -202,32 +340,146 @@ Portfolio data (asset values, transaction amounts, entity names, document conten
 
 ---
 
-## Getting Started
+## Deployment
 
-The app runs within the Replit environment:
+### Option 1: GitHub Pages (Frontend Only)
 
-1. **API Server** — starts automatically via workflow `artifacts/api-server: API Server`
-2. **Frontend** — starts automatically via workflow `artifacts/family-office: web`
-3. **Database** — Replit PostgreSQL is provisioned automatically; `DATABASE_URL` env var is set
+The frontend can be deployed as a static site to GitHub Pages:
 
-### Environment Variables
+```bash
+# Update vite.config.ts base path to match your repo name
+# Set base: '/FAMLY-Office/' in vite.config.ts
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `DATABASE_URL` | ✅ Auto-set by Replit | PostgreSQL connection string |
-| `PORT` | ✅ Auto-set | Server port (each artifact gets its own) |
-| `BASE_PATH` | ✅ Auto-set | URL base path for the frontend |
-| `LOCAL_LLM_URL` | Optional | Ollama/LM Studio endpoint (default: `http://localhost:11434/v1`) |
-| `LOCAL_LLM_MODEL` | Optional | Local model name (default: `llama3.2`) |
-| `OPENAI_API_KEY` | Optional | Cloud AI key for research queries |
-| `CLOUD_AI_MODEL` | Optional | Cloud model name (default: `gpt-4o-mini`) |
-| `CLOUD_AI_URL` | Optional | Custom OpenAI-compatible endpoint |
-| `GITHUB_TOKEN` | Optional | GitHub token for private repo analysis |
-| `SERP_API_KEY` | Optional | Search API for AI deep research |
+# Build for production
+pnpm build
+
+# The `dist` folder in artifacts/family-office can be deployed to GitHub Pages
+# Use GitHub Actions or the `gh-pages` branch method
+```
+
+For API backend, deploy separately to a server or cloud platform (see Option 3).
+
+### Option 2: Vercel
+
+Deploy the frontend to Vercel:
+
+1. Import the repository into Vercel
+2. Set the root directory to `artifacts/family-office`
+3. Set build command: `pnpm build`
+4. Set output directory: `dist`
+5. Add environment variables in the Vercel dashboard
+
+For the API server, consider Vercel serverless functions or deploy the Express server to a platform like Railway, Render, or Fly.io.
+
+### Option 3: Docker (Full Stack)
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build a production image for the API server
+docker build -t famly-office-api ./artifacts/api-server
+
+# Run migrations and start
+docker run --env-file .env -p 3001:3001 famly-office-api
+```
+
+### Option 4: Self-Hosted / VPS
+
+```bash
+# On your server
+git clone https://github.com/sudo-prog/FAMLY-Office.git
+cd FAMLY-Office
+pnpm install
+pnpm build
+
+# Set up PostgreSQL, configure .env, then:
+pnpm db:push
+pnpm start
+
+# Use PM2, systemd, or your preferred process manager
+```
 
 ---
 
-## Pitch Deck
+## Contributing
 
-A 10-slide investor/stakeholder pitch deck is available at `/family-office-pitch` covering: vision, problem, solution, technology, AI architecture, security model, modules, AI features, roadmap, and contact.
-# 1782322451
+We welcome contributions! Please follow these guidelines:
+
+### Getting Started
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/FAMLY-Office.git`
+3. Create a feature branch: `git checkout -b feature/your-feature-name`
+4. Install dependencies: `pnpm install`
+
+### Development Workflow
+
+1. Make your changes
+2. Run type checking: `pnpm typecheck`
+3. Run the dev server: `pnpm dev`
+4. Test your changes thoroughly
+
+### Submitting Changes
+
+1. Ensure all types pass: `pnpm typecheck`
+2. Commit with clear, descriptive messages following conventional commits:
+   - `feat:` — New feature
+   - `fix:` — Bug fix
+   - `docs:` — Documentation changes
+   - `refactor:` — Code refactoring
+   - `chore:` — Maintenance tasks
+3. Push to your fork: `git push origin feature/your-feature-name`
+4. Open a Pull Request against the `main` branch
+
+### Code Style
+
+- TypeScript strict mode is enforced
+- Use functional components with hooks
+- Follow the existing file structure and naming conventions
+- Use Tailwind CSS for styling; avoid inline styles where possible
+- All API routes must have Zod validation schemas
+
+### Security
+
+- Never commit `.env` files or secrets
+- Follow the zero-trust AI pattern: portfolio data never leaves the local environment
+- Use the existing encryption utilities for sensitive data
+
+---
+
+## Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] Multi-family office support
+- [ ] Advanced reporting and compliance
+- [ ] Integration with accounting software (Xero, MYOB)
+- [ ] Collaborative features (multi-user, role-based access)
+- [ ] Automated data feeds (bank APIs, broker APIs)
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
+
+> **Note:** While the source code is open for review and learning, FAMLY-Office is designed as a production system for private family wealth management. Please respect the license terms and contribute back improvements when possible.
+
+---
+
+## Acknowledgements
+
+- Built with React 19, Express 5, Drizzle ORM, PostgreSQL, and Tailwind CSS v4
+- AI features powered by Ollama (local) and OpenAI-compatible APIs (cloud)
+- Icons by Lucide React
+- Charts by Recharts
+
+---
+
+## Support
+
+For issues, feature requests, or questions, please open an issue on the GitHub repository.
+
+---
+
+*Built with privacy-first principles. Your wealth data stays yours.*

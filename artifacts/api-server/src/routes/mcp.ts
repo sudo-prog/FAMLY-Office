@@ -133,8 +133,9 @@ router.post("/mcp/call", async (req, res) => {
         res.status(404).json({ error: `Unknown tool: ${name}` });
     }
   } catch (err: any) {
+    // Don't leak internal error details to clients
     res.status(500).json({
-      content: [{ type: "text", text: JSON.stringify({ error: err.message }) }],
+      content: [{ type: "text", text: JSON.stringify({ error: "Internal server error" }) }],
     });
   }
 });

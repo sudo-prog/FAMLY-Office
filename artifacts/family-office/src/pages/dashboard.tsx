@@ -23,6 +23,7 @@ import {
   ArrowRight, Lock, Cloud, Shield, ChevronRight, X, Send, Upload, Loader2,
   TrendingDown, BarChart3, PieChartIcon, Info,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Link } from "wouter";
 import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
 
@@ -319,8 +320,11 @@ function QuickAddWidget() {
     try {
       await createTx.mutateAsync({ description: form.description, amount: parseFloat(form.amount), type: form.type as any, date: form.date } as any);
       await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+      toast.success("Transaction added successfully");
       setOpen(false);
       setForm({ description: "", amount: "", type: "expense", date: new Date().toISOString().slice(0, 10) });
+    } catch {
+      toast.error("Failed to add transaction");
     } finally { setSaving(false); }
   }
 

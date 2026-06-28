@@ -143,14 +143,14 @@ router.post("/bank-feed/import", async (req, res) => {
 
         result.imported++;
       } catch (err: any) {
-        result.errors.push(`Row ${i}: ${err.message}`);
+        result.errors.push(`Row ${i}: import failed`);
         result.skipped++;
       }
     }
 
     res.json(result);
   } catch (err: any) {
-    res.status(500).json({ error: "Import failed", detail: err.message });
+    res.status(500).json({ error: "Import failed" });
   }
 });
 

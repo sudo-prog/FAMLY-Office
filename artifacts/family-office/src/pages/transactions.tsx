@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Search, Pencil, Trash2, Sparkles, Receipt, TrendingDown, TrendingUp, Tag } from "lucide-react";
+import { toast } from "sonner";
 import { AIPanel } from "@/components/ai-panel";
 
 const CATEGORIES = [
@@ -138,18 +139,27 @@ export default function Transactions() {
       };
       if (editId !== null) {
         await updateTx.mutateAsync({ id: editId, data: payload as any });
+        toast.success("Transaction updated successfully");
       } else {
         await createTx.mutateAsync(payload as any);
+        toast.success("Transaction created successfully");
       }
       await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
       setOpen(false); setForm(emptyForm); setEditId(null);
+    } catch (err) {
+      toast.error("Failed to save transaction. Please try again.");
     } finally { setSaving(false); }
   }
 
   async function handleDelete(id: number) {
     if (!confirm("Delete this transaction?")) return;
-    await deleteTx.mutateAsync({ id });
-    await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+    try {
+      await deleteTx.mutateAsync({ id });
+      await qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
+      toast.success("Transaction deleted");
+    } catch (err) {
+      toast.error("Failed to delete transaction");
+    }
   }
 
   if (isLoading) {

@@ -30,7 +30,7 @@ router.get("/fx/rates", async (_req, res) => {
     if (fxCache) {
       return res.json({ rates: fxCache.rates, date: fxCache.date, source: "ecb/frankfurter", cached: true, stale: true });
     }
-    res.status(502).json({ error: "Failed to fetch FX rates", detail: err.message });
+    res.status(502).json({ error: "Failed to fetch FX rates" });
   }
 });
 

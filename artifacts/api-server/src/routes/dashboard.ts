@@ -19,9 +19,9 @@ router.get("/dashboard/summary", async (_req, res) => {
 
     const [txSums] = await db
       .select({
-        totalIncome: sql<number>`coalesce(sum(case when type = 'income' then amount::numeric else 0 end), 0)`,
-        totalExpenses: sql<number>`coalesce(sum(case when type = 'expense' then amount::numeric else 0 end), 0)`,
-        taxDeductibleYTD: sql<number>`coalesce(sum(case when tax_deductible = true and type = 'expense' and date >= ${startOfYear} then amount::numeric else 0 end), 0)`,
+        totalIncome: sql<number>`coalesce(sum(case when ${transactionsTable.type} = 'income' then ${transactionsTable.amount}::numeric else 0 end), 0)`,
+        totalExpenses: sql<number>`coalesce(sum(case when ${transactionsTable.type} = 'expense' then ${transactionsTable.amount}::numeric else 0 end), 0)`,
+        taxDeductibleYTD: sql<number>`coalesce(sum(case when ${transactionsTable.taxDeductible} = true and ${transactionsTable.type} = 'expense' and ${transactionsTable.date} >= ${startOfYear} then ${transactionsTable.amount}::numeric else 0 end), 0)`,
       })
       .from(transactionsTable);
 
@@ -95,15 +95,19 @@ router.get("/dashboard/cash-flow", async (_req, res) => {
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthLabel = d.toLocaleString("default", { month: "short", year: "2-digit" });
-      const monthStr = d.toISOString().slice(0, 7);
+      // Use Drizzle ORM parameterized query instead of raw SQL string interpolation
+      // to prevent potential SQL injection. monthStr is computed server-side.
+      const monthStr = d.toISOString().slice(0, 7); // "YYYY-MM"
 
       const [sums] = await db
         .select({
-          income: sql<number>`coalesce(sum(case when type = 'income' then amount::numeric else 0 end), 0)`,
-          expenses: sql<number>`coalesce(sum(case when type = 'expense' then amount::numeric else 0 end), 0)`,
+          income: sql<number>`coalesce(sum(case when ${transactionsTable.type} = 'income' then ${transactionsTable.amount}::numeric else 0 end), 0)`,
+          expenses: sql<number>`coalesce(sum(case when ${transactionsTable.type} = 'expense' then ${transactionsTable.amount}::numeric else 0 end), 0)`,
         })
         .from(transactionsTable)
-        .where(sql`to_char(date::date, 'YYYY-MM') = ${monthStr}`);
+        .where(
+          sql`to_char(${transactionsTable.date}::date, 'YYYY-MM') = ${monthStr}`
+        );
 
       result.push({
         month: monthLabel,

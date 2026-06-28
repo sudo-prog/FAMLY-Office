@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Plus, Search, Trash2, Pencil, Sparkles, Scale, ArrowRight, ArrowLeft, RefreshCw, Loader2, CheckCircle2 } from "lucide-react";
 import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
+import { toast } from "sonner";
 import { AIPanel } from "@/components/ai-panel";
 
 const CATEGORIES = ["bank_account", "property", "investment", "crypto", "superannuation", "business", "bond", "other"];
@@ -459,13 +460,17 @@ export default function Assets() {
       const payload = { name: form.name, category: form.category as any, value: parseFloat(form.value), currency: form.currency, institution: form.institution || undefined, notes: form.notes || undefined };
       if (editId !== null) {
         await updateAsset.mutateAsync({ id: editId, data: payload as any });
+        toast.success("Asset updated successfully");
       } else {
         await createAsset.mutateAsync(payload as any);
+        toast.success("Asset created successfully");
       }
       await qc.invalidateQueries({ queryKey: getListAssetsQueryKey() });
       setOpen(false);
       setForm(emptyForm);
       setEditId(null);
+    } catch {
+      toast.error("Failed to save asset. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -473,8 +478,13 @@ export default function Assets() {
 
   async function handleDelete(id: number) {
     if (!confirm("Delete this asset?")) return;
-    await deleteAsset.mutateAsync(id);
-    await qc.invalidateQueries({ queryKey: getListAssetsQueryKey() });
+    try {
+      await deleteAsset.mutateAsync({ id });
+      await qc.invalidateQueries({ queryKey: getListAssetsQueryKey() });
+      toast.success("Asset deleted");
+    } catch {
+      toast.error("Failed to delete asset");
+    }
   }
 
   if (isLoading) {

@@ -11,7 +11,7 @@ router.get("/", async (_req, res) => {
     const items = await db.select().from(watchlistTable).orderBy(desc(watchlistTable.createdAt));
     res.json(items);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to fetch watchlist" });
   }
 });
 
@@ -33,7 +33,7 @@ router.post("/", async (req, res) => {
     }).returning();
     res.status(201).json(item);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to add watchlist item" });
   }
 });
 
@@ -57,7 +57,7 @@ router.patch("/:id", async (req, res) => {
     if (!item) return res.status(404).json({ error: "Not found" });
     res.json(item);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to update watchlist item" });
   }
 });
 
@@ -68,7 +68,7 @@ router.delete("/:id", async (req, res) => {
     await db.delete(watchlistTable).where(eq(watchlistTable.id, id));
     res.json({ ok: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to delete watchlist item" });
   }
 });
 
@@ -115,7 +115,7 @@ router.post("/:id/research", async (req, res) => {
     await db.update(watchlistTable).set({ aiSummary: summary, updatedAt: new Date() }).where(eq(watchlistTable.id, id));
     res.json({ aiSummary: summary });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to generate research summary" });
   }
 });
 

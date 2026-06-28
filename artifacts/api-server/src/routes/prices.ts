@@ -45,7 +45,7 @@ router.get("/prices/crypto", async (req, res) => {
     const data = (await response.json()) as Record<string, { aud?: number; usd?: number }>;
     res.json({ prices: data, source: "coingecko", updated: new Date().toISOString() });
   } catch (err: any) {
-    res.status(502).json({ error: "Failed to fetch crypto prices", detail: err.message });
+    res.status(502).json({ error: "Failed to fetch crypto prices" });
   }
 });
 
@@ -80,7 +80,7 @@ router.get("/prices/equity", async (req, res) => {
     const meta = result.meta;
     res.json({ ticker, name: meta.longName || meta.shortName || ticker, price: meta.regularMarketPrice, currency: meta.currency || "USD", exchange: meta.exchangeName, source: "yahoo", updated: new Date().toISOString() });
   } catch (err: any) {
-    res.status(502).json({ error: "Failed to fetch equity price", detail: err.message });
+    res.status(502).json({ error: "Failed to fetch equity price" });
   }
 });
 

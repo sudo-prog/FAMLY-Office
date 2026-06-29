@@ -3,10 +3,12 @@ import { X, Sparkles, Lock, Cloud, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const PROXY_URL = "https://saint-examine-clearance-growth.trycloudflare.com/v1/chat/completions";
-const PROXY_MODEL = "gemini-3.5-flash";
+const PRIMARY_PROXY = "https://inference-api.nousresearch.com/v1/chat/completions";
+const PRIMARY_MODEL = "openrouter/owl-alpha";
+const FALLBACK_PROXY = "https://saint-examine-clearance-growth.trycloudflare.com/v1/chat/completions";
+const FALLBACK_MODEL = "gemini-3.5-flash";
 
-type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string };
+type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string; provider?: string };
 
 interface AIPanelProps {
   open: boolean;
@@ -30,6 +32,75 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     if (!open) { setMessages([]); setInput(""); }
   }, [open]);
 
+  const streamChat = useCallback(async (
+    proxyUrl: string,
+    model: string,
+    history: { role: string; content: string }[],
+    text: string,
+    providerLabel: string,
+  ): Promise<{ ok: boolean; content: string }> => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (proxyUrl.includes("inference-api.nousresearch.com")) {
+      const key = import.meta.env.VITE_NOUS_API_KEY || "";
+      if (key) headers["Authorization"] = `Bearer ${key}`;
+    }
+    const res = await fetch(proxyUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model,
+        stream: true,
+        messages: [
+          ...history,
+          { role: "user", content: text },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText);
+      return { ok: false, content: `Error: ${errText}` };
+    }
+
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let content = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data: ")) continue;
+        const dataStr = trimmed.slice(6);
+        if (dataStr === "[DONE]") break;
+        try {
+          const data = JSON.parse(dataStr);
+          const delta = data.choices?.[0]?.delta?.content;
+          if (delta) {
+            content += delta;
+            setMessages((prev) => [
+              ...prev.slice(0, -1),
+              { role: "assistant", content: content + "▌", routing: "cloud", model, provider: providerLabel },
+            ]);
+          }
+        } catch {}
+      }
+    }
+
+    // Final update: remove cursor
+    setMessages((prev) => [
+      ...prev.slice(0, -1),
+      { role: "assistant", content, routing: "cloud", model, provider: providerLabel },
+    ]);
+
+    return { ok: true, content };
+  }, []);
+
   const sendMessage = useCallback(async (msg: string) => {
     const text = msg.trim();
     if (!text || loading) return;
@@ -38,73 +109,31 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     setInput("");
     setLoading(true);
 
-    let content = "";
-    const routing = "cloud";
-    const model = PROXY_MODEL;
-    setMessages((prev) => [...prev, { role: "assistant", content: "▌", routing, model }]);
+    // Placeholder message while streaming
+    setMessages((prev) => [...prev, { role: "assistant", content: "▌", routing: "cloud", model: PRIMARY_MODEL, provider: "Hermes" }]);
 
-    try {
-      const res = await fetch(PROXY_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: PROXY_MODEL,
-          stream: true,
-          messages: [
-            ...history,
-            { role: "user", content: text },
-          ],
-        }),
-      });
+    // Try primary (Nous/Hermes) first
+    let result = await streamChat(PRIMARY_PROXY, PRIMARY_MODEL, history, text, "Hermes");
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => res.statusText);
-        setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: `Error: ${errText}`, routing: "error" }]);
-        return;
-      }
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data: ")) continue;
-          const dataStr = trimmed.slice(6);
-          if (dataStr === "[DONE]") break;
-          try {
-            const data = JSON.parse(dataStr);
-            const delta = data.choices?.[0]?.delta?.content;
-            if (delta) {
-              content += delta;
-              setMessages((prev) => [
-                ...prev.slice(0, -1),
-                { role: "assistant", content: content + "▌", routing, model },
-              ]);
-            }
-          } catch {}
-        }
-      }
-
-      // Final update: remove cursor
+    if (!result.ok) {
+      // Update placeholder to indicate fallback
       setMessages((prev) => [
         ...prev.slice(0, -1),
-        { role: "assistant", content, routing, model },
+        { role: "assistant", content: "▌", routing: "cloud", model: FALLBACK_MODEL, provider: "Gemini" },
       ]);
-    } catch {
-      setMessages((prev) => [...prev.slice(0, -1), {
-        role: "assistant", content: "Connection error. The AI proxy may be unavailable. Please try again later.", routing: "error",
-      }]);
-    } finally {
-      setLoading(false);
+      // Try fallback (Gemini)
+      result = await streamChat(FALLBACK_PROXY, FALLBACK_MODEL, history, text, "Gemini");
     }
-  }, [loading, messages]);
+
+    if (!result.ok) {
+      // Both failed — show error
+      setMessages((prev) => [...prev.slice(0, -1), {
+        role: "assistant", content: result.content, routing: "error",
+      }]);
+    }
+
+    setLoading(false);
+  }, [loading, messages, streamChat]);
 
   if (!open) return null;
 
@@ -151,10 +180,10 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
               <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted/40 border border-border text-foreground rounded-bl-sm"}`}>
                 {msg.routing && msg.role === "assistant" && msg.routing !== "error" && (
                   <div className="flex items-center gap-1 mb-1.5 opacity-70">
-                    {msg.routing === "local" ? (
-                      <><Lock className="w-2.5 h-2.5 text-emerald-500" /><span className="text-[9px] text-emerald-500 uppercase tracking-wider">{msg.model}</span></>
+                    {msg.provider === "Hermes" ? (
+                      <><Sparkles className="w-2.5 h-2.5 text-amber-400" /><span className="text-[9px] text-amber-400 uppercase tracking-wider">via Hermes</span></>
                     ) : (
-                      <><Cloud className="w-2.5 h-2.5 text-blue-400" /><span className="text-[9px] text-blue-400 uppercase tracking-wider">{msg.model} · sanitized</span></>
+                      <><Cloud className="w-2.5 h-2.5 text-blue-400" /><span className="text-[9px] text-blue-400 uppercase tracking-wider">via Gemini</span></>
                     )}
                   </div>
                 )}

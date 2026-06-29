@@ -3,6 +3,42 @@ import { X, Sparkles, Lock, Cloud, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+// ─── AI Self-Heal ──────────────────────────────────────────────────────
+function buildDomSnapshot(): string {
+  const els: string[] = [];
+  const walk = (el: Element, depth: number) => {
+    if (depth > 3) return;
+    if (!el || el.nodeType !== 1) return;
+    const tag = el.tagName?.toLowerCase();
+    if (!tag || tag === "script" || tag === "style" || tag === "meta") return;
+    const cls = el.getAttribute("class") || "";
+    const id = el.id || "";
+    if (id || cls) {
+      els.push("<" + tag + (id ? ' id="' + id + '"' : "") + (cls ? ' class="' + cls.split(/\s+/).filter(c => c.length < 30).join(" ") + '"' : "") + ">");
+    }
+    for (let i = 0; i < el.children.length; i++) walk(el.children[i], depth + 1);
+  };
+  walk(document.body, 0);
+  return els.slice(0, 50).join("\n");
+}
+
+function executeAIFix(code: string): string {
+  try { const r = new Function(code)(); return "Fixed: " + (r !== undefined ? String(r) : "done"); }
+  catch (e: any) { return "Fix error: " + e.message; }
+}
+
+const SELF_HEAL_PROMPT = `
+
+━━━ SELF-HEAL CAPABILITY ━━━
+When the user reports a bug, you can fix it in the DOM.
+The user message includes a DOM_SNAPSHOT. Use it to target real elements.
+To fix issues, include a JSON block in your response like:
+\`\`\`fix
+{"type":"EVAL","code":"document.querySelectorAll('.stale').forEach(el=>el.remove())"}
+\`\`\`
+Operations: EVAL (run JS), FIX_NOTIFICATIONS (clear stuck toasts), CLEAR_STALE (remove by selector).
+RULES: Check DOM_SNAPSHOT first — NEVER guess selectors. Use EVAL for immediate fixes.`;
+
 const PRIMARY_PROXY = "https://inference-api.nousresearch.com/v1/chat/completions";
 const PRIMARY_MODEL = "openrouter/owl-alpha";
 const FALLBACK_PROXY = "https://saint-examine-clearance-growth.trycloudflare.com/v1/chat/completions";
@@ -44,15 +80,20 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
       const key = import.meta.env.VITE_NOUS_API_KEY || "";
       if (key) headers["Authorization"] = `Bearer ${key}`;
     }
+    // Inject DOM snapshot for self-heal capability
+    const domSnapshot = buildDomSnapshot();
+    const enrichedText = text + "\n\n[DOM_SNAPSHOT]\n" + domSnapshot + "\n[/DOM_SNAPSHOT]";
+
     const res = await fetch(proxyUrl, {
       method: "POST",
       headers,
       body: JSON.stringify({
         model,
         stream: true,
+        system: SELF_HEAL_PROMPT,
         messages: [
           ...history,
-          { role: "user", content: text },
+          { role: "user", content: enrichedText },
         ],
       }),
     });
@@ -90,6 +131,24 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
           }
         } catch {}
       }
+    }
+
+    // Parse self-heal fix blocks from streamed content
+    const fixMatch = content.match(/```fix\s*\n?([\s\S]*?)\n?```/);
+    if (fixMatch) {
+      try {
+        const fixOps = JSON.parse(fixMatch[1]);
+        const ops = Array.isArray(fixOps) ? fixOps : [fixOps];
+        for (const op of ops) {
+          if (op.type === "EVAL" && op.code) executeAIFix(op.code);
+          else if (op.type === "FIX_NOTIFICATIONS")
+            document.querySelectorAll('[class*="notification"],[class*="toast"],[role="alert"]').forEach(e => e.remove());
+          else if (op.type === "CLEAR_STALE" && op[0])
+            document.querySelectorAll(op[0]).forEach(e => e.remove());
+        }
+        content = content.replace(/```fix\s*\n?[\s\S]*?\n?```/g, "").trim();
+        content += "\n\n🔧 Auto-fix applied";
+      } catch (_) { /* ignore */ }
     }
 
     // Final update: remove cursor

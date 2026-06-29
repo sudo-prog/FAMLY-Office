@@ -74,13 +74,8 @@ export async function streamCloudLLM(
   res: Response
 ): Promise<void> {
   const apiKey = process.env.CLOUD_AI_KEY || process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    res.write(`data: ${JSON.stringify({ error: "Cloud AI not configured. Add CLOUD_AI_KEY secret." })}\n\n`);
-    return;
-  }
-
-  const model = process.env.CLOUD_AI_MODEL || "gpt-4o-mini";
-  const baseUrl = process.env.CLOUD_AI_URL || "https://api.openai.com/v1";
+  const model = process.env.CLOUD_AI_MODEL || "gemini-3.5-flash";
+  const baseUrl = process.env.CLOUD_AI_URL || "http://localhost:8081/v1";
 
   const CLOUD_SYSTEM = `You are a financial research assistant for a family office. 
 Your role is strictly non-sensitive: provide market research, economic analysis, industry trends, 
@@ -88,11 +83,14 @@ regulatory information, and general investment concepts.
 Do NOT ask for, store, or reference any specific portfolio details, account numbers, or client PII.
 Responses should be educational and general in nature.`;
 
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
+
   let response: globalThis.Response;
   try {
     response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      headers,
       body: JSON.stringify({
         model,
         max_tokens: 2048,

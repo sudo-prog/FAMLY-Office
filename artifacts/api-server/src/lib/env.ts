@@ -37,11 +37,11 @@ const envSchema = z.object({
   // ─── Brave Search ────────────────────────────────────────────────
   BRAVE_SEARCH_KEY: z.string().min(1).optional(),
 
-  // ─── Cloud AI ────────────────────────────────────────────────────
+  // ─── Cloud AI (defaults to Gemini Web2API proxy) ─────────────────
   CLOUD_AI_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
-  CLOUD_AI_URL: z.string().url().optional(),
-  CLOUD_AI_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  CLOUD_AI_URL: z.string().url().default("http://localhost:8081/v1"),
+  CLOUD_AI_MODEL: z.string().min(1).default("gemini-3.5-flash"),
 
   // ─── Local LLM ──────────────────────────────────────────────────
   LOCAL_LLM_URL: z.string().url().default("http://localhost:11434/v1"),

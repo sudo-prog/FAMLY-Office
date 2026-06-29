@@ -3,7 +3,8 @@ import { X, Sparkles, Lock, Cloud, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+const PROXY_URL = "https://saint-examine-clearance-growth.trycloudflare.com/v1/chat/completions";
+const PROXY_MODEL = "gemini-3.5-flash";
 
 type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string };
 
@@ -38,54 +39,72 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     setLoading(true);
 
     let content = "";
-    let routing = "";
-    let model = "";
+    const routing = "cloud";
+    const model = PROXY_MODEL;
     setMessages((prev) => [...prev, { role: "assistant", content: "▌", routing, model }]);
 
     try {
-      const res = await fetch(`${BASE_URL}/api/ai/chat`, {
+      const res = await fetch(PROXY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, history, mode }),
+        body: JSON.stringify({
+          model: PROXY_MODEL,
+          stream: true,
+          messages: [
+            ...history,
+            { role: "user", content: text },
+          ],
+        }),
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: `Error: ${err.error ?? "Unknown error"}`, routing: "error" }]);
+        const errText = await res.text().catch(() => res.statusText);
+        setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content: `Error: ${errText}`, routing: "error" }]);
         return;
       }
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+          const dataStr = trimmed.slice(6);
+          if (dataStr === "[DONE]") break;
           try {
-            const data = JSON.parse(line.slice(6));
-            if (data.routing) routing = data.routing;
-            if (data.model) model = data.model;
-            if (data.content) content += data.content;
-            if (data.done || data.content) {
+            const data = JSON.parse(dataStr);
+            const delta = data.choices?.[0]?.delta?.content;
+            if (delta) {
+              content += delta;
               setMessages((prev) => [
                 ...prev.slice(0, -1),
-                { role: "assistant", content: content + (data.done ? "" : "▌"), routing, model },
+                { role: "assistant", content: content + "▌", routing, model },
               ]);
             }
           } catch {}
         }
       }
+
+      // Final update: remove cursor
+      setMessages((prev) => [
+        ...prev.slice(0, -1),
+        { role: "assistant", content, routing, model },
+      ]);
     } catch {
       setMessages((prev) => [...prev.slice(0, -1), {
-        role: "assistant", content: "Connection error. Ensure the API server is running and Local LLM is configured.", routing: "error",
+        role: "assistant", content: "Connection error. The AI proxy may be unavailable. Please try again later.", routing: "error",
       }]);
     } finally {
       setLoading(false);
     }
-  }, [loading, messages, mode]);
+  }, [loading, messages]);
 
   if (!open) return null;
 

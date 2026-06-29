@@ -79,9 +79,10 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   }, [menuOpen]);
 
   function NavItems({ onClick }: { onClick?: () => void }) {
+    const labelClass = sidebarCollapsed ? "hidden" : "inline";
     return (
       <>
-        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">Command Center</div>
+        {!sidebarCollapsed && <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">Command Center</div>}
         {NAV_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
@@ -89,14 +90,16 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
               onClick={onClick}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                 active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}>
+              } ${sidebarCollapsed ? "justify-center" : ""}`}
+              title={sidebarCollapsed ? item.label : undefined}
+            >
               <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-primary" : ""}`} />
-              <span className="lg:hidden xl:inline">{item.label}</span>
+              <span className={labelClass}>{item.label}</span>
             </Link>
           );
         })}
 
-        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-6 mb-3 px-2">Business</div>
+        {!sidebarCollapsed && <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-6 mb-3 px-2">Business</div>}
         {BUSINESS_ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
@@ -104,9 +107,11 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
               onClick={onClick}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                 active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}>
+              } ${sidebarCollapsed ? "justify-center" : ""}`}
+              title={sidebarCollapsed ? item.label : undefined}
+            >
               <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-primary" : ""}`} />
-              <span className="lg:hidden xl:inline">{item.label}</span>
+              <span className={labelClass}>{item.label}</span>
             </Link>
           );
         })}
@@ -115,30 +120,33 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   }
 
   function BottomActions({ onClick }: { onClick?: () => void }) {
+    const labelClass = sidebarCollapsed ? "hidden" : "inline";
     return (
       <div className="p-4 border-t border-border space-y-1">
         {onOpenPalette && (
           <button onClick={() => { onClick?.(); onOpenPalette(); }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-muted-foreground hover:bg-muted hover:text-foreground">
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-muted-foreground hover:bg-muted hover:text-foreground ${sidebarCollapsed ? "justify-center" : ""}`}
+            title={sidebarCollapsed ? "Search" : undefined}>
             <Search className="w-4 h-4" />
-            <span className="lg:hidden xl:inline flex-1 text-left text-sm">Search</span>
-            <span className="lg:hidden xl:inline text-[10px] font-mono bg-muted border border-border rounded px-1 py-0.5 text-muted-foreground/70">⌘K</span>
+            <span className={`${labelClass} flex-1 text-left text-sm`}>Search</span>
+            {!sidebarCollapsed && <span className="text-[10px] font-mono bg-muted border border-border rounded px-1 py-0.5 text-muted-foreground/70">⌘K</span>}
           </button>
         )}
         <Link href="/settings"
           onClick={onClick}
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
             location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}>
+          } ${sidebarCollapsed ? "justify-center" : ""}`}
+          title={sidebarCollapsed ? "Settings" : undefined}>
           <SettingsIcon className="w-4 h-4" />
-          <span className="lg:hidden xl:inline">Settings</span>
+          <span className={labelClass}>Settings</span>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="pwa-canvas-bg relative min-h-screen w-full overflow-x-hidden">
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-background">
       {/* Security Ribbon */}
       <div className="security-ribbon-track fixed top-0 left-0 right-0 z-[100]"></div>
       {/* Mobile overlay backdrop */}
@@ -150,31 +158,31 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         />
       )}
 
-      {/* Sidebar - Desktop: always visible, Tablet: collapsed, Mobile: slide-out */}
+      {/* Sidebar - Desktop: always visible, Tablet: collapse toggle, Mobile: slide-out */}
       <aside
         className={`
           fixed md:relative z-50 h-full
           bg-sidebar border-r border-border
           flex flex-col flex-shrink-0
-          transition-transform duration-300 ease-out
-          md:transition-[width] md:duration-200
-          w-64 md:w-16 xl:w-64
+          transition-[transform,width] duration-300 ease-out
+          w-64
           ${menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          ${sidebarCollapsed ? "md:w-16 xl:w-16" : "md:w-64 xl:w-64"}
         `}
         ref={menuRef}
       >
         {/* Logo area */}
-        <div className="h-16 flex items-center px-4 md:px-3 xl:px-6 border-b border-border flex-shrink-0">
+        <div className="h-16 flex items-center px-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-6 h-6 rounded bg-primary flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-primary-foreground rounded-sm" />
             </div>
-            <span className="effect-emboss-ink font-bold text-lg tracking-wide whitespace-nowrap md:hidden xl:block">Family Office</span>
+            {!sidebarCollapsed && <span className="effect-emboss-ink font-bold text-lg tracking-wide whitespace-nowrap">Family Office</span>}
           </div>
           {/* Mobile close button */}
           <button
             onClick={() => setMenuOpen(false)}
-            className="md:hidden ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="md:hidden ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted min-w-[36px] min-h-[36px]"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -182,29 +190,35 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 md:px-2 xl:px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <NavItems />
         </nav>
 
         {/* Bottom actions */}
-        <div className="md:hidden xl:block">
-          <BottomActions />
-        </div>
-        {/* Tablet collapsed: icon-only bottom */}
-        <div className="hidden md:block xl:hidden p-2 border-t border-border space-y-1">
-          {onOpenPalette && (
-            <button onClick={onOpenPalette}
-              className="w-full flex items-center justify-center p-2 rounded-md transition-colors text-muted-foreground hover:bg-muted hover:text-foreground">
-              <Search className="w-4 h-4" />
-            </button>
-          )}
-          <Link href="/settings"
-            className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
-              location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}>
-            <SettingsIcon className="w-4 h-4" />
-          </Link>
-        </div>
+        {!sidebarCollapsed && (
+          <div>
+            <BottomActions />
+          </div>
+        )}
+        {/* Collapsed: icon-only bottom */}
+        {sidebarCollapsed && (
+          <div className="p-2 border-t border-border space-y-1">
+            {onOpenPalette && (
+              <button onClick={onOpenPalette}
+                className="w-full flex items-center justify-center p-2 rounded-md transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+                title="Search">
+                <Search className="w-4 h-4" />
+              </button>
+            )}
+            <Link href="/settings"
+              className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
+                location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+              title="Settings">
+              <SettingsIcon className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
       </aside>
 
       {/* Main content area */}

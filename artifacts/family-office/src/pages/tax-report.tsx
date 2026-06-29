@@ -162,7 +162,7 @@ td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-48 bg-muted/50 rounded" />
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 bg-muted/50 rounded-lg" />)}
         </div>
         <Skeleton className="h-[400px] w-full bg-muted/50 rounded-lg" />

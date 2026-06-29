@@ -384,7 +384,7 @@ export default function Transactions() {
       />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto max-w-[95vw]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Transaction" : "New Transaction"}</DialogTitle>
           </DialogHeader>

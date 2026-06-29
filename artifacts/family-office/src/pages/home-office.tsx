@@ -134,7 +134,7 @@ function Dashboard({ onTabChange }: { onTabChange: (t: Tab) => void }) {
           <Sparkles className="w-3.5 h-3.5" /> AI Insights
         </Button>
       </div>
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map(k => (
           <div key={k.label} className={`p-4 rounded-xl border ${k.bg}`}>
             <div className="flex items-center justify-between mb-2">
@@ -348,7 +348,7 @@ function Invoices() {
       </Card>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) setEditId(null); }}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-2xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle className="font-serif text-xl">{editId ? "Edit Invoice" : "New Invoice"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div className="grid grid-cols-2 gap-3">
@@ -372,7 +372,7 @@ function Invoices() {
               <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Your Business Name</Label><Input value={form.businessName} onChange={e => setForm(f => ({...f, businessName: e.target.value}))} className="bg-muted/30 border-border" /></div>
               <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">ABN</Label><Input value={form.businessAbn} onChange={e => setForm(f => ({...f, businessAbn: e.target.value}))} className="bg-muted/30 border-border font-mono" /></div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Issue Date</Label><Input type="date" value={form.issueDate} onChange={e => setForm(f => ({...f, issueDate: e.target.value}))} className="bg-muted/30 border-border" /></div>
               <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Due Date</Label><Input type="date" value={form.dueDate} onChange={e => setForm(f => ({...f, dueDate: e.target.value}))} className="bg-muted/30 border-border" /></div>
               <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">GST Rate (%)</Label><Input type="number" value={form.taxRate} onChange={e => setForm(f => ({...f, taxRate: e.target.value}))} className="bg-muted/30 border-border font-mono" /></div>
@@ -469,7 +469,7 @@ function Clients() {
       </div>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEditId(null); setForm(emptyClientForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-w-[95vw]">
           <DialogHeader><DialogTitle className="font-serif text-xl">{editId ? "Edit Client" : "New Client"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3 mt-2">
             <div className="grid grid-cols-2 gap-3">
@@ -537,13 +537,13 @@ function Expenses() {
         <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Expense</Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-xl border border-border bg-muted/10"><p className="text-xs text-muted-foreground mb-1">Total Expenses</p><p className="text-xl font-mono font-semibold text-foreground">{fmtFull(totalAmount)}</p></div>
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5"><p className="text-xs text-muted-foreground mb-1">Tax Deductible</p><p className="text-xl font-mono font-semibold text-primary">{fmtFull(taxDedTotal)}</p></div>
         <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5"><p className="text-xs text-muted-foreground mb-1">GST Claimable</p><p className="text-xl font-mono font-semibold text-emerald-400">{fmtFull(gstTotal)}</p></div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-card border-border col-span-2 overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/40"><TableRow className="border-border hover:bg-transparent"><TableHead className="text-muted-foreground text-xs w-24">Date</TableHead><TableHead className="text-muted-foreground text-xs">Description</TableHead><TableHead className="text-muted-foreground text-xs">Category</TableHead><TableHead className="text-muted-foreground text-xs">Supplier</TableHead><TableHead className="text-muted-foreground text-xs text-right w-24">Amount</TableHead><TableHead className="w-16" /></TableRow></TableHeader>
@@ -586,7 +586,7 @@ function Expenses() {
       </div>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEditId(null); setForm(emptyExpenseForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-w-[95vw]">
           <DialogHeader><DialogTitle className="font-serif text-xl">{editId ? "Edit Expense" : "Log Expense"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3 mt-2">
             <div className="grid grid-cols-2 gap-3">
@@ -653,7 +653,7 @@ function TimeTracker() {
         <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Log Time</Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-xl border border-border bg-muted/10"><p className="text-xs text-muted-foreground mb-1">Total Billable Hours</p><p className="text-xl font-mono font-semibold text-foreground">{totalHours.toFixed(1)}h</p></div>
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5"><p className="text-xs text-muted-foreground mb-1">Unbilled Hours</p><p className="text-xl font-mono font-semibold text-primary">{unbilledHours.toFixed(1)}h</p></div>
         <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5"><p className="text-xs text-muted-foreground mb-1">Billable Value</p><p className="text-xl font-mono font-semibold text-emerald-400">{fmtFull(totalValue)}</p></div>
@@ -688,7 +688,7 @@ function TimeTracker() {
       </Card>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEditId(null); setForm(emptyTimeForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border max-w-md max-w-[95vw]">
           <DialogHeader><DialogTitle className="font-serif text-xl">{editId ? "Edit Time Entry" : "Log Time"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3 mt-2">
             <div className="grid grid-cols-2 gap-3">

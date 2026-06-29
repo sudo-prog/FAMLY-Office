@@ -191,6 +191,14 @@
   }
 }
 
+/* Touch targets — outside @layer to avoid Tailwind v4 parser issues */
+@media (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 @layer utilities {
   /* Hide scrollbar but keep functionality */
   .scrollbar-thin {
@@ -242,8 +250,10 @@
   --weight-ui: 400;
 }
 
-/* Realistic Paper Canvas Background */
-.pwa-canvas-bg {
+/* Realistic Paper Canvas Background — scoped to .pwa-canvas-bg-theme class.
+   Removed from default .pwa-canvas-bg to avoid clashing with dark theme variables.
+   Add class="pwa-canvas-bg-theme" to any element that needs the paper look. */
+.pwa-canvas-bg-theme {
   position: relative;
   min-height: 100vh;
   width: 100%;
@@ -254,7 +264,7 @@
     radial-gradient(circle at 50% 80%, rgba(200, 30, 30, 0.12) 1.2px, transparent 2px);
 }
 
-.pwa-canvas-bg::before {
+.pwa-canvas-bg-theme::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -266,7 +276,7 @@
 }
 
 /* Ensure all direct children render above the noise overlay */
-.pwa-canvas-bg > * {
+.pwa-canvas-bg-theme > * {
   position: relative;
   z-index: 1;
 }

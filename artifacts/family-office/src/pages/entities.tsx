@@ -156,7 +156,7 @@ export default function Entities() {
       </Card>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto max-w-[95vw]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Entity" : "New Entity"}</DialogTitle>
           </DialogHeader>

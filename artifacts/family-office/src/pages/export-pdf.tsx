@@ -349,7 +349,7 @@ export default function ExportPdf() {
             {summary && byCategory && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Portfolio Overview</h2>
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Total Portfolio Value</div><div className="font-mono font-bold text-primary text-lg">{fmt(summary.totalNetWorth)}</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Number of Holdings</div><div className="font-mono text-foreground">{summary.assetCount} positions</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Net Cash Flow (YTD)</div><div className={`font-mono ${(summary.totalIncome - summary.totalExpenses) >= 0 ? "text-emerald-500" : "text-destructive"}`}>{fmt(summary.totalIncome - summary.totalExpenses)}</div></div>
@@ -408,7 +408,7 @@ export default function ExportPdf() {
             {summary && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Financial Position Overview</h2>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Total Estate Value</div><div className="font-mono font-semibold text-foreground">{fmt(summary.totalAssets)}</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Number of Holdings</div><div className="font-mono text-foreground">{summary.assetCount} assets</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Legal Documents on File</div><div className="font-mono text-foreground">{summary.documentCount} documents</div></div>

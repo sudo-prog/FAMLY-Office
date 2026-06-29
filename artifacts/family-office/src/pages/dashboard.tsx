@@ -155,9 +155,10 @@ const AssetStatsWidget = memo(function AssetStatsWidget({ summary }: { summary: 
   );
 });
 
-const AllocationWidget = memo(function AllocationWidget({ byCategory }: { byCategory: any[] }) {
+const AllocationWidget = memo(function AllocationWidget({ byCategory }: { byCategory: any }) {
   const [, navigate] = useLocation();
-  const top = (byCategory ?? []).slice(0, 4);
+  const safe = Array.isArray(byCategory) ? byCategory : [];
+  const top = safe.slice(0, 4);
   return (
     <WidgetCard id="allocation" onClick={() => navigate("/assets")} className="min-h-[280px]">
       <div className="p-5 flex flex-col h-full">
@@ -342,7 +343,7 @@ function QuickAddWidget() {
         </div>
       </WidgetCard>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-card border-border max-w-sm">
+        <DialogContent className="bg-card border-border max-w-sm max-w-[95vw]">
           <DialogHeader><DialogTitle className="font-serif text-lg">Quick Transaction</DialogTitle></DialogHeader>
           <form onSubmit={submit} className="space-y-3 mt-2">
             <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="bg-muted/30 border-border" required />

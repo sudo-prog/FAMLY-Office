@@ -92,7 +92,7 @@ export default function EntityTax() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-48 bg-muted/50 rounded" />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 bg-muted/50 rounded-lg" />)}
         </div>
         <Skeleton className="h-[400px] w-full bg-muted/50 rounded-lg" />
@@ -339,7 +339,7 @@ export default function EntityTax() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-4 rounded-lg border border-border bg-muted/10">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Concessional</div>
                   <div className="text-lg font-mono text-foreground">{fmtAUD(smsfConcessional)}</div>

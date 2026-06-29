@@ -264,7 +264,7 @@ export default function Settings() {
           {/* Custom colors */}
           <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Custom Colors</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
                 { label: "Accent / Primary", hsl: theme.primaryHsl, key: "primaryHsl" as const },
                 { label: "Background", hsl: theme.backgroundHsl, key: "backgroundHsl" as const },
@@ -677,7 +677,7 @@ export default function Settings() {
             </Button>
           </div>
           <div className="p-3.5 bg-muted/10 rounded-md border border-border">
-            <div className="grid grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
               <div><div className="text-muted-foreground">Total Assets</div><div className="font-mono text-foreground mt-0.5">{assets?.length ?? 0} holdings</div></div>
               <div><div className="text-muted-foreground">Portfolio Value</div><div className="font-mono text-primary mt-0.5">{fmt((assets ?? []).reduce((s, a) => s + a.value, 0))}</div></div>
               <div><div className="text-muted-foreground">Transactions</div><div className="font-mono text-foreground mt-0.5">{transactions?.length ?? 0} records</div></div>
@@ -744,7 +744,7 @@ export default function Settings() {
                   {purging ? "Purging…" : "Initiate Purge"}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-card border-border">
+              <AlertDialogContent className="bg-card border-border max-w-[95vw]">
                 <AlertDialogHeader>
                   <AlertDialogTitle className="font-serif text-xl">Confirm System Purge</AlertDialogTitle>
                   <AlertDialogDescription className="text-muted-foreground text-sm">

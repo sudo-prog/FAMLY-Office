@@ -1430,7 +1430,7 @@ function GrantPanel() {
             className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
 
-        <div className="grid grid-cols-3 gap-2 p-3 rounded-lg border border-border bg-muted/10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 rounded-lg border border-border bg-muted/10">
           {[
             { icon: Building, label: "Government & Federal", desc: "Austrade, ARC, ARENA, ATO" },
             { icon: Globe, label: "State Programs",         desc: "Business Victoria, Investment NSW" },

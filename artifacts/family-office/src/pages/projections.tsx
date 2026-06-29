@@ -144,7 +144,7 @@ export default function Projections() {
         ]}
       />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="pt-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Current Net Worth</div>

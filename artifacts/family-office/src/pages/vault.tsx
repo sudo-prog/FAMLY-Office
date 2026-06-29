@@ -638,7 +638,7 @@ export default function Vault() {
       )}
 
       <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
-        <DialogContent className="bg-card border-border max-w-sm">
+        <DialogContent className="bg-card border-border max-w-sm max-w-[95vw]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">Create Folder</DialogTitle>
           </DialogHeader>
@@ -664,7 +664,7 @@ export default function Vault() {
       </Dialog>
 
       <Dialog open={moveToFolderOpen} onOpenChange={setMoveToFolderOpen}>
-        <DialogContent className="bg-card border-border max-w-sm">
+        <DialogContent className="bg-card border-border max-w-sm max-w-[95vw]">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">Move to Folder</DialogTitle>
           </DialogHeader>
@@ -762,7 +762,7 @@ export default function Vault() {
       )}
 
       <Dialog open={csvImportOpen} onOpenChange={(o) => { if (!csvImporting) { setCsvImportOpen(o); if (!o) { setCsvRows([]); setCsvImportDone(false); } } }}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-card border-border max-w-2xl max-w-[95vw] max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl flex items-center gap-2">
               <TableProperties className="w-5 h-5 text-primary" />

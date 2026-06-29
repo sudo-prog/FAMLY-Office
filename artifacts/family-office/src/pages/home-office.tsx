@@ -305,6 +305,7 @@ function Invoices() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow className="border-border hover:bg-transparent">
@@ -345,6 +346,7 @@ function Invoices() {
             {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center h-24 text-muted-foreground text-sm">No invoices yet.</TableCell></TableRow>}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) setEditId(null); }}>
@@ -441,7 +443,7 @@ function Clients() {
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
         <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Client</Button>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(c => (
           <Card key={c.id} className="bg-card border-border hover:border-primary/30 transition-colors group relative overflow-hidden">
             <CardContent className="p-5">
@@ -545,6 +547,7 @@ function Expenses() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-card border-border col-span-2 overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/40"><TableRow className="border-border hover:bg-transparent"><TableHead className="text-muted-foreground text-xs w-24">Date</TableHead><TableHead className="text-muted-foreground text-xs">Description</TableHead><TableHead className="text-muted-foreground text-xs">Category</TableHead><TableHead className="text-muted-foreground text-xs">Supplier</TableHead><TableHead className="text-muted-foreground text-xs text-right w-24">Amount</TableHead><TableHead className="w-16" /></TableRow></TableHeader>
             <TableBody>
@@ -569,6 +572,7 @@ function Expenses() {
               {filtered.length === 0 && <TableRow><TableCell colSpan={6} className="text-center h-24 text-muted-foreground text-sm">No expenses yet.</TableCell></TableRow>}
             </TableBody>
           </Table>
+          </div>
         </Card>
 
         <Card className="bg-card border-border">
@@ -660,6 +664,7 @@ function TimeTracker() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/40"><TableRow className="border-border hover:bg-transparent"><TableHead className="text-muted-foreground text-xs w-24">Date</TableHead><TableHead className="text-muted-foreground text-xs">Description</TableHead><TableHead className="text-muted-foreground text-xs">Client</TableHead><TableHead className="text-muted-foreground text-xs">Project</TableHead><TableHead className="text-muted-foreground text-xs text-right w-16">Hours</TableHead><TableHead className="text-muted-foreground text-xs text-right w-24">Value</TableHead><TableHead className="w-16" /></TableRow></TableHeader>
           <TableBody>
@@ -685,6 +690,7 @@ function TimeTracker() {
             {filtered.length === 0 && <TableRow><TableCell colSpan={7} className="text-center h-24 text-muted-foreground text-sm">No time entries yet. Log your first session.</TableCell></TableRow>}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setEditId(null); setForm(emptyTimeForm); } }}>

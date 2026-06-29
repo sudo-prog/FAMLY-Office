@@ -442,7 +442,7 @@ function SavedReports() {
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {reports.map(r => (
         <Card key={r.id} onClick={() => setActive(r)}
           className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer group">

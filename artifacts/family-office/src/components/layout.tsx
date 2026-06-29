@@ -158,7 +158,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         />
       )}
 
-      {/* Sidebar - Desktop: always visible, Tablet: collapse toggle, Mobile: slide-out */}
+      {/* Sidebar - Desktop: always visible with collapse toggle, Mobile: slide-out drawer */}
       <aside
         className={`
           fixed md:relative z-50 h-full
@@ -167,7 +167,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           transition-[transform,width] duration-300 ease-out
           w-64
           ${menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-          ${sidebarCollapsed ? "md:w-16 xl:w-16" : "md:w-64 xl:w-64"}
+          ${sidebarCollapsed ? "md:w-16" : "md:w-64"}
         `}
         ref={menuRef}
       >
@@ -231,15 +231,15 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="md:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Open navigation menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            {/* Tablet collapse toggle */}
+            {/* Sidebar collapse toggle (desktop) */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden md:flex xl:hidden p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="hidden md:flex p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
@@ -262,7 +262,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
             <div ref={menuRef} className="relative md:hidden">
               <button
                 onClick={() => setMenuOpen((o) => !o)}
-                className={`flex items-center justify-center w-8 h-8 rounded-md border transition-colors ${
+                className={`flex items-center justify-center min-w-[44px] min-h-[44px] rounded-md border transition-colors ${
                   menuOpen ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-muted/40"
                 }`}
                 aria-label="Navigation menu"

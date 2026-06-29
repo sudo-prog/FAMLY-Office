@@ -125,7 +125,7 @@ function RebalancingSheet({
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="bg-card border-border w-[600px] max-w-[95vw] overflow-y-auto">
+      <SheetContent side="right" className="bg-card border-border w-full sm:w-[600px] max-w-[95vw] overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="font-serif text-xl flex items-center gap-2">
             <Scale className="w-5 h-5 text-primary" /> Portfolio Rebalancer
@@ -299,7 +299,7 @@ function PriceRefreshSheet({
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="bg-card border-border w-[560px] max-w-[95vw] overflow-y-auto">
+      <SheetContent side="right" className="bg-card border-border w-full sm:w-[560px] max-w-[95vw] overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="font-serif text-xl flex items-center gap-2">
             <RefreshCw className="w-5 h-5 text-primary" /> Market Price Refresh

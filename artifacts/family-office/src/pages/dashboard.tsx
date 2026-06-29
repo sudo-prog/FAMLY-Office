@@ -7,6 +7,7 @@ import {
   useListDocuments, useListEntities,
   useCreateTransaction, getListTransactionsQueryKey,
 } from "@workspace/api-client-react";
+import ErrorBoundary from "@/components/error-boundary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -810,19 +811,25 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
         {activeWidgets.map((id) => {
+          let widget;
           switch (id) {
-            case "net-worth": return <NetWorthWidget key={id} summary={summary} history={snapHistory.length >= 2 ? snapHistory : (history ?? [])} />;
-            case "asset-stats": return <AssetStatsWidget key={id} summary={summary} />;
-            case "allocation": return <AllocationWidget key={id} byCategory={byCategory ?? []} />;
-            case "cash-flow": return <CashFlowWidget key={id} cashFlow={cashFlow ?? []} summary={summary} />;
-            case "recent-activity": return <RecentActivityWidget key={id} transactions={recentTx ?? []} />;
-            case "vault": return <VaultWidget key={id} documents={documents ?? []} />;
-            case "entities": return <EntitiesWidget key={id} entities={entities ?? []} />;
-            case "quick-add": return <QuickAddWidget key={id} />;
-            case "ai-assistant": return <AIWidget key={id} />;
-            case "insights": return <InsightsWidget key={id} />;
-            default: return null;
+            case "net-worth": widget = <NetWorthWidget summary={summary} history={snapHistory.length >= 2 ? snapHistory : (history ?? [])} />; break;
+            case "asset-stats": widget = <AssetStatsWidget summary={summary} />; break;
+            case "allocation": widget = <AllocationWidget byCategory={byCategory ?? []} />; break;
+            case "cash-flow": widget = <CashFlowWidget cashFlow={cashFlow ?? []} summary={summary} />; break;
+            case "recent-activity": widget = <RecentActivityWidget transactions={recentTx ?? []} />; break;
+            case "vault": widget = <VaultWidget documents={documents ?? []} />; break;
+            case "entities": widget = <EntitiesWidget entities={entities ?? []} />; break;
+            case "quick-add": widget = <QuickAddWidget />; break;
+            case "ai-assistant": widget = <AIWidget />; break;
+            case "insights": widget = <InsightsWidget />; break;
+            default: widget = null;
           }
+          return widget ? (
+            <ErrorBoundary key={id} fallback={<div className="min-h-[200px] rounded-lg border border-dashed border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground">Widget unavailable</div>}>
+              {widget}
+            </ErrorBoundary>
+          ) : null;
         })}
       </div>
 

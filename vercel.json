@@ -4,6 +4,13 @@
   "outputDirectory": "artifacts/family-office/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

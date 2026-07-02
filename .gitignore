@@ -14,3 +14,5 @@ node_modules/
 *.local
 .vercel
 .env*
+# But track .env.example as documentation
+!.env.example

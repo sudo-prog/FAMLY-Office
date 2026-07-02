@@ -57,6 +57,15 @@
 
 ---
 
+## AI Configuration
+- **Default Provider:** `gemini-web2api` (model: `gemini-3.5-flash`) — runs locally via gemini-web2api proxy at `http://localhost:8081/v1`
+- **Fallback Provider:** OpenRouter — uses `OPENROUTER_API_KEY` env var, defaults to `openrouter/free` model
+- **Self-Heal:** `artifacts/family-office/src/lib/ai-self-heal.ts` — provides DOM snapshot, EVAL, FIX_NOTIFICATIONS, and CLEAR_STALE operations
+- **Provider Fallback Order:** Gemini Web2API → OpenRouter → Ollama (local)
+- **Key Files:**
+  - `artifacts/api-server/src/lib/ai-router.ts` — Zero-trust AI routing with OpenRouter fallback
+  - `artifacts/family-office/src/lib/ai-self-heal.ts` — Self-healing AI capability
+
 ## Architecture Decisions
 
 ### Zero-Trust AI Routing
@@ -176,6 +185,8 @@ Numeric columns (value, amount) are returned as `string` from Drizzle by default
 
 | Path | Purpose |
 |---|---|
+| `artifacts/api-server/src/lib/ai-router.ts` | Zero-trust AI routing with gemini-web2api default + OpenRouter fallback |
+| `artifacts/family-office/src/lib/ai-self-heal.ts` | Self-healing AI capability |
 | `artifacts/family-office/src/pages/dashboard.tsx` | Main dashboard — widgets, snapshot record, insights widget |
 | `artifacts/family-office/src/pages/assets.tsx` | Asset register + rebalancing sheet |
 | `artifacts/family-office/src/pages/transactions.tsx` | Ledger + tax tags + tax summary |

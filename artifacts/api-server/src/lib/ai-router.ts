@@ -77,6 +77,11 @@ export async function streamCloudLLM(
   const model = process.env.CLOUD_AI_MODEL || "gemini-3.5-flash";
   const baseUrl = process.env.CLOUD_AI_URL || "http://localhost:8081/v1";
 
+  // OpenRouter fallback client
+  const openrouterBaseUrl = process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY;
+  const openrouterModel = process.env.OPENROUTER_FALLBACK_MODEL || "openrouter/free";
+
   const CLOUD_SYSTEM = `You are a financial research assistant for a family office. 
 Your role is strictly non-sensitive: provide market research, economic analysis, industry trends, 
 regulatory information, and general investment concepts. 
@@ -99,8 +104,33 @@ Responses should be educational and general in nature.`;
       }),
     });
   } catch (err: any) {
-    res.write(`data: ${JSON.stringify({ error: `Cloud AI unreachable: ${err.message}` })}\n\n`);
-    return;
+    // Try OpenRouter fallback if primary fails
+    if (openrouterApiKey) {
+      try {
+        const fallbackHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openrouterApiKey}`,
+          "HTTP-Referer": "https://family-office.vercel.app",
+          "X-Title": "Family Office",
+        };
+        response = await fetch(`${openrouterBaseUrl}/chat/completions`, {
+          method: "POST",
+          headers: fallbackHeaders,
+          body: JSON.stringify({
+            model: openrouterModel,
+            max_tokens: 2048,
+            stream: true,
+            messages: [{ role: "system", content: CLOUD_SYSTEM }, ...messages],
+          }),
+        });
+      } catch (fallbackErr: any) {
+        res.write(`data: ${JSON.stringify({ error: `Cloud AI unreachable: ${err.message}. Fallback also failed: ${fallbackErr.message}` })}\n\n`);
+        return;
+      }
+    } else {
+      res.write(`data: ${JSON.stringify({ error: `Cloud AI unreachable: ${err.message}` })}\n\n`);
+      return;
+    }
   }
 
   if (!response.ok) {

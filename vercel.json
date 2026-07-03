@@ -1,16 +1,20 @@
 {
   "framework": "vite",
-  "buildCommand": "pnpm build",
+  "buildCommand": "pnpm --filter @workspace/family-office run build",
   "outputDirectory": "artifacts/family-office/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
     }
   ]
 }

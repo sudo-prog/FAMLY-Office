@@ -27,7 +27,18 @@ Architecture decisions, file structure, API patterns, and known issues.
 - Backend: Express 5, Drizzle ORM, PostgreSQL, pgvector, Zod, Pino logging
 - AI: Gemini Web2API proxy (free tier), local LLM via Ollama
 - Auth: PIN lock (PBKDF2, 600k iterations, timing-safe), API key, JWT
-- Deployment: GitHub Pages (live), Vercel (configured), Docker (not yet set up)
+- Deployment: Vercel (primary), Docker (for development)
+
+## Vercel Deployment Configuration Audit (2026-07-03)
+
+### GitHub Workflow Changes
+
+**.github/workflows/build.yml** (formerly pages.yml)
+- Converted from GitHub Pages deployment to build-only CI workflow
+- Removed `pages: write` and `id-token: write` permissions
+- Removed `actions/deploy-pages@v4` action
+- Now runs `pnpm --filter @workspace/family-office run build` for Vercel deployment
+- Vercel handles deployment automatically on git push to main
 
 ## Security Implementation (2026-06-28)
 

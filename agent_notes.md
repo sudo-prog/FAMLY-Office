@@ -91,6 +91,10 @@ Architecture decisions, file structure, API patterns, and known issues.
 
 ### Removed Dependencies
 
+## Additional Fixes (2026-07-05)
+
+**API Client Base URL Wiring**
+- `artifacts/family-office/src/main.tsx` — Added `setBaseUrl(import.meta.env.VITE_API_BASE_URL)` to enable API calls to the backend server. Without this, relative fetches would hit the static Vercel frontend and 404.
 
 ## Environment Variables
 ```

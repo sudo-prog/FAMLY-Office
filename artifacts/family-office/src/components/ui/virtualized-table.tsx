@@ -100,13 +100,12 @@ export function VirtualizedTable<T>({
           style={{ maxHeight }}
         >
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10">
-              {/* Move the header element's children into thead for stickiness.
-                  If header is <thead>, extract its children. */}
-              {React.isValidElement(header) && header.type === "thead"
-                ? (header.props as { children?: React.ReactNode }).children
-                : header}
-            </thead>
+            {React.cloneElement(header as React.ReactElement<{ className?: string }>, {
+              className: cn(
+                (header.props as { className?: string }).className ?? "",
+                "sticky top-0 z-10 bg-background"
+              ),
+            })}
             <tbody
               style={{
                 height: rowVirtualizer.getTotalSize(),

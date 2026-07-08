@@ -122,3 +122,12 @@ SUPABASE_SERVICE_ROLE_KEY= # Supabase service role key
   - Repo cleanup: 39,264 files removed (node_modules, dist, AI tooling)
   - Security: PIN lock, encryption, auth middleware, rate limiting, XSS/SQL fixes
   - Performance: DB indexes, error boundaries, code splitting, toasts
+- 2026-07-09: Frontend route audit + backend API implementation (chief-of-staff agent)
+  - **Backend**: Implemented `api/[[...path]].js` Vercel serverless catch-all (49 endpoints, in-memory seed data, no DB). Self-contained `stores` object, returns JSON for GET/POST/PATCH/DELETE + SSE streaming stubs. Created `scripts/api-dev-server.mjs` (local Node wrapper providing Vercel-compatible `res` shim) so `vite` proxies `/api` → `localhost:4001` in dev.
+  - **vercel.json**: Fixed greedy SPA rewrite `/(.*)` → `/((?!api/).*)` so `/api/*` reaches serverless functions instead of being swallowed by SPA fallback.
+  - **vite.config.ts**: Added `/api` proxy → `http://localhost:4001` (local dev parity with Vercel prod).
+  - **Bug fix**: `src/components/ui/virtualized-table.tsx` — nested `<thead>` hydration error on `/transactions` and `/entities`. Root cause: component wrapped `header` (shadcn `TableHeader` = `<thead>`) in an extra outer `<thead>`, producing `<thead><thead>`. Fixed via `React.cloneElement(header, {className: ...sticky...})` rendering `header` directly. Verified: 0 console errors, tables render with rows on both routes.
+  - **Route audit**: 25 real routes (from `App.tsx` router) crawled headless past the PIN gate (drove on-screen digit buttons to set PIN `123456`, valid `fo-pin-v3`). All 25 render correct headings + real data, 0 console errors, 0 error boundaries. `/vault` NAV_ERROR earlier was the PIN gate, not a bug — confirmed OK after unlock.
+  - **Build**: `pnpm build` passes (`vite build && cp -r api dist/`), 9.95s, `dist/index.html` + `dist/api/[[...path]].js` emitted. Warning only: 1MB main chunk (299KB gzip) — acceptable.
+  - **Visual confirmation**: DOM-based assertions used (moondream:v2 pegs CPU to ~149%/28% MEM and tripped the resource watchdog; abandoned). All routes confirmed via heading + table-row + error-text checks.
+  - **Resource watchdog**: Added `cron/resource-watchdog.sh` (every 1m, no_agent) — kills heavy agent procs + writes STOP flag if CPU>90% or MEM>85%. `pre-flight-check.sh` run before heavy tasks. Fired once during audit (moondream overload) and correctly prevented a crash.

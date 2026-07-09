@@ -354,3 +354,53 @@
     );
   }
 }
+
+/* ============================================================
+   Mobile UI hardening — added by overnight audit (2026-07-10)
+   Fixes the verified mobile breakages:
+     - wide <table>s overflowing the 390px viewport on several
+       routes (benchmarks, white-label, admin/users, audit-log,
+       estate, projections/cash-flow, home-office, tax-report).
+       The shadcn Table component already wraps in
+       `relative w-full overflow-auto`; raw <table>s skipped it.
+     - sub-36px tap targets on dense list/settings screens.
+   Strategy: compress table columns to the viewport (no h-scroll)
+   and enforce a minimum touch target, without per-file JSX churn.
+   ============================================================ */
+@media (max-width: 640px) {
+  /* Compress ALL <table>s to the viewport so they never push
+     page width. Tables that are intentionally wrapped in a scroll
+     container (shadcn Table / radix ScrollArea) scroll internally;
+     `overflow-x: clip` on <html>/<body> below guarantees no
+     page-level horizontal scroll regardless. */
+  table {
+    table-layout: fixed;
+    width: 100% !important;
+  }
+  table th,
+  table td {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  /* Minimum touch-target height for tappable controls */
+  button,
+  a,
+  [role="button"] {
+    min-height: 36px;
+  }
+  /* …but leave intentionally small toolbar/icon buttons alone */
+  .h-8, .h-9, .h-10, .size-8, .size-9, .size-10,
+  .h-8 *, .h-9 *, .h-10 *, .size-8 *, .size-9 *, .size-10 * {
+    min-height: unset;
+  }
+}
+
+/* Safety net: never let the page itself scroll sideways.
+   `clip` (not `hidden`) avoids creating a scroll container and
+   does not break position:sticky nav/headers. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}

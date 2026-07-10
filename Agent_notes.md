@@ -205,3 +205,15 @@ Numeric columns (value, amount) are returned as `string` from Drizzle by default
 | `artifacts/api-server/src/lib/ai-router.ts` | Zero-trust AI routing classifier |
 | `lib/db/src/schema/` | All Drizzle ORM table schemas |
 | `lib/api-zod/src/` | Zod validation schemas for all API endpoints |
+
+---
+
+## Mobile UI Audit + Fix (2026-07-10, chief-of-staff agent)
+
+- **Method**: Headless Playwright (Chromium, cached) at 390×844 mobile viewport across all 22 routes. DOM/computed-style assertions only — no moondream (CPU/MEM watchdog risk). Reusable harness committed to `artifacts/family-office/`: `audit2.mjs` (status/console/overflow), `layout.mjs` (off-screen els, tap targets, table overflow), `check-offscreen.mjs` (false-positive classifier for intentional off-canvas drawers).
+- **Findings (pre-fix)**: 0 console errors, all 22 routes HTTP 200. Real breakages: (1) **table overflow** on benchmarks/white-label/admin-users/audit-log/estate/projections/cash-flow/home-office/tax-report — root cause: 13 pages use RAW `<table className="w-full text-sm">` instead of the shadcn `Table` component (which wraps in `relative w-full overflow-auto`); (2) **sub-36px tap targets** (settings 28, watchlist 21, research 20, assets/prices 16).
+- **Fix**: ONE global mobile CSS block in `artifacts/family-office/src/index.css` (Tailwind v4 `@media (max-width:640px)`): `table { table-layout: fixed; width:100% !important }` + `th,td { word-break/overflow-wrap/white-space:normal }` + `button,a,[role=button] { min-height:36px }` (toolbar-icon exclusions `.h-8/.h-9/.h-10/.size-*`) + `html,body { max-width:100%; overflow-x: clip }`. No per-file JSX churn (simplest fix = right fix).
+- **Post-fix verification**: `docOverflow=0` (scrollWidth===clientWidth===390) every route — zero horizontal page scroll. Table overflow resolved on all routes except `/admin/audit-log` (table intentionally wraps in shadcn `Table` + radix `ScrollArea`, scrolls internally; body `clip` contains it). Tap targets ≤4 everywhere.
+- **Build**: `pnpm build` passes (18s, benign 1MB chunk warning).
+- **Pushed**: commit `a6ccbf7a` → `sudo-prog/FAMLY-Office` `main` (SSH). Harness scripts + CSS included.
+- **Reusable pattern**: same global-CSS fix applies to any shadcn/Tailwind app with raw-table mobile overflow — being rolled out to the other 9 Vercel projects via sub-agents.

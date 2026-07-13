@@ -109,12 +109,36 @@ const stores = {
 let _seq = 1000;
 const nextId = () => ++_seq;
 
-const send = (res, code, body) => res.status(code).json(body);
+const send = (res, code, body) => {
+  // Prevent Vercel edge from negatively caching error responses (a stale 404
+  // could otherwise stick on the alias after a fix lands). API is dynamic.
+  res.setHeader("Cache-Control", "no-store, max-age=0, must-revalidate");
+  res.status(code).json(body);
+};
 const ok = (res, body) => send(res, 200, body);
 const created = (res, body) => send(res, 201, body);
 const noContent = (res) => res.status(204).end();
 const bad = (res, msg) => send(res, 400, { error: msg });
 const notFound = (res, msg = "Not found") => send(res, 404, { error: msg });
+
+// ─── Error telemetry buffer ────────────────────────────────────────────────────
+// In-memory ring buffer of recent server + client errors so the chief-of-staff
+// agent (and onboard AI agents) can GET /api/errors to confirm the app is
+// error-free without scraping Vercel logs. Per cold-start (ephemeral on Vercel),
+// but durable enough for an active debug session. The catch-all also console.error's
+// every error via the `catch` block below.
+const _errBuf = (globalThis.__famlyErrBuf = globalThis.__famlyErrBuf || []);
+const ERR_CAP = 200;
+function recordErr(e) {
+  const entry = {
+    id: (globalThis.crypto?.randomUUID?.() ?? `e-${Date.now()}-${Math.random().toString(36).slice(2)}`),
+    at: new Date().toISOString(),
+    ...e,
+  };
+  _errBuf.push(entry);
+  if (_errBuf.length > ERR_CAP) _errBuf.splice(0, _errBuf.length - ERR_CAP);
+  return entry;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const jsonBody = (req) => {
@@ -196,6 +220,20 @@ export default async function handler(req, res) {
     // ── Health ──────────────────────────────────────────────
     if (seg === "healthz" || seg === "health") {
       return ok(res, { status: "ok", app: "family-office" });
+    }
+
+    // ── Error telemetry viewer + client log sink ──────────
+    if (seg === "errors") {
+      if (method === "DELETE") { _errBuf.length = 0; return ok(res, { cleared: true }); }
+      if (method !== "GET") { res.setHeader("Allow", "GET, DELETE"); return send(res, 405, { error: "Method Not Allowed" }); }
+      return ok(res, { count: _errBuf.length, cap: ERR_CAP, errors: [..._errBuf].reverse() });
+    }
+    if (seg === "log") {
+      if (method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "Method Not Allowed" }); }
+      const b = jsonBody(req);
+      const entry = recordErr({ source: "client", level: b.level || "error", message: String(b.message || b.msg || "(no message)").slice(0, 2000), stack: b.stack ? String(b.stack).slice(0, 4000) : undefined, url: b.url || b.href || req.headers.referer, userAgent: b.userAgent || req.headers["user-agent"], componentStack: b.componentStack ? String(b.componentStack).slice(0, 2000) : undefined });
+      console.error(JSON.stringify({ event: "client_log", ...entry }));
+      return ok(res, { ok: true, id: entry.id });
     }
 
     // ── Dashboard ───────────────────────────────────────────
@@ -821,6 +859,8 @@ export default async function handler(req, res) {
     // ── Fallback ────────────────────────────────────────────
     return notFound(res, `Unknown endpoint: /api/${seg}`);
   } catch (e) {
-    return send(res, 500, { error: "Internal server error", detail: String(e && e.message || e) });
+    const entry = recordErr({ source: "server", level: "error", message: String((e && e.message) || e), stack: e && e.stack ? String(e.stack).slice(0, 4000) : undefined, url: req.url });
+    console.error(JSON.stringify({ event: "server_error", ...entry }));
+    return send(res, 500, { error: "Internal server error", detail: String((e && e.message) || e) });
   }
 }

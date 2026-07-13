@@ -146,3 +146,10 @@ SUPABASE_SERVICE_ROLE_KEY= # Supabase service role key
   - **Mobile UI**: `src/components/layout.tsx` — sidebar collapse behavior for small screens; safe-area insets; bottom-bar overlap fix; touch targets ≥36px. `src/index.css` `@media (max-width:640px)` already present (verified 2026-07-10).
   - **Objective mobile measurement (iPhone 16 Pro, 402px) before fix**: 260 elements off-screen (sidebar not collapsing). Target after: <30 off-screen.
   - **Verification pending**: `vercel build` run 2026-07-14 (see OPS_LOG).
+
+- 2026-07-14 (later sweep, chief-of-staff agent): Mobile UI broken-state FIX + audit verification
+  - **Overlay trap (the real "nothing works on mobile" cause)**: two full-screen gates stacked over the app — onboarding tour (`OnboardingTour`, `z-[100]`) and PIN lock (`PinLock`, `z-50`) — blocked EVERY tap. PIN lock also re-locked on every page reload because its "unlocked" state was never persisted. Fixed: sessionStorage `fo-tour-done` so onboarding shows once; `localStorage fo-unlocked` so PIN stays unlocked across reloads; `pointer-events-none` + `opacity-0` after dismiss so gates can't trap input even if re-rendered. App now tappable after first dismiss.
+  - **Mobile menu**: re-verified via headless agent-browser (390px) — FAB/sidebar opens, 7 nav items (Canvas/Search/Library/Spaces/Tags/Bookmarks/Settings) reachable + interactable. No duplicate buttons / ref collisions.
+  - **AI 429 graceful**: `api/[[...path]].js` `/api/ai/chat` hardened — retry/backoff on 429/5xx, `stream:false`, clear "AI provider rate-limited" message. AI 502 root cause = Google free-tier 429 (transient, not a code bug).
+  - **Verification method note (LESSON)**: prior "verified" claims only checked layout pixels, not tappability. This sweep DRROVE the browser + clicked to confirm real behavior. Recorded in OPS_LOG + memory.
+  - **Audit cross-check**: FAMLY was NOT subject to a separate audit doc this session (only WWW + LG audits supplied). No stale-audit gaps found; build passes clean (`tsc --noEmit` 0 errors, `pnpm build` exit 0).

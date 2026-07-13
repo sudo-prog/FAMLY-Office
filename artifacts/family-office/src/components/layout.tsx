@@ -40,7 +40,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   const [location] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   function isActive(href: string) {
     if (href === "/") return location === "/";
@@ -53,7 +53,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   // Close on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) setMenuOpen(false);
     }
     if (menuOpen) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -175,7 +175,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           ${sidebarCollapsed ? "md:w-16" : "md:w-64"}
           safe-top
         `}
-        ref={menuRef}
+        ref={sidebarRef}
       >
         {/* Logo area */}
         <div className="h-16 flex items-center px-4 border-b border-border flex-shrink-0">
@@ -263,18 +263,6 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
             )}
             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
               <span className="text-xs font-medium">CFO</span>
-            </div>
-            {/* Mobile dropdown menu button */}
-            <div ref={menuRef} className="relative md:hidden">
-              <button
-                onClick={() => setMenuOpen((o) => !o)}
-                className={`flex items-center justify-center min-w-[44px] min-h-[44px] rounded-md border transition-colors ${
-                  menuOpen ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-border/80 hover:bg-muted/40"
-                }`}
-                aria-label="Navigation menu"
-              >
-                {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              </button>
             </div>
           </div>
         </header>

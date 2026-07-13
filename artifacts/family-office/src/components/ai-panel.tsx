@@ -39,9 +39,9 @@ To fix issues, include a JSON block in your response like:
 Operations: EVAL (run JS), FIX_NOTIFICATIONS (clear stuck toasts), CLEAR_STALE (remove by selector).
 RULES: Check DOM_SNAPSHOT first — NEVER guess selectors. Use EVAL for immediate fixes.`;
 
-const PRIMARY_PROXY = "https://inference-api.nousresearch.com/v1/chat/completions";
-const PRIMARY_MODEL = "openrouter/owl-alpha";
-const FALLBACK_PROXY = "https://navigator-aim-disciplinary-couples.trycloudflare.com/v1/chat/completions";
+const PRIMARY_PROXY = "https://textbooks-careful-shut-dev.trycloudflare.com/v1/chat/completions";
+const PRIMARY_MODEL = "gemini-3.5-flash";
+const FALLBACK_PROXY = "https://textbooks-careful-shut-dev.trycloudflare.com/v1/chat/completions";
 const FALLBACK_MODEL = "gemini-3.5-flash";
 
 type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string; provider?: string };

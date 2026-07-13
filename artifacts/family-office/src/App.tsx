@@ -118,19 +118,21 @@ function Router() {
 }
 
 function App() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(() => {
+    try { return sessionStorage.getItem('fo-unlocked') === '1'; } catch { return false; }
+  });
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingDone, setOnboardingDone] = useState(() => hasSeenOnboarding());
 
   useEffect(() => {
     initTheme();
     fetchLiveRates();
-    // Show onboarding on first visit after a brief delay for smoother UX
-    if (!hasSeenOnboarding()) {
-      const timer = setTimeout(() => setShowOnboarding(true), 600);
-      return () => clearTimeout(timer);
-    }
   }, []);
+
+  const handleUnlock = () => {
+    try { sessionStorage.setItem('fo-unlocked', '1'); } catch { /* ignore */ }
+    setUnlocked(true);
+  };
 
   const handleOnboardingComplete = () => {
     setOnboardingDone(true);
@@ -141,7 +143,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ErrorBoundary>
-          {!unlocked && <PinLock onUnlock={() => setUnlocked(true)} />}
+          {!unlocked && <PinLock onUnlock={handleUnlock} />}
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
           </WouterRouter>

@@ -713,7 +713,7 @@ const CustomizePanel = memo(function CustomizePanel({ visible, onClose, activeWi
   return (
     <>
       {visible && <div className="fixed inset-0 z-40" onClick={onClose} />}
-      <div className={`fixed right-0 top-0 h-full w-72 bg-card border-l border-border z-50 flex flex-col transform transition-transform duration-300 ${visible ? "translate-x-0" : "translate-x-full"}`}>
+      <div className={`fixed right-0 top-0 h-full w-72 bg-card border-l border-border z-50 flex flex-col transform transition-transform duration-300 ${visible ? "translate-x-0" : "translate-x-full invisible pointer-events-none"}`}>
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
             <h3 className="font-semibold text-foreground text-sm">Customize Widgets</h3>

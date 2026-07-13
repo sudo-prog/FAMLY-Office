@@ -543,6 +543,27 @@ export default async function handler(req, res) {
       }
       return bad(res, "Method not allowed");
     }
+    if (seg === "business/summary") {
+      const clients = stores.businessClients;
+      const invoices = stores.businessInvoices;
+      const expenses = stores.businessExpenses;
+      const time = stores.timeEntries;
+      const totalBilled = invoices.reduce((s, i) => s + (Number(i.total) || 0), 0);
+      const outstanding = invoices.filter((i) => !i.paid).reduce((s, i) => s + (Number(i.total) || 0), 0);
+      const paid = invoices.filter((i) => i.paid).reduce((s, i) => s + (Number(i.total) || 0), 0);
+      const expenseTotal = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      const billableHours = time.filter((t) => t.billable).reduce((s, t) => s + (Number(t.hours) || 0), 0);
+      return ok(res, {
+        clientCount: clients.length,
+        invoiceCount: invoices.length,
+        paidInvoiceCount: invoices.filter((i) => i.paid).length,
+        outstandingInvoiceCount: invoices.filter((i) => !i.paid).length,
+        totalBilled, outstanding, paid,
+        expenseTotal,
+        timeEntryCount: time.length,
+        billableHours,
+      });
+    }
     if (seg.startsWith("business/clients/")) {
       const id = seg.split("/")[2];
       if (method === "PATCH") {

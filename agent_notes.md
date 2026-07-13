@@ -139,3 +139,10 @@ SUPABASE_SERVICE_ROLE_KEY= # Supabase service role key
   - **Typecheck**: `tsc -p tsconfig.json --noEmit` → 0 errors. **Build**: `pnpm --filter @workspace/family-office run build` → `vite build && cp -r api dist/`, exit 0; `dist/index.html` + `dist/api/[[...path]].js` emitted.
   - **Dev stack**: `scripts/api-dev-server.mjs` (:4001) + `vite` (:5180, proxies `/api`→:4001). End-to-end verified: browser→vite:5180→api:4001→JSON 200.
   - **Commit scope**: family-office package only — root `vercel.json`, root `api/[[...path]].js` (+removed stale stubs), `src/index.css`, `src/pages/ocr.tsx` (VITE_API_URL fix), `package.json`, `pnpm-lock.yaml`, `fo-audit.mjs`, `agent_notes.md`. Left unrelated parent-tree changes (docker-compose port, api-server deps, deleted pages.yml) uncommitted.
+
+- 2026-07-14: Fix Sweep — backend error-monitoring + mobile UI (chief-of-staff agent)
+  - **Backend error-monitoring** (`artifacts/api-server`): added `middlewares/error-handler.ts` (global error + 404 handler, registered LAST) + `middlewares/request-id.ts` (request-id correlation injected into Pino logs). `index.ts`/`app.ts` updated; `uncaughtException`/`unhandledRejection` handlers added. `routes/health.ts` wired.
+  - **/api 404 root cause**: confirmed `vercel.json` rewrite `/^/((?!api/).*)$` now excludes `/api/*` from SPA fallback (matches the 2026-07-10 deploy-gap fix). Frontend `main.tsx` already calls `setBaseUrl(VITE_API_BASE_URL)`. `artifacts/family-office/api/[[...path]].js` catch-all is the single source of truth (replaces old standalone `api/ai/chat.js` + `api/health.js`, which were deleted — verified safe).
+  - **Mobile UI**: `src/components/layout.tsx` — sidebar collapse behavior for small screens; safe-area insets; bottom-bar overlap fix; touch targets ≥36px. `src/index.css` `@media (max-width:640px)` already present (verified 2026-07-10).
+  - **Objective mobile measurement (iPhone 16 Pro, 402px) before fix**: 260 elements off-screen (sidebar not collapsing). Target after: <30 off-screen.
+  - **Verification pending**: `vercel build` run 2026-07-14 (see OPS_LOG).

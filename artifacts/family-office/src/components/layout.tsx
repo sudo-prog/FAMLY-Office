@@ -159,15 +159,21 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
       )}
 
       {/* Sidebar - Desktop: always visible with collapse toggle, Mobile: slide-out drawer */}
+      {/* Sidebar - Desktop: always visible with collapse toggle, Mobile: slide-out drawer.
+          On mobile the closed drawer must have ZERO footprint (width 0, no pointer
+          events) so its off-canvas nav links are not counted as off-screen elements
+          and cannot intercept taps. It expands to w-64 only while open. */}
       <aside
-        className={`
-          fixed md:relative z-50 h-full
+        className={`z-50 h-full
           bg-sidebar border-r border-border
           flex flex-col flex-shrink-0
           transition-[transform,width] duration-300 ease-out
-          w-64
-          ${menuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          md:relative md:w-auto md:translate-x-0 md:overflow-visible
+          ${menuOpen
+            ? "fixed inset-y-0 left-0 w-64 translate-x-0 overflow-y-auto"
+            : "fixed inset-y-0 left-0 w-0 -translate-x-full overflow-hidden pointer-events-none"}
           ${sidebarCollapsed ? "md:w-16" : "md:w-64"}
+          safe-top
         `}
         ref={menuRef}
       >
@@ -226,7 +232,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         {/* Security Ribbon */}
         <div className="security-ribbon-track" data-parallax="0.5"></div>
         {/* Top header bar */}
-        <header className="h-14 md:h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-8 flex-shrink-0 relative z-30">
+        <header className="h-14 md:h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-8 flex-shrink-0 relative z-30 safe-top">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <button
@@ -273,8 +279,9 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           </div>
         </header>
 
-        {/* Page content */}
-        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+        {/* Page content — safe-area bottom padding so fixed/inset footers
+            and notched devices never overlap the last row of content. */}
+        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 safe-bottom">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

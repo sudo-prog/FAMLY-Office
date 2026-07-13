@@ -7,11 +7,17 @@ import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/auth";
 import { rateLimit } from "./middlewares/rate-limit";
 import { sanitizeInput } from "./middlewares/validate";
+import { requestId } from "./middlewares/request-id";
+import { errorHandler, notFoundHandler } from "./middlewares/error-handler";
 import { corsOrigins } from "./lib/env";
 
 const app: Express = express();
 
 // ─── Security Middleware ─────────────────────────────────────────────────────
+
+// Request-ID correlation — MUST be first: every downstream logger and the
+// error/404 handlers read req.id / req.log.
+app.use(requestId);
 
 // CORS: Restrict to known origins in production
 app.use(
@@ -62,6 +68,13 @@ app.use(authMiddleware);
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 app.use("/api", router);
+
+// ─── 404 + Error handlers (MUST be registered LAST) ──────────────────────
+// A 404 here means no router above matched — returns structured JSON, never the
+// SPA fallback. The 4-arg signature is what Express 5 uses to detect an
+// error handler.
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // ─── Security Headers ───────────────────────────────────────────────────────
 

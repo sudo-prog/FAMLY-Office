@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import { DocumentPreview } from "@/components/document-preview";
 import { AIPanel } from "@/components/ai-panel";
+import { useOnlineStatus } from "@/hooks/use-offline";
+import { demoConfirm } from "@/components/demo-banner";
+import { toast } from "sonner";
 
 const FILE_TYPES = ["pdf", "contract", "tax", "insurance", "statement", "deed", "certificate", "other"];
 const curYear = String(new Date().getFullYear());
@@ -166,6 +169,7 @@ export default function Vault() {
   const updateDoc = useUpdateDocument();
   const deleteDoc = useDeleteDocument();
   const createTx = useCreateTransaction();
+  const isOnline = useOnlineStatus();
 
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("canvas");
@@ -284,7 +288,8 @@ export default function Vault() {
 
   async function handleDelete(id: number, e?: React.MouseEvent) {
     e?.stopPropagation();
-    if (!confirm("Delete this document record?")) return;
+    if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; }
+    if (!demoConfirm("Delete this document record?")) return;
     await deleteDoc.mutateAsync({ id });
     await qc.invalidateQueries({ queryKey: getListDocumentsQueryKey() });
   }
@@ -470,7 +475,7 @@ export default function Vault() {
             className={`gap-2 border-border text-sm ${selectMode ? "border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             <CheckSquare className="w-4 h-4" /> {selectMode ? "Exit Select" : "Select"}
           </Button>
-          <Button onClick={openAdd} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button onClick={openAdd} disabled={!isOnline} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="w-4 h-4" /> Add Document
           </Button>
         </div>
@@ -749,7 +754,7 @@ export default function Vault() {
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {saving ? "Saving…" : editId ? "Save Changes" : "Add Document"}
               </Button>
             </DialogFooter>

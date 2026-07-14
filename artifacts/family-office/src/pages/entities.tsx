@@ -15,6 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Search, Building2, User, Shield, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/use-offline";
+import { demoConfirm } from "@/components/demo-banner";
+import { toast } from "sonner";
 
 const ENTITY_TYPES = ["trust", "company", "individual", "partnership", "fund", "other"];
 const TYPE_ICONS: Record<string, React.ElementType> = { trust: Shield, company: Building2, individual: User, partnership: Building2 };
@@ -31,6 +34,7 @@ export default function Entities() {
   const createEntity = useCreateEntity();
   const updateEntity = useUpdateEntity();
   const deleteEntity = useDeleteEntity();
+  const isOnline = useOnlineStatus();
 
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -70,7 +74,8 @@ export default function Entities() {
 
   async function handleDelete(id: number, ev: React.MouseEvent) {
     ev.stopPropagation();
-    if (!confirm("Delete this entity?")) return;
+    if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; }
+    if (!demoConfirm("Delete this entity?")) return;
     await deleteEntity.mutateAsync({ id });
     await qc.invalidateQueries({ queryKey: getListEntitiesQueryKey() });
   }
@@ -91,7 +96,7 @@ export default function Entities() {
           <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Legal Entities</h1>
           <p className="text-muted-foreground text-xs md:text-sm">{entities?.length ?? 0} corporate structures and trusts. Click a row to view details.</p>
         </div>
-        <Button onClick={openAdd} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs flex-shrink-0">
+        <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs flex-shrink-0">
           <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Entity</span><span className="sm:hidden">Add</span>
         </Button>
       </div>
@@ -194,7 +199,7 @@ export default function Entities() {
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {saving ? "Saving…" : editId ? "Save Changes" : "Add Entity"}
               </Button>
             </DialogFooter>

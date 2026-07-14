@@ -29,6 +29,7 @@ const BUSINESS_ITEMS = [
   { href: "/estate", label: "Estate Planning", icon: Landmark },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/audit-log", label: "Audit Log", icon: Shield },
+  { href: "/admin/users", label: "Users & Roles", icon: Users },
   { href: "/report/export-pdf", label: "PDF Export", icon: Printer },
   { href: "/white-label", label: "Multi-Office", icon: Building2 },
   { href: "/admin/ocr", label: "Document OCR", icon: FileText },

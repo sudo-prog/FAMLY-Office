@@ -8,6 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AIPanel } from "@/components/ai-panel";
+import { useOnlineStatus } from "@/hooks/use-offline";
+import { demoConfirm } from "@/components/demo-banner";
+import { toast } from "sonner";
 import {
   Briefcase, TrendingUp, TrendingDown, DollarSign, Clock, Users, FileText,
   Plus, Pencil, Trash2, Check, Printer, Search, ChevronDown, ChevronUp,
@@ -236,6 +239,7 @@ function Invoices() {
   const createInv = useCreateInvoice();
   const updateInv = useUpdateInvoice();
   const deleteInv = useDeleteInvoice();
+  const isOnline = useOnlineStatus();
 
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -301,7 +305,7 @@ function Invoices() {
           {["all", "draft", "sent", "paid", "overdue"].map(s => <button key={s} onClick={() => setStatusFilter(s)} className={`px-2.5 py-1 rounded text-xs capitalize transition-colors ${statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{s}</button>)}
         </div>
         <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs"><Sparkles className="w-3 h-3" /> AI</Button>
-        <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> New Invoice</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> New Invoice</Button>
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
@@ -337,7 +341,7 @@ function Invoices() {
                       {!inv.paid && inv.status !== "cancelled" && <button onClick={() => markPaid(inv)} title="Mark paid" className="p-1 text-emerald-500 hover:bg-emerald-500/10 rounded"><Check className="w-3.5 h-3.5" /></button>}
                       <button onClick={() => printInvoice(inv)} title="Print" className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded"><Printer className="w-3.5 h-3.5" /></button>
                       <button onClick={() => openEdit(inv)} className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={async () => { if (confirm("Delete invoice?")) await deleteInv.mutateAsync(inv.id); }} className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={async () => { if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; } if (!demoConfirm("Delete invoice?")) return; await deleteInv.mutateAsync(inv.id); }} className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -403,7 +407,7 @@ function Invoices() {
             <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Notes</Label><textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} rows={2} placeholder="Payment terms, bank details…" className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" /></div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save Changes" : "Create Invoice"}</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save Changes" : "Create Invoice"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -422,6 +426,7 @@ const emptyClientForm: ClientForm = { name: "", email: "", phone: "", company: "
 function Clients() {
   const { data: clients = [], isLoading } = useBusinessClients();
   const createClient = useCreateClient(); const updateClient = useUpdateClient(); const deleteClient = useDeleteClient();
+  const isOnline = useOnlineStatus();
   const [open, setOpen] = useState(false); const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<ClientForm>(emptyClientForm); const [saving, setSaving] = useState(false); const [search, setSearch] = useState("");
 
@@ -441,7 +446,7 @@ function Clients() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Client</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Client</Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(c => (
@@ -453,7 +458,7 @@ function Clients() {
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                   <button onClick={() => openEdit(c)} className="p-1 text-muted-foreground hover:text-foreground rounded"><Pencil className="w-3 h-3" /></button>
-                  <button onClick={async () => { if (confirm("Delete client?")) await deleteClient.mutateAsync(c.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
+                  <button onClick={async () => { if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; } if (!demoConfirm("Delete client?")) return; await deleteClient.mutateAsync(c.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
                 </div>
               </div>
               <h3 className="font-semibold text-sm text-foreground">{c.name}</h3>
@@ -489,7 +494,7 @@ function Clients() {
             <div className="space-y-1"><Label className="text-xs text-muted-foreground">Notes</Label><textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} rows={2} className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" /></div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Add Client"}</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Add Client"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -506,6 +511,7 @@ const emptyExpenseForm: ExpenseForm = { date: today(), description: "", category
 function Expenses() {
   const { data: expenses = [], isLoading } = useBusinessExpenses();
   const createExp = useCreateExpense(); const updateExp = useUpdateExpense(); const deleteExp = useDeleteExpense();
+  const isOnline = useOnlineStatus();
   const [open, setOpen] = useState(false); const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<ExpenseForm>(emptyExpenseForm); const [saving, setSaving] = useState(false); const [search, setSearch] = useState("");
   const [aiOpen, setAiOpen] = useState(false);
@@ -536,7 +542,7 @@ function Expenses() {
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search expenses…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
         <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs"><Sparkles className="w-3 h-3" /> AI</Button>
-        <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Expense</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Expense</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -564,7 +570,7 @@ function Expenses() {
                   <TableCell>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                       <button onClick={() => openEdit(e)} className="p-1 text-muted-foreground hover:text-foreground rounded"><Pencil className="w-3 h-3" /></button>
-                      <button onClick={async () => { if (confirm("Delete expense?")) await deleteExp.mutateAsync(e.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
+                      <button onClick={async () => { if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; } if (!demoConfirm("Delete expense?")) return; await deleteExp.mutateAsync(e.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -612,7 +618,7 @@ function Expenses() {
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Expense"}</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Expense"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -632,6 +638,7 @@ function TimeTracker() {
   const { data: entries = [], isLoading } = useTimeEntries();
   const { data: clients = [] } = useBusinessClients();
   const createEntry = useCreateTimeEntry(); const updateEntry = useUpdateTimeEntry(); const deleteEntry = useDeleteTimeEntry();
+  const isOnline = useOnlineStatus();
   const [open, setOpen] = useState(false); const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<TimeForm>(emptyTimeForm); const [saving, setSaving] = useState(false); const [search, setSearch] = useState("");
 
@@ -654,7 +661,7 @@ function TimeTracker() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search entries…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <Button onClick={openCreate} size="sm" className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Log Time</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Log Time</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -682,7 +689,7 @@ function TimeTracker() {
                 <TableCell>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                     <button onClick={() => openEdit(e)} className="p-1 text-muted-foreground hover:text-foreground rounded"><Pencil className="w-3 h-3" /></button>
-                    <button onClick={async () => { if (confirm("Delete entry?")) await deleteEntry.mutateAsync(e.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
+                    <button onClick={async () => { if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; } if (!demoConfirm("Delete entry?")) return; await deleteEntry.mutateAsync(e.id); }} className="p-1 text-muted-foreground hover:text-destructive rounded"><Trash2 className="w-3 h-3" /></button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -716,7 +723,7 @@ function TimeTracker() {
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Time"}</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Time"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

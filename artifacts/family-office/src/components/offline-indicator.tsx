@@ -29,7 +29,7 @@ export function OfflineIndicator() {
       ) : (
         <>
           <WifiOff className="w-4 h-4" />
-          <span>Offline mode — changes queued</span>
+          <span>Offline — changes cannot be saved until you're back online.</span>
         </>
       )}
     </div>

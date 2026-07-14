@@ -104,14 +104,18 @@ function useResearchStream() {
   const [text, setText] = useState("");
   const [sources, setSources] = useState<Source[]>([]);
   const [err, setErr] = useState<string|null>(null);
+  const [model, setModel] = useState<string|null>(null);
+  const [routing, setRouting] = useState<string|null>(null);
   const ctrl = useRef<AbortController|null>(null);
 
   const run = useCallback(async (params: object) => {
-    setText(""); setSteps([]); setSources([]); setErr(null);
+    setText(""); setSteps([]); setSources([]); setErr(null); setModel(null); setRouting(null);
     setPhase("running");
     ctrl.current = new AbortController();
     try {
       await readSSE(`${BASE}/api/research/query`, params, ctrl.current.signal, (data) => {
+        if (typeof data.model === "string") setModel(data.model);
+        if (typeof data.routing === "string") setRouting(data.routing);
         if (data.type === "step") setSteps(s => [...s, { step: data.step, message: data.message }]);
         else if (data.type === "sources") setSources(data.sources ?? []);
         else if (data.type === "done") setPhase("done");
@@ -126,8 +130,8 @@ function useResearchStream() {
   }, []);
 
   const stop = useCallback(() => { ctrl.current?.abort(); setPhase("idle"); }, []);
-  const reset = useCallback(() => { ctrl.current?.abort(); setText(""); setSteps([]); setSources([]); setErr(null); setPhase("idle"); }, []);
-  return { phase, steps, text, sources, err, run, stop, reset };
+  const reset = useCallback(() => { ctrl.current?.abort(); setText(""); setSteps([]); setSources([]); setErr(null); setModel(null); setRouting(null); setPhase("idle"); }, []);
+  return { phase, steps, text, sources, err, model, routing, run, stop, reset };
 }
 
 // ─── Component Stream Hook ────────────────────────────────────────────────────
@@ -217,7 +221,7 @@ function ResearchPanel() {
   const [saveTitle, setSaveTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<number|null>(null);
-  const { phase, steps, text, sources, err, run, stop, reset } = useResearchStream();
+  const { phase, steps, text, sources, err, model, routing, run, stop, reset } = useResearchStream();
   const saveReport = useSaveReport();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -386,6 +390,9 @@ function ResearchPanel() {
                 { show: incPortfolio, label: "Portfolio-aware", color: "border-primary/30 text-primary" },
                 { show: incWeb && sources.length > 0, label: "Web-sourced", color: "border-blue-400/30 text-blue-400" },
               ].filter(b => b.show).map(b => <Badge key={b.label} variant="outline" className={`text-[10px] ${b.color}`}>{b.label}</Badge>)}
+              {(model === "demo" || routing === "demo") && (
+                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400">Demo response — configure an AI provider in Settings</Badge>
+              )}
             </div>
             {isDone && !savedId && (
               <div className="flex items-center gap-2 shrink-0">

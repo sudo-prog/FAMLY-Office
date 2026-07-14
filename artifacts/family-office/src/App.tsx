@@ -9,6 +9,7 @@ import { CommandPalette } from "@/components/command-palette";
 import ErrorBoundary from "@/components/error-boundary";
 import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
+import { DemoBanner } from "@/components/demo-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchLiveRates } from "@/lib/currency";
 import {
@@ -105,7 +106,6 @@ function Router() {
               <Route path="/admin/ocr" component={OCRPage} />
               <Route path="/admin/users" component={AdminUsersPage} />
               <Route path="/report/export-pdf" component={ExportPdf} />
-              <Route path="/vault/ocr" component={OCRPage} />
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
             </Switch>
@@ -127,6 +127,7 @@ function App() {
   useEffect(() => {
     initTheme();
     fetchLiveRates();
+    if (!onboardingDone) setShowOnboarding(true);
   }, []);
 
   const handleUnlock = () => {
@@ -144,6 +145,7 @@ function App() {
       <TooltipProvider>
         <ErrorBoundary>
           {!unlocked && <PinLock onUnlock={handleUnlock} />}
+          <DemoBanner />
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />
           </WouterRouter>

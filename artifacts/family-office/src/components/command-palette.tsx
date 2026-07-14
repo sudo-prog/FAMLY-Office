@@ -3,7 +3,8 @@ import { useLocation } from "wouter";
 import {
   Search, LayoutDashboard, Wallet, ArrowLeftRight, FileKey, Users,
   TrendingUp, FileText, Settings as SettingsIcon, X, Briefcase,
-  ScrollText, User2, Receipt, Clock,
+  ScrollText, User2, Receipt, Clock, Sparkles, Shield, Bell, Landmark,
+  BarChart3, Target, Eye, DollarSign, Building2, Printer,
 } from "lucide-react";
 import { useListAssets, useListDocuments, useListTransactions } from "@workspace/api-client-react";
 import { useBusinessClients, useBusinessInvoices } from "@/hooks/use-business-api";
@@ -18,7 +19,23 @@ const NAV_RESULTS: Result[] = [
   { id: "nav-/entities", label: "Entities", sublabel: "Trusts & companies", group: "Navigate", groupIcon: LayoutDashboard, href: "/entities", icon: Users },
   { id: "nav-/projections", label: "Projections", sublabel: "Forecasts", group: "Navigate", groupIcon: LayoutDashboard, href: "/projections", icon: TrendingUp },
   { id: "nav-/report", label: "Wealth Report", sublabel: "Professional summaries", group: "Navigate", groupIcon: LayoutDashboard, href: "/report", icon: FileText },
+  { id: "nav-/tax-report", label: "Tax Report", sublabel: "Tax year summary", group: "Navigate", groupIcon: LayoutDashboard, href: "/tax-report", icon: Receipt },
+  // Business
   { id: "nav-/home-office", label: "Home Office", sublabel: "Business management", group: "Navigate", groupIcon: LayoutDashboard, href: "/home-office", icon: Briefcase },
+  { id: "nav-/research", label: "AI Research", sublabel: "Deep financial analysis", group: "Navigate", groupIcon: LayoutDashboard, href: "/research", icon: Sparkles },
+  { id: "nav-/projections/cash-flow", label: "Cash Flow", sublabel: "Cash flow forecast", group: "Navigate", groupIcon: LayoutDashboard, href: "/projections/cash-flow", icon: BarChart3 },
+  { id: "nav-/targets", label: "Net Worth Targets", sublabel: "Goal tracking", group: "Navigate", groupIcon: LayoutDashboard, href: "/targets", icon: Target },
+  { id: "nav-/report/benchmarks", label: "Benchmarks", sublabel: "Performance comparison", group: "Navigate", groupIcon: LayoutDashboard, href: "/report/benchmarks", icon: BarChart3 },
+  { id: "nav-/research/watchlist", label: "Watchlist", sublabel: "Tracked assets", group: "Navigate", groupIcon: LayoutDashboard, href: "/research/watchlist", icon: Eye },
+  { id: "nav-/assets/prices", label: "Price Feeds", sublabel: "Live market prices", group: "Navigate", groupIcon: LayoutDashboard, href: "/assets/prices", icon: DollarSign },
+  { id: "nav-/estate", label: "Estate Planning", sublabel: "Succession & estate", group: "Navigate", groupIcon: LayoutDashboard, href: "/estate", icon: Landmark },
+  { id: "nav-/notifications", label: "Notifications", sublabel: "Alerts & reminders", group: "Navigate", groupIcon: LayoutDashboard, href: "/notifications", icon: Bell },
+  { id: "nav-/admin/audit-log", label: "Audit Log", sublabel: "Activity history", group: "Navigate", groupIcon: LayoutDashboard, href: "/admin/audit-log", icon: Shield },
+  { id: "nav-/admin/users", label: "Users & Roles", sublabel: "Admin access control", group: "Navigate", groupIcon: LayoutDashboard, href: "/admin/users", icon: Users },
+  { id: "nav-/report/export-pdf", label: "PDF Export", sublabel: "Export reports", group: "Navigate", groupIcon: LayoutDashboard, href: "/report/export-pdf", icon: Printer },
+  { id: "nav-/white-label", label: "Multi-Office", sublabel: "White-label offices", group: "Navigate", groupIcon: LayoutDashboard, href: "/white-label", icon: Building2 },
+  { id: "nav-/admin/ocr", label: "Document OCR", sublabel: "Scan & extract", group: "Navigate", groupIcon: LayoutDashboard, href: "/admin/ocr", icon: FileText },
+  { id: "nav-/settings/bank-feed", label: "Bank Feed", sublabel: "Connected accounts", group: "Navigate", groupIcon: LayoutDashboard, href: "/settings/bank-feed", icon: Landmark },
   { id: "nav-/settings", label: "Settings", sublabel: "Theme & preferences", group: "Navigate", groupIcon: LayoutDashboard, href: "/settings", icon: SettingsIcon },
 ];
 

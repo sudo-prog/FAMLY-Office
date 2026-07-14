@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal, Upload } from "lucide-react";
+import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal, Upload, ScanFace } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
+import { isPasskeySupported, isPlatformAuthenticatorAvailable, hasEnrolledPasskey, enrollPasskey, removePasskey } from "@/lib/webauthn";
+import { toast } from "sonner";
 
 function fmt(v: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
@@ -47,6 +49,8 @@ export default function Settings() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installState, setInstallState] = useState<"idle" | "installing" | "done">("idle");
   const [swStatus, setSwStatus] = useState<"checking" | "active" | "inactive">("checking");
+  const [passkeyAvailable, setPasskeyAvailable] = useState(false);
+  const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
 
   React.useEffect(() => {
     fetch("/api/ai/status").then(r => r.json()).then(d => { setAiStatus(d); setAiLoading(false); }).catch(() => setAiLoading(false));
@@ -61,6 +65,13 @@ export default function Settings() {
 
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setInstallState("done");
+    }
+
+    if (isPasskeySupported()) {
+      isPlatformAuthenticatorAvailable().then((avail) => {
+        setPasskeyAvailable(avail);
+        setPasskeyEnrolled(hasEnrolledPasskey());
+      });
     }
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
@@ -396,6 +407,60 @@ export default function Settings() {
           ))}
         </CardContent>
       </Card>
+
+      {passkeyAvailable && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ScanFace className="w-4 h-4 text-primary" />
+              Face ID / Passkey Unlock
+            </CardTitle>
+            <CardDescription className="text-sm">Use your device's biometric authenticator instead of typing your PIN each session. This is a local, device-only convenience — it does not replace your PIN, which remains required for recovery on new devices.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
+              <div>
+                <h3 className="font-medium text-sm">{passkeyEnrolled ? "Passkey Enrolled" : "No Passkey Set Up"}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {passkeyEnrolled
+                    ? "Your device biometric is active for unlocking this app."
+                    : "Enroll your device's Face ID / Touch ID to skip the PIN next time."}
+                </p>
+              </div>
+              {passkeyEnrolled ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="ml-4 flex-shrink-0"
+                  onClick={() => {
+                    removePasskey();
+                    setPasskeyEnrolled(false);
+                    toast.success("Passkey removed");
+                  }}
+                >
+                  Remove Passkey
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 ml-4 flex-shrink-0"
+                  onClick={async () => {
+                    const ok = await enrollPasskey();
+                    if (ok) {
+                      setPasskeyEnrolled(true);
+                      toast.success("Passkey set up — unlock with Face ID / Touch ID");
+                    } else {
+                      toast.error("Passkey setup was cancelled or failed");
+                    }
+                  }}
+                >
+                  <ScanFace className="w-4 h-4" /> Set Up Face ID / Passkey
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-card border-border">
         <CardHeader>

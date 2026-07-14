@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle } from "lucide-react";
 import {
   OnboardingWizard,
-  resetOnboarding,
 } from "./OnboardingWizard";
 
 export function HelpButton() {
@@ -53,7 +52,7 @@ export function HelpButton() {
       <OnboardingWizard
         open={open}
         onClose={() => setOpen(false)}
-        onComplete={() => resetOnboarding()}
+        onComplete={() => setPulse(false)}
       />
     </>
   );

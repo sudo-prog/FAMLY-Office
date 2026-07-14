@@ -107,6 +107,8 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     const decoder = new TextDecoder();
     let buffer = "";
     let content = "";
+    let respRouting = "cloud";
+    let respModel = model;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -121,12 +123,15 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
         if (dataStr === "[DONE]") break;
         try {
           const data = JSON.parse(dataStr);
+          // Surface backend routing/model (first SSE event may be { routing, model, content:"" })
+          if (typeof data.routing === "string") respRouting = data.routing;
+          if (typeof data.model === "string") respModel = data.model;
           const delta = data.choices?.[0]?.delta?.content;
           if (delta) {
             content += delta;
             setMessages((prev) => [
               ...prev.slice(0, -1),
-              { role: "assistant", content: content + "▌", routing: "cloud", model, provider: providerLabel },
+              { role: "assistant", content: content + "▌", routing: respRouting, model: respModel, provider: providerLabel },
             ]);
           }
         } catch {}
@@ -154,7 +159,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     // Final update: remove cursor
     setMessages((prev) => [
       ...prev.slice(0, -1),
-      { role: "assistant", content, routing: "cloud", model, provider: providerLabel },
+      { role: "assistant", content, routing: respRouting, model: respModel, provider: providerLabel },
     ]);
 
     return { ok: true, content };
@@ -244,6 +249,11 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
                     ) : (
                       <><Cloud className="w-2.5 h-2.5 text-blue-400" /><span className="text-[9px] text-blue-400 uppercase tracking-wider">via Gemini</span></>
                     )}
+                  </div>
+                )}
+                {msg.role === "assistant" && (msg.model === "demo" || msg.routing === "demo") && (
+                  <div className="inline-flex items-center gap-1 mb-1.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
+                    <span className="text-[9px] text-amber-400 tracking-wide">Demo response — configure an AI provider in Settings</span>
                   </div>
                 )}
                 <p className="whitespace-pre-wrap">{msg.content}</p>

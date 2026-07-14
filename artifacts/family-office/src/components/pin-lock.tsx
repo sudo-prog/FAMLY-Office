@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Delete } from "lucide-react";
+import { Delete, ScanFace } from "lucide-react";
+import { hasEnrolledPasskey, unlockWithPasskey } from "@/lib/webauthn";
 
 const PIN_KEY_V2 = 'fo-pin-v2';
 const PIN_KEY_V3 = 'fo-pin-v3'; // scrypt-based hash
@@ -204,6 +205,15 @@ export function PinLock({ onUnlock }: PinLockProps) {
     return () => window.removeEventListener('keydown', handleKey);
   });
 
+  // Auto-trigger biometric unlock when a passkey is enrolled (unlock mode).
+  useEffect(() => {
+    if (mode === 'unlock' && hasEnrolledPasskey()) {
+      unlockWithPasskey().then((ok) => { if (ok) onUnlock(); }).catch(() => {});
+    }
+    // Run once on mount (and when mode becomes 'unlock').
+    // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode]);
+
   function triggerShake(msg: string) {
     setError(msg);
     setShake(true);
@@ -297,6 +307,18 @@ export function PinLock({ onUnlock }: PinLockProps) {
           <h1 className="text-2xl font-serif text-foreground">Family Office</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
+
+        {mode === 'unlock' && hasEnrolledPasskey() && (
+          <button
+            onClick={async () => {
+              const ok = await unlockWithPasskey();
+              if (ok) onUnlock();
+            }}
+            className="flex items-center justify-center gap-2 w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 active:scale-95 transition-all"
+          >
+            <ScanFace className="w-5 h-5" /> Unlock with Face ID / Passkey
+          </button>
+        )}
 
         <div>
           <h2 className="text-center text-base font-medium text-foreground mb-6">{title}</h2>

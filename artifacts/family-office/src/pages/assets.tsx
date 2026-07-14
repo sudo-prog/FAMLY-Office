@@ -18,6 +18,8 @@ import { Plus, Search, Trash2, Pencil, Sparkles, Scale, ArrowRight, ArrowLeft, R
 import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
 import { toast } from "sonner";
 import { AIPanel } from "@/components/ai-panel";
+import { useOnlineStatus } from "@/hooks/use-offline";
+import { demoConfirm } from "@/components/demo-banner";
 
 const CATEGORIES = ["bank_account", "property", "investment", "crypto", "superannuation", "business", "bond", "other"];
 const CURRENCIES = ["AUD", "USD", "EUR", "GBP", "CAD", "SGD"];
@@ -471,6 +473,7 @@ export default function Assets() {
   const createAsset = useCreateAsset();
   const updateAsset = useUpdateAsset();
   const deleteAsset = useDeleteAsset();
+  const isOnline = useOnlineStatus();
 
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -524,7 +527,8 @@ export default function Assets() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Delete this asset?")) return;
+    if (!isOnline) { toast.error("You're offline — changes cannot be saved."); return; }
+    if (!demoConfirm("Delete this asset?")) return;
     try {
       await deleteAsset.mutateAsync({ id });
       await qc.invalidateQueries({ queryKey: getListAssetsQueryKey() });
@@ -563,7 +567,7 @@ export default function Assets() {
           <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
             <Sparkles className="w-3.5 h-3.5" /> AI
           </Button>
-          <Button onClick={openAdd} size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
+          <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
             <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Asset</span><span className="sm:hidden">Add</span>
           </Button>
         </div>
@@ -670,7 +674,7 @@ export default function Assets() {
             </div>
             <DialogFooter className="mt-6">
               <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {saving ? "Saving…" : editId ? "Save Changes" : "Add Asset"}
               </Button>
             </DialogFooter>

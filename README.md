@@ -279,8 +279,6 @@ FAMLY-Office/
 │   │   │   ├── routes/             # Route handlers (assets, transactions, documents, ai, research, etc.)
 │   │   │   └── lib/                # Shared utilities (ai-router for zero-trust routing)
 │   │   └── build.mjs               # esbuild build script
-│   │
-│   └── family-office-pitch/        # Pitch deck (10 slides)
 │
 ├── lib/
 │   ├── db/                         # Drizzle ORM schema + migrations

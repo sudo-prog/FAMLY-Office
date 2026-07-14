@@ -50,11 +50,6 @@
 | **Rebalancing Tool** | Sheet panel on Assets page; target allocation sliders per category; gap analysis table (current vs target %; buy/sell recommendations); localStorage persistence; defaults to typical family office benchmarks; disclaimer | `src/pages/assets.tsx` |
 | **Auto CSV Import** | Drag-drop or file-pick on vault Add Document dialog; auto-detects financial CSV columns (date, description, amount, debit/credit); smart date normaliser; auto-categorisation from description keywords; row-level preview with checkboxes; bulk transaction import | `src/pages/vault.tsx` |
 
-### Pitch Deck
-| Feature | Description | Key Files |
-|---|---|---|
-| **10-slide pitch deck** | Cover, Problem, Solution, Tech Stack, AI Intelligence, Security, Module Overview, AI Features, Roadmap, Contact | `artifacts/family-office-pitch/` |
-
 ---
 
 ## AI Configuration

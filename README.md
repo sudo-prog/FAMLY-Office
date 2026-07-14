@@ -6,7 +6,7 @@
 
 ## 🚀 Live Demo
 
-**https://sudo-prog.github.io/FAMLY-Office/**
+**https://family-office-blush.vercel.app/**
 
 PIN: `000000` (first-run, you'll set your own)
 
@@ -239,7 +239,7 @@ Copy `.env.example` to `.env` and configure as needed.
 | `DATABASE_URL` | ✅ Yes | — | PostgreSQL connection string (e.g., `postgresql://user:pass@localhost:5432/famly_office`) |
 | `PORT` | ✅ Yes | `3001` | API server port |
 | `NODE_ENV` | ✅ Yes | `development` | Environment: `development`, `production`, or `test` |
-| `BASE_PATH` | Production | `/` | URL base path for frontend (use `/FAMLY-Office/` for GitHub Pages) |
+| `BASE_PATH` | Production | `/` | URL base path for frontend (Vercel: leave as `/`) |
 | `FAMLY_API_KEY` | Production | — | API key for `X-API-Key` header authentication |
 | `FAMLY_JWT_SECRET` | Production | — | JWT secret for HS256 token signing |
 | `FAMLY_ENCRYPTION_KEY` | Production | — | AES-256-GCM encryption key for document vault (generate: `openssl rand -hex 32`) |
@@ -336,28 +336,11 @@ Query Classifier (20+ signals)
 
 Portfolio data (asset values, transaction amounts, entity names, document content) is **never** sent to cloud AI under any circumstances.
 
----
-
 ## Deployment
 
-### Option 1: GitHub Pages (Frontend Only)
+> **Vercel-only.** GitHub Pages / `gh-pages` branch deployment has been retired (branches deleted 2026-07-14). Deploy via Vercel.
 
-The frontend can be deployed as a static site to GitHub Pages:
-
-```bash
-# Update vite.config.ts base path to match your repo name
-# Set base: '/FAMLY-Office/' in vite.config.ts
-
-# Build for production
-pnpm build
-
-# The `dist` folder in artifacts/family-office can be deployed to GitHub Pages
-# Use GitHub Actions or the `gh-pages` branch method
-```
-
-For API backend, deploy separately to a server or cloud platform (see Option 3).
-
-### Option 2: Vercel
+### Option 1: Vercel (recommended)
 
 Deploy the frontend to Vercel:
 
@@ -367,7 +350,7 @@ Deploy the frontend to Vercel:
 4. Set output directory: `dist`
 5. Add environment variables in the Vercel dashboard
 
-For the API server, consider Vercel serverless functions or deploy the Express server to a platform like Railway, Render, or Fly.io.
+For the API server, use Vercel serverless functions (the `api/` catch-all in this repo) or deploy the Express server to a platform like Railway, Render, or Fly.io.
 
 ### Option 3: Docker (Full Stack)
 

@@ -212,3 +212,27 @@ Numeric columns (value, amount) are returned as `string` from Drizzle by default
 - **Build**: `pnpm build` passes (18s, benign 1MB chunk warning).
 - **Pushed**: commit `a6ccbf7a` → `sudo-prog/FAMLY-Office` `main` (SSH). Harness scripts + CSS included.
 - **Reusable pattern**: same global-CSS fix applies to any shadcn/Tailwind app with raw-table mobile overflow — being rolled out to the other 9 Vercel projects via sub-agents.
+
+---
+
+## Vercel-Only Migration + Branch/Replit Cleanup (2026-07-14, chief-of-staff agent)
+
+### Deployment model change
+- **GitHub Pages retired.** The `gh-pages` and `gh-pages-deploy` branches were deleted (no longer used). All three production apps deploy via **Vercel** only.
+- Live production URLs (verified via `vercel project ls`):
+  - family-office → `https://family-office-blush.vercel.app`
+  - looking-glass → `https://looking-glass-eta.vercel.app`
+  - www-studio → `https://www-studio-red.vercel.app`
+- README "Deployment" section rewritten: removed GitHub Pages Option 1, Vercel is now Option 1. `BASE_PATH` env note changed from "use `/FAMLY-Office/` for GitHub Pages" to "Vercel: leave as `/`".
+
+### Branch merges to main (2026-07-14)
+- `replit-agent` feature branch merged into `main` via `--no-ff` (`c58d1900`), pushed. 14 feature commits: live price feeds, tax report, CSV import, business plan generator + grant finder, AI research/component generation, PWA + PIN auth, financial projections/AI chat, search/create on all data pages, asset/transaction API endpoints. Clean merge, zero conflicts. Then `replit-agent` local branch deleted (fully merged).
+- `main` already carried the 2026-07-14 mobile-menu + AI overlay fixes (4c9246c8 etc) — preserved through merge.
+
+### Replit dependency removal — verified fully applied
+- Commit `f8710576` (2026-06-28) already deleted the Replit-dependent apps (`artifacts/family-office-pitch`, `artifacts/mockup-sandbox`) from git + scrubbed Replit comments in `button.tsx`/`badge.tsx`/`settings.tsx` + cleaned `pnpm-workspace.yaml` + `agent_notes.md`.
+- 2026-07-14 verification: `pnpm-lock.yaml` has **0 `@replit` entries** (authoritative); `pnpm-workspace.yaml` clean; **0 `replit` strings in any tracked source**. Merged `replit-agent` commits added only `drizzle-zod`/`playwright`/`@agent-native/core` (none Replit).
+- Leftover untracked dirs on disk (`artifacts/family-office-pitch`, `artifacts/mockup-sandbox`) moved to `~/.local/share/Trash/files/replit-*_20260714_122504` (recoverable, not rm). `mockup-sandbox`'s UI primitives (accordion/alert/alert-dialog) already exist in the main family-office app → nothing unique lost.
+- **Dangling references cleaned (commit `4f2ac0b1`):** `package.json` typecheck script still filtered the deleted `./artifacts/family-office-pitch` (warned on every build); `README.md` project tree + `Agent_notes.md` pitch-deck section still referenced it. All three removed. Re-ran `pnpm run typecheck` → clean (no "No projects matched").
+- `.vercel/output/.../package.json` still contains the old filter but is a GITIGNORED build artifact (regenerated each Vercel build) — no source change needed.
+- Net result: Replit removal is now **fully applied**; `pnpm run build`/`typecheck` clean; code untouched; nothing broken.

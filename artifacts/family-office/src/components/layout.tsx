@@ -147,9 +147,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden bg-background">
-      {/* Security Ribbon */}
-      <div className="security-ribbon-track fixed top-0 left-0 right-0 z-[100]"></div>
+    <div className="relative min-h-screen w-full overflow-x-hidden bg-background pwa-canvas-bg-theme">
       {/* Mobile overlay backdrop */}
       {menuOpen && (
         <div
@@ -181,10 +179,10 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         {/* Logo area */}
         <div className="h-16 flex items-center px-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center flex-shrink-0">
-              <div className="w-3 h-3 bg-primary-foreground rounded-sm" />
+            <div className="w-6 h-6 rounded-full ring-2 ring-primary/60 bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
             </div>
-            {!sidebarCollapsed && <span className="effect-emboss-ink font-bold text-lg tracking-wide whitespace-nowrap">Family Office</span>}
+            {!sidebarCollapsed && <span className="effect-foil-green foil-animated font-bold text-lg tracking-wide whitespace-nowrap">Family Office</span>}
           </div>
           {/* Mobile close button */}
           <button
@@ -230,8 +228,6 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        {/* Security Ribbon */}
-        <div className="security-ribbon-track" data-parallax="0.5"></div>
         {/* Top header bar */}
         <header className="h-14 md:h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-8 flex-shrink-0 relative z-30 safe-top">
           <div className="flex items-center gap-3">

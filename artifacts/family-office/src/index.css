@@ -67,102 +67,107 @@
 }
 
 :root {
-  /* Default to dark mode effectively by defining our dark theme here */
-  --background: 220 16% 7%;
-  --foreground: 220 10% 90%;
-  --border: 220 16% 16%;
-  --input: 220 16% 16%;
-  --ring: 43 65% 52%;
+  /* ── Cardstock Ledger (light, default) ── */
+  --background: 44 50% 91%;        /* #F4EEDE ivory cardstock */
+  --foreground: 218 42% 19%;       /* #1C2B44 marine ink */
+  --border: 44 40% 81%;            /* #E2D8BC recessed groove */
+  --input: 44 40% 81%;
+  --ring: 145 33% 27%;             /* #2F5D42 foil-green */
 
-  --card: 220 18% 10%;
-  --card-foreground: 220 10% 90%;
-  --card-border: 220 16% 16%;
+  --card: 46 59% 94%;              /* #F9F5E8 */
+  --card-foreground: 218 42% 19%;
+  --card-border: 44 40% 81%;
 
-  --popover: 220 18% 10%;
-  --popover-foreground: 220 10% 90%;
-  --popover-border: 220 16% 16%;
+  --popover: 46 59% 94%;
+  --popover-foreground: 218 42% 19%;
+  --popover-border: 44 40% 81%;
 
-  --primary: 43 65% 52%;
-  --primary-foreground: 0 0% 0%;
+  --primary: 145 33% 27%;          /* #2F5D42 foil-green */
+  --primary-foreground: 44 43% 88%;
 
-  --secondary: 220 16% 20%;
-  --secondary-foreground: 220 10% 90%;
+  --secondary: 44 40% 81%;
+  --secondary-foreground: 218 42% 19%;
 
-  --muted: 220 16% 14%;
-  --muted-foreground: 220 10% 60%;
+  --muted: 44 40% 81%;
+  --muted-foreground: 219 21% 37%; /* #4A5872 soft ink-grey */
 
-  --accent: 43 65% 52%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 145 33% 27%;
+  --accent-foreground: 44 43% 88%;
 
   --destructive: 0 62% 40%;
-  --destructive-foreground: 220 10% 90%;
+  --destructive-foreground: 44 43% 88%;
 
-  --chart-1: 43 65% 52%;
+  --chart-1: 145 33% 27%;
   --chart-2: 215 25% 27%;
   --chart-3: 160 30% 40%;
   --chart-4: 30 50% 45%;
   --chart-5: 0 0% 40%;
 
-  --sidebar: 220 18% 9%;
-  --sidebar-foreground: 220 10% 90%;
-  --sidebar-border: 220 16% 16%;
-  --sidebar-primary: 43 65% 52%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 220 16% 14%;
-  --sidebar-accent-foreground: 220 10% 90%;
-  --sidebar-ring: 43 65% 52%;
+  --sidebar: 46 59% 94%;
+  --sidebar-foreground: 218 42% 19%;
+  --sidebar-border: 44 40% 81%;
+  --sidebar-primary: 145 33% 27%;
+  --sidebar-primary-foreground: 44 43% 88%;
+  --sidebar-accent: 44 40% 81%;
+  --sidebar-accent-foreground: 218 42% 19%;
+  --sidebar-ring: 145 33% 27%;
 
   --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
+  --app-font-serif: 'Fraunces', Georgia, serif;
   --app-font-mono: 'JetBrains Mono', Menlo, monospace;
-  
+
   --radius: 0.25rem;
 }
 
 .dark {
-  --background: 220 16% 7%;
-  --foreground: 220 10% 90%;
-  --border: 220 16% 16%;
-  --input: 220 16% 16%;
-  --ring: 43 65% 52%;
+  /* ── Ink & Foil (dark companion) ── */
+  --background: 216 44% 11%;       /* #101A29 deep marine ink */
+  --foreground: 44 43% 88%;        /* #EDE6D2 warm ivory */
+  --border: 215 35% 23%;           /* #26374F */
+  --input: 215 35% 23%;
+  --ring: 151 44% 44%;             /* #3FA372 brighter foil-green */
 
-  --card: 220 18% 10%;
-  --card-foreground: 220 10% 90%;
-  --card-border: 220 16% 16%;
+  --card: 216 49% 15%;             /* #132238 */
+  --card-foreground: 44 43% 88%;
+  --card-border: 215 35% 23%;
 
-  --popover: 220 18% 10%;
-  --popover-foreground: 220 10% 90%;
-  --popover-border: 220 16% 16%;
+  --popover: 216 49% 15%;
+  --popover-foreground: 44 43% 88%;
+  --popover-border: 215 35% 23%;
 
-  --primary: 43 65% 52%;
-  --primary-foreground: 0 0% 0%;
+  --primary: 151 44% 44%;          /* #3FA372 brighter foil-green for dark contrast */
+  --primary-foreground: 216 44% 11%;
 
-  --secondary: 220 16% 20%;
-  --secondary-foreground: 220 10% 90%;
+  --secondary: 215 35% 23%;
+  --secondary-foreground: 44 43% 88%;
 
-  --muted: 220 16% 14%;
-  --muted-foreground: 220 10% 60%;
+  --muted: 215 35% 23%;
+  --muted-foreground: 217 20% 67%; /* #9AA7BC warm light grey */
 
-  --accent: 43 65% 52%;
-  --accent-foreground: 0 0% 0%;
+  --accent: 151 44% 44%;
+  --accent-foreground: 216 44% 11%;
 
   --destructive: 0 62% 40%;
-  --destructive-foreground: 220 10% 90%;
+  --destructive-foreground: 44 43% 88%;
 
-  --chart-1: 43 65% 52%;
+  --chart-1: 151 44% 44%;
   --chart-2: 215 25% 27%;
   --chart-3: 160 30% 40%;
   --chart-4: 30 50% 45%;
   --chart-5: 0 0% 40%;
 
-  --sidebar: 220 18% 9%;
-  --sidebar-foreground: 220 10% 90%;
-  --sidebar-border: 220 16% 16%;
-  --sidebar-primary: 43 65% 52%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 220 16% 14%;
-  --sidebar-accent-foreground: 220 10% 90%;
-  --sidebar-ring: 43 65% 52%;
+  --sidebar: 216 49% 15%;
+  --sidebar-foreground: 44 43% 88%;
+  --sidebar-border: 215 35% 23%;
+  --sidebar-primary: 151 44% 44%;
+  --sidebar-primary-foreground: 216 44% 11%;
+  --sidebar-accent: 215 35% 23%;
+  --sidebar-accent-foreground: 44 43% 88%;
+  --sidebar-ring: 151 44% 44%;
+
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: 'Fraunces', Georgia, serif;
+  --app-font-mono: 'JetBrains Mono', Menlo, monospace;
 }
 
 @layer base {
@@ -221,138 +226,126 @@
   }
 }
 
-/* ─── Currency / Banknote Design System ─────────────────────────────────────── */
+/* ─── Cardstock Ledger Design System ──────────────────────────────────────── */
 
 :root {
-  /* Canvas Backgrounds (The Dollar Fabric) */
-  --color-paper-base: #f1ebd9;
-  --color-paper-shadow: #e1d9be;
-  --color-paper-highlight: #f9f7ef;
-
-  /* Intaglio & Typographic Inks */
-  --color-ink-black: #111411;
-  --color-ink-green: #1a3a22;
-  --color-ink-green-bleed: #315c3d;
-
-  /* Security Features */
-  --color-ribbon-blue: #235fa4;
-  --color-ribbon-glint: #5793da;
-  --color-bell-copper: #c27d38;
-  --color-bell-green: #3b8e51;
-  --color-serial-green: #0a7337;
+  /* Cardstock & Foil palette */
+  --color-cardstock: #F4EEDE;
+  --color-cardstock-shadow: #E2D8BC;
+  --color-cardstock-highlight: #F9F5E8;
+  --color-ink-navy: #1C2B44;
+  --color-foil-green: #2F5D42;
+  --color-foil-green-bright: #3FA372;
 
   /* Typography */
-  --font-display: "Playfair Display", "Georgia", serif;
+  --font-display: "Fraunces", "Georgia", serif;
   --font-interface: system-ui, -apple-system, sans-serif;
-  --font-security: "Courier New", "JetBrains Mono", monospace;
+  --font-security: "JetBrains Mono", "Menlo", monospace;
   --weight-engraved: 800;
   --weight-stamped: 600;
   --weight-ui: 400;
 }
 
-/* Realistic Paper Canvas Background — scoped to .pwa-canvas-bg-theme class.
-   Removed from default .pwa-canvas-bg to avoid clashing with dark theme variables.
-   Add class="pwa-canvas-bg-theme" to any element that needs the paper look. */
+/* ~5% cotton-fiber grain texture — apply to any element needing the paper look.
+   The element keeps its own (theme) background-color; this only overlays grain. */
 .pwa-canvas-bg-theme {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--color-paper-base);
-  background-image:
-    radial-gradient(circle at 15% 25%, rgba(200, 30, 30, 0.15) 1px, transparent 2px),
-    radial-gradient(circle at 80% 55%, rgba(30, 80, 180, 0.18) 1.5px, transparent 2.5px),
-    radial-gradient(circle at 50% 80%, rgba(200, 30, 30, 0.12) 1.2px, transparent 2px);
 }
 
 .pwa-canvas-bg-theme::before {
   content: "";
   position: fixed;
   inset: 0;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Ensure all direct children render above the noise overlay */
+/* Ensure all direct children render above the grain overlay */
 .pwa-canvas-bg-theme > * {
   position: relative;
   z-index: 1;
 }
 
-/* Ink Bleed Stamped Effect */
-.effect-ink-bleed-stamped {
-  font-family: var(--font-security);
-  font-weight: var(--weight-stamped);
-  color: var(--color-ink-black);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  text-shadow: 
-    0.3px 0.3px 0px rgba(17, 20, 17, 0.8),
-    -0.3px -0.3px 0px rgba(17, 20, 17, 0.8),
-    0px 0px 1.5px var(--color-ink-green-bleed);
-}
-
-/* Intaglio Heavy Emboss */
+/* Debossed heading — dual text-shadow: light groove above, dark below (in ink). */
 .effect-emboss-ink {
   font-family: var(--font-display);
   font-weight: var(--weight-engraved);
-  color: var(--color-ink-green);
-  text-shadow: 
-    0px -1px 0px rgba(0, 0, 0, 0.7),
-    0px 1px 0px var(--color-paper-highlight),
-    1px 2px 2px rgba(0, 0, 0, 0.3);
+  color: hsl(var(--foreground));
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 1px rgba(0, 0, 0, 0.35);
 }
 
-/* Blind Emboss: borders and dashboard grids */
+/* Metallic foil-green wordmark via background-clip:text with a 6s sheen sweep. */
+.effect-foil-green {
+  font-family: var(--font-display);
+  background: linear-gradient(
+    100deg,
+    var(--color-foil-green) 0%,
+    var(--color-foil-green-bright) 25%,
+    #7FC09C 50%,
+    var(--color-foil-green-bright) 75%,
+    var(--color-foil-green) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.effect-foil-green.foil-animated {
+  background-size: 200% auto;
+  animation: foil-sheen 6s linear infinite;
+}
+
+@keyframes foil-sheen {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .effect-foil-green.foil-animated {
+    animation: none;
+    background-position: 0 center;
+  }
+}
+
+/* Blind Emboss: crisp 1px border + inset highlight for card/tile surfaces. */
 .effect-emboss-blind {
-  border: 1px solid var(--color-paper-shadow);
-  box-shadow: 
-    inset 1px 1px 2px rgba(0, 0, 0, 0.1),
-    1px 1px 1px var(--color-paper-highlight);
+  border: 1px solid hsl(var(--border));
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.45);
   background-color: transparent;
 }
 
-/* Security Ribbon Track */
-.security-ribbon-track {
-  height: 4px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--color-ribbon-blue) 0px,
-    var(--color-ribbon-blue) 24px,
-    var(--color-ribbon-glint) 24px,
-    var(--color-ribbon-glint) 28px,
-    var(--color-paper-base) 28px,
-    var(--color-paper-base) 34px
-  );
-  width: 100%;
+/* Thin printed-card underline for use under titles. */
+.hairline-rule {
+  border: 0;
+  border-top: 1px solid hsl(var(--border));
+  opacity: 0.85;
+  margin: 0.4rem 0;
 }
 
-/* OVI Button (Optically Variable Ink) */
+/* OVI Button (Optically Variable Ink) — flat foil-green CTA with press-down. */
 .ovi-button {
-  /* Static fallback — renders even if gyro/JS fails */
-  background: linear-gradient(135deg, #c27d38 0%, #b06b28 100%);
-  color: var(--color-paper-highlight);
+  background: var(--color-foil-green);
+  color: #EDE6D2;
   font-family: var(--font-interface);
   font-weight: var(--weight-stamped);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.25);
   padding: 14px 28px;
   border-radius: 4px;
-  transition: transform 0.1s ease;
+  transition: transform 0.08s ease, background 0.15s ease;
   cursor: pointer;
 }
 .ovi-button:hover {
-  transform: scale(1.02);
+  background: #356A4D;
 }
-@supports (background: linear-gradient(calc(var(--tilt-x, 50%) * 3.6deg), red, blue)) {
-  .ovi-button {
-    background: linear-gradient(
-      calc(var(--tilt-x, 50%) * 3.6deg),
-      var(--color-bell-copper) 0%,
-      var(--color-bell-green) 100%
-    );
-  }
+.ovi-button:active {
+  transform: translateY(1px);
 }
 
 /* ============================================================

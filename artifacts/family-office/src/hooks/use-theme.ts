@@ -11,7 +11,7 @@ export interface AppTheme {
 }
 
 export const DEFAULT_THEME: AppTheme = {
-  primaryHsl: "43 65% 52%",
+  primaryHsl: "145 33% 27%",
   backgroundHsl: "220 16% 7%",
   cardHsl: "220 18% 10%",
   textScale: 1.0,
@@ -43,7 +43,7 @@ export function hexToHsl(hex: string): string {
 
 export function hslToHex(hsl: string): string {
   const parts = hsl.match(/(\d+\.?\d*)/g);
-  if (!parts || parts.length < 3) return "#C9A227";
+  if (!parts || parts.length < 3) return "#2F5D42";
   const h = parseInt(parts[0]) / 360;
   const s = parseInt(parts[1]) / 100;
   const l = parseInt(parts[2]) / 100;

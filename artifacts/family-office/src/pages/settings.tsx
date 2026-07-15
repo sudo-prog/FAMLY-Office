@@ -252,12 +252,10 @@ export default function Settings() {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Color Presets</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { label: "Dark Gold", primaryHsl: "43 65% 52%", backgroundHsl: "220 16% 7%", cardHsl: "220 18% 10%" },
-                { label: "Dark Navy", primaryHsl: "213 80% 55%", backgroundHsl: "222 28% 7%", cardHsl: "222 28% 10%" },
-                { label: "Dark Teal", primaryHsl: "174 60% 45%", backgroundHsl: "192 20% 7%", cardHsl: "192 20% 10%" },
-                { label: "Deep Violet", primaryHsl: "262 70% 60%", backgroundHsl: "260 18% 7%", cardHsl: "260 18% 10%" },
-                { label: "Rose Gold", primaryHsl: "340 55% 60%", backgroundHsl: "340 12% 8%", cardHsl: "340 12% 11%" },
-                { label: "Emerald", primaryHsl: "158 60% 48%", backgroundHsl: "168 16% 7%", cardHsl: "168 16% 10%" },
+                { label: "Cardstock", primaryHsl: "145 33% 27%", backgroundHsl: "44 50% 91%", cardHsl: "46 59% 94%" },
+                { label: "Ink & Foil", primaryHsl: "151 44% 44%", backgroundHsl: "216 44% 11%", cardHsl: "216 49% 15%" },
+                { label: "Foil Bronze", primaryHsl: "28 45% 38%", backgroundHsl: "30 18% 10%", cardHsl: "30 18% 13%" },
+                { label: "Foil Slate", primaryHsl: "215 35% 50%", backgroundHsl: "215 30% 12%", cardHsl: "215 30% 15%" },
               ].map((preset) => {
                 const active = theme.primaryHsl === preset.primaryHsl && theme.backgroundHsl === preset.backgroundHsl;
                 return (
@@ -339,6 +337,7 @@ export default function Settings() {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Heading / Serif Font</p>
             <div className="flex flex-wrap gap-2">
               {[
+                { label: "Fraunces (Default)", family: "'Fraunces', Georgia, serif", url: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" },
                 { label: "Georgia", family: "Georgia, serif", url: "" },
                 { label: "Playfair Display", family: "'Playfair Display', serif", url: "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" },
                 { label: "Lora", family: "'Lora', serif", url: "https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&display=swap" },

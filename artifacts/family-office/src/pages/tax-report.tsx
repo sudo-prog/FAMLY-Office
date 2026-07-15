@@ -126,7 +126,7 @@ export default function TaxReport() {
     const html = `<!DOCTYPE html><html><head><title>Tax Report FY${selectedFY}</title>
 <style>
 body{font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#1a1a1a}
-h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;margin-top:32px;margin-bottom:12px;border-bottom:2px solid #C9A227;padding-bottom:8px}
+h1{font-size:28px;margin-bottom:4px}h2{font-size:18px;margin-top:32px;margin-bottom:12px;border-bottom:2px solid #2F5D42;padding-bottom:8px}
 table{width:100%;border-collapse:collapse;margin:16px 0}th{text-align:left;padding:8px;background:#f5f5f5;border-bottom:2px solid #ddd;font-size:13px}
 td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
 .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0}

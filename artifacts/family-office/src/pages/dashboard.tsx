@@ -31,7 +31,7 @@ import { getStoredCurrency, convert, type Currency } from "@/lib/currency";
 const BASE_URL = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
 
 const PIECHART_COLORS = [
-  "hsl(43 65% 52%)", "hsl(215 40% 55%)", "hsl(160 40% 45%)",
+  "hsl(145 33% 27%)", "hsl(215 40% 55%)", "hsl(160 40% 45%)",
   "hsl(30 55% 52%)", "hsl(280 30% 55%)", "hsl(0 50% 52%)",
 ];
 
@@ -89,8 +89,7 @@ function WidgetCard({ id, children, className = "", onClick }: { id: WidgetId; c
   return (
     <div
       onClick={onClick}
-      data-parallax={id === "quick-add" ? "1.5" : id === "net-worth" ? "1.2" : "1"}
-      className={`bg-card border border-border rounded-2xl overflow-hidden flex flex-col relative transition-all duration-200 effect-emboss-blind ${onClick ? "cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-black/20 group" : ""} ${WIDGET_META[id].cols} ${className}`}
+      className={`bg-card border border-border rounded-lg overflow-hidden flex flex-col relative transition-all duration-200 effect-emboss-blind ${onClick ? "cursor-pointer hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 group" : ""} ${WIDGET_META[id].cols} ${className}`}
     >
       {children}
       {onClick && (
@@ -123,7 +122,7 @@ const NetWorthWidget = memo(function NetWorthWidget({ summary, history }: { summ
           {history && history.length > 0 && (
             <ResponsiveContainer width="100%" height={100}>
               <LineChart data={history}>
-                <Line type="monotone" dataKey="value" stroke="hsl(43 65% 52%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="value" stroke="hsl(145 33% 27%)" strokeWidth={2} dot={false} />
                 <RechartsTooltip
                   contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 11 }}
                   formatter={(v: number) => [fmtCur(v), "Net Worth"]}

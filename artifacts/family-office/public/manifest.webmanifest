@@ -4,8 +4,8 @@
   "description": "Private sovereign wealth management system — local-first, encrypted.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#C9A227",
+  "background_color": "#F4EEDE",
+  "theme_color": "#F4EEDE",
   "orientation": "any",
   "categories": ["finance", "productivity"],
   "icons": [

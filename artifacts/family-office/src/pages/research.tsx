@@ -683,7 +683,7 @@ function GitHubPanel({ onSendToBuilder }: { onSendToBuilder: (desc: string) => v
 
   function handleSendToBuilder() {
     if (!repoData) return;
-    const desc = `Generate a dark premium React component inspired by the ${repoData.name} GitHub project. The component should use the repository's purpose (${repoData.description || "software project"}) as context, use recharts for any data visualisation, shadcn/ui components, Tailwind CSS, and match the dark Bloomberg-meets-Apple aesthetic of the Family Office app (background #0d1117, accent gold #C9A227). Create something that could be useful in a wealth management dashboard context.`;
+    const desc = `Generate a premium React component inspired by the ${repoData.name} GitHub project. The component should use the repository's purpose (${repoData.description || "software project"}) as context, use recharts for any data visualisation, shadcn/ui components, Tailwind CSS, and match the "Cardstock Ledger" aesthetic of the Family Office app (cardstock cream background #F4EEDE, marine ink text #1C2B44, foil-green accent #2F5D42). Create something that could be useful in a wealth management dashboard context.`;
     onSendToBuilder(desc);
   }
 

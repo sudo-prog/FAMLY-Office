@@ -298,7 +298,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
     : 'Family Office is locked';
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background" style={{ background: '#0d1117' }}>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-8 w-full max-w-xs px-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center mb-2">

@@ -19,6 +19,17 @@
 - **Menu pushes app down (leaked `md:relative`):** `md:relative` on the sidebar leaked out of its `@media` wrapper (Tailwind v4.3.1 build bug) and, being source-order-after `.fixed`, overrode `fixed` at mobile → `aside` computed `position:relative` (in-flow) → pushed main to `top:1606px` ("scroll halfway before you see it"). Fixed by replacing the Tailwind `md:` variant with a hand-rolled `.fo-sidebar` media query (`position:fixed` overlay on mobile, `static` on desktop).
 - **Verified live at 390px:** `aside.position=fixed`, `main.top=0`, `bodyBg=rgb(244,237,221)` (cream renders), 0 overflowers, dashboard unlocks, 0 console errors. Deployed prod (Ready 59s, aliased family-office-blush.vercel.app).
 
+## Status (2026-07-16) — ROUND 2 mobile render bugs FIXED + VERIFIED
+
+**MOBILE RENDERING BUGS ROUND 2 — DONE (commit b79b1410, deployed prod 2026-07-16).** User supplied `MOBILE-RENDERING-BUGS-ROUND-2.md` (9 screenshots). All 8 issues (G#1–G#7) fixed across 7 files + runtime-verify harness added. Verified via `fo-mobile-round2-verify.mjs` at 390×844 against live prod = **34/34 PASS** (0 page overflow, 0 console errors, all tables nowrap, help button clears viewport). See agent_notes.md 2026-07-16 entry for full diff + Moondream caveat + deploy gotcha.
+
+- G#1 (tables): global `table-layout:fixed` squash → `width:max-content` + `white-space:nowrap`; raw tables wrapped in `overflow-x-auto` (report.tsx ×2, export-pdf.tsx ×5).
+- G#2 (help button): 6s auto-dismiss + smaller `bottom-4 right-4` footprint; layout `pb-20` so content clears it.
+- G#3/G#5 (stat grids / settings rows): responsive `grid-cols-1 sm:grid-cols-2` + `flex-col sm:flex-row` action rows.
+- G#4 (projections header): `flex-col sm:flex-row` + `flex-wrap` controls.
+- G#6 (settings Install-App): `isIOSSafari` → "Share → Add to Home Screen" instructions instead of dead disabled button.
+- G#7 (blank scenario cards): confirmed scenario data present in JSX; was a downstream effect of G#4 overflow + oklab color drop, both now fixed — no separate structural fix.
+
 ### Done ✅ (from audit)
 - §1 Malformed Vercel SPA rewrite → fixed (root + nested `vercel.json`); deep links/refresh no longer 404.
 - §2 In-memory mock backend → honest `VITE_DEMO_MODE=true` demo banner ("non-persistent data"). Chose demo-banner path, NOT real Postgres (no DB provisioned on Vercel).

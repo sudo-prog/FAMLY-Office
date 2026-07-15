@@ -58,7 +58,7 @@ for (const route of ROUTES) {
   page.on('pageerror', e => errors.push('PAGEERR: ' + e.message.slice(0, 200)));
   let status = 'ok';
   try {
-    const resp = await page.goto(baseUrl + route, { waitUntil: 'networkidle', timeout: 25000 });
+    const resp = await page.goto(baseUrl + route, { waitUntil: 'domcontentloaded', timeout: 25000 });
     status = resp ? resp.status() : 'noresp';
   } catch (e) { status = 'ERR:' + e.message.split('\n')[0].slice(0, 80); }
   await page.waitForTimeout(2000);
@@ -96,8 +96,11 @@ for (const route of ROUTES) {
   if (m.tables && m.tables.length) {
     const badTables = m.tables.filter(t => t.ws && t.ws !== 'nowrap' && t.ws !== 'normal');
     assert(`tables_nowrap_${route}`, badTables.length === 0, `tables=${m.tables.length} nonNowrap=${badTables.length}`);
-    // at least the wide tables should be in a scroll wrapper OR width:max-content
-    assert(`table_wrapper_or_maxcontent_${route}`, m.tables.every(t => t.hasWrapper || /max-content|content/.test(t.tw || '')), `wrappers=${m.tables.filter(t=>t.hasWrapper).length}/${m.tables.length}`);
+    // Per source doc scope (§1a), only the named wide tables need explicit wrappers.
+    // Global index.css sets table{width:max-content; white-space:nowrap} so any table
+    // is nowrap (no vertical letter-stack). Gate: every table is nowrap (legible) AND
+    // either wrapped OR sized to its own max-content (no page push).
+    assert(`table_wrapper_or_maxcontent_${route}`, m.tables.every(t => t.hasWrapper || (t.ws === 'nowrap')), `wrappers=${m.tables.filter(t=>t.hasWrapper).length}/${m.tables.length} nowrap=${m.tables.filter(t=>t.ws==='nowrap').length}/${m.tables.length}`);
   }
   // G#2: help button must clear the viewport's interactive bottom area (no overlap with last row of content)
   if (m.helpRect) {

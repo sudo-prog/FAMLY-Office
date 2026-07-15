@@ -1,0 +1,54 @@
+# Dev Roadmap — FAMLY-Office
+
+> Project: sudo-prog/FAMLY-Office (private)
+> Live: https://family-office-blush.vercel.app
+> Repo root: `06_FAMLY-Office/` (Vercel deploys from here; root `vercel.json`, `api/`)
+> Frontend: `artifacts/family-office/` (React 19, Vite, Tailwind, shadcn/ui)
+> Backend (prod): `api/[[...path]].js` (Vercel serverless, in-memory mock)
+> Backend (dev): `artifacts/api-server/` (Express + Postgres, NOT deployed)
+> Last updated: 2026-07-15
+
+---
+
+## Status (2026-07-15)
+
+**Audit COMPLETE — verified.** The 2026-07-14 comprehensive audit (FAMILY-OFFICE-AUDIT-REPORT.md) is fully remediated and deployed. Re-verified 2026-07-15: builds green, live `/api/*` 200, SPA deep links 200, onboarding + full nav + ⌘K working.
+
+### Done ✅ (from audit)
+- §1 Malformed Vercel SPA rewrite → fixed (root + nested `vercel.json`); deep links/refresh no longer 404.
+- §2 In-memory mock backend → honest `VITE_DEMO_MODE=true` demo banner ("non-persistent data"). Chose demo-banner path, NOT real Postgres (no DB provisioned on Vercel).
+- §3 AI demo responses labeled via SSE `model:"demo"` chip in `ai-panel.tsx` + `research.tsx`.
+- §4a Onboarding auto-shows on first visit; §4b HelpButton `onComplete` no longer `resetOnboarding` (self-reset fixed).
+- §5 Offline banner truthful ("changes cannot be saved"); Add/Save/Delete disabled offline. Offline queue (`useOfflineSync`) remains defined-but-unwired (see backlog).
+- §6 `/admin/users` linked in `layout.tsx` + `command-palette.tsx`.
+- §7 ⌘K palette expanded to all 28 routes.
+- §8 PWA PNG icons generated (ImageMagick) + iOS `apple-touch-icon.png`.
+- §9 Dead code removed (`ui/sidebar.tsx`, `use-mobile.tsx`, duplicate `/vault/ocr` route, stray root GH-Pages artifacts).
+- §11 Apple Passkey / Face ID unlock (`src/lib/webauthn.ts` + `pin-lock.tsx` + `settings.tsx`). Local device-bound; documented as NOT server-verified.
+
+---
+
+## Known Limitations / Backlog (not audit defects)
+
+- **Production backend is a stateless in-memory mock.** Anything "saved" resets on cold start. This is by design (honest demo banner) — but if real persistence is ever wanted, deploy `artifacts/api-server` to Vercel/Fly + provision Postgres + `DATABASE_URL` + `pnpm db:push`, then delete `api/[[...path]].js`. §2 Option A.
+- **Offline mutation queue (`useOfflineSync`) is defined but never called.** `enqueue()` has zero call sites. Currently the UI just disables buttons offline (§5 min-fix). Full wiring (queue → flush on reconnect) is a future feature, not a bug.
+- **Encryption not wired into documents CRUD route** (audit "Security Remaining").
+- **Rate limiter in-memory** (won't work across Vercel instances without Redis).
+- **~165 pre-existing tsc type errors** (R3F v9 + React 19 `JSX.IntrinsicElements`, api-server routes). Build passes (esbuild handles JSX); type-only.
+- **1MB main chunk** warning on build — code-splitting opportunity, not a regression.
+
+---
+
+## Next Up (post-audit ideas, unprioritised)
+- Wire real offline queue (enqueue + flushQueue on `isOnline` transition).
+- Decide demo-vs-persistent product posture; if persistent, deploy `api-server` + Postgres.
+- Upgrade Passkey to server-verified WebAuthn once a real backend exists.
+- Bundle-size: manualChunks / lazy-load the 1MB index chunk.
+
+---
+
+## Verification Routine (keep this live)
+- `pnpm --filter @workspace/family-office run build` → must exit 0.
+- `vercel build` → must emit `.vercel/output` with no errors.
+- Live: `curl -I https://family-office-blush.vercel.app/api/health` → 200; nested `/api/*` → 200; deep link `/vault` → 200 (not Vercel 404).
+- Mobile gate (390×844): menu opens, no overlay trap, 0 console errors.

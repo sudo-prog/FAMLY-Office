@@ -9,12 +9,20 @@ import vm from "node:vm";
 
 export function apiMiddlewarePlugin() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  const handlerPath = resolve(__dirname, "api/[[...path]].js");
+  const handlerPath = resolve(__dirname, "api/[...path].js");
 
   let handler = null;
   function loadHandler() {
     if (handler) return handler;
-    let src = readFileSync(handlerPath, "utf8");
+    let src;
+    try {
+      src = readFileSync(handlerPath, "utf8");
+    } catch (e) {
+      // Handler file missing — don't crash the whole dev server. Log and return a
+      // 501 so the SPA still loads (a blank crash is worse than a 501 on /api).
+      console.error("[api-middleware] handler not found at", handlerPath, "- /api disabled");
+      return async () => { throw new Error("api handler missing"); };
+    }
     src = src.replace(/export\s+default\s+/, "module.exports = ");
     const sandbox = {
       module: { exports: {} },

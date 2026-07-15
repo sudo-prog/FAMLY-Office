@@ -14,6 +14,11 @@
 
 **Audit COMPLETE — verified.** The 2026-07-14 comprehensive audit (FAMILY-OFFICE-AUDIT-REPORT.md) is fully remediated and deployed. Re-verified 2026-07-15: builds green, live `/api/*` 200, SPA deep links 200, onboarding + full nav + ⌘K working.
 
+**MOBILE UI — ROOT-CAUSED + FIXED (2026-07-15, commit c0b5711a).** Two mobile-only bugs found via Playwright computed-style forensics at 390px (a `pnpm build` check hid both):
+- **Colors not rendering (Tailwind v4.3.1 oklab/color-mix):** v4 emits `oklab()`/`color-mix()` for ALL colors (e.g. `bg-primary/10` → `oklab(...)`). User's older mobile browser rejects oklab → theme colors silently dropped. Lightning CSS `targets` did NOT downlevel it. Fixed by a post-build downleveler (`scripts/downlevel-colors.mjs`, chained into `pnpm build`) that converts `oklab/oklch/color-mix` → `rgb()/rgba()` (with `var(--tw-shadow-alpha)` preserved as alpha). Built CSS now 0 oklab/oklch/color-mix.
+- **Menu pushes app down (leaked `md:relative`):** `md:relative` on the sidebar leaked out of its `@media` wrapper (Tailwind v4.3.1 build bug) and, being source-order-after `.fixed`, overrode `fixed` at mobile → `aside` computed `position:relative` (in-flow) → pushed main to `top:1606px` ("scroll halfway before you see it"). Fixed by replacing the Tailwind `md:` variant with a hand-rolled `.fo-sidebar` media query (`position:fixed` overlay on mobile, `static` on desktop).
+- **Verified live at 390px:** `aside.position=fixed`, `main.top=0`, `bodyBg=rgb(244,237,221)` (cream renders), 0 overflowers, dashboard unlocks, 0 console errors. Deployed prod (Ready 59s, aliased family-office-blush.vercel.app).
+
 ### Done ✅ (from audit)
 - §1 Malformed Vercel SPA rewrite → fixed (root + nested `vercel.json`); deep links/refresh no longer 404.
 - §2 In-memory mock backend → honest `VITE_DEMO_MODE=true` demo banner ("non-persistent data"). Chose demo-banner path, NOT real Postgres (no DB provisioned on Vercel).
@@ -35,6 +40,8 @@
 - **Encryption not wired into documents CRUD route** (audit "Security Remaining").
 - **Rate limiter in-memory** (won't work across Vercel instances without Redis).
 - **~165 pre-existing tsc type errors** (R3F v9 + React 19 `JSX.IntrinsicElements`, api-server routes). Build passes (esbuild handles JSX); type-only.
+- **Tailwind v4.3.1 emits oklab/color-mix for ALL colors** — requires the post-build downleveler (`scripts/downlevel-colors.mjs`) chained into `pnpm build`. If you bypass `pnpm build` (e.g. raw `vite build`), the shipped CSS will contain oklab/color-mix and older mobile browsers will drop the colors. Do NOT remove the downleveler step from `package.json` `build` script.
+- **Sidebar uses a hand-rolled `.fo-sidebar` media query** (not Tailwind `md:`), because `md:relative` leaked out of its wrapper in Tailwind v4.3.1 and overrode `fixed` on mobile. Keep `.fo-sidebar` in `index.css`; do not re-introduce `md:relative` on the sidebar.
 - **1MB main chunk** warning on build — code-splitting opportunity, not a regression.
 
 ---
@@ -51,4 +58,4 @@
 - `pnpm --filter @workspace/family-office run build` → must exit 0.
 - `vercel build` → must emit `.vercel/output` with no errors.
 - Live: `curl -I https://family-office-blush.vercel.app/api/health` → 200; nested `/api/*` → 200; deep link `/vault` → 200 (not Vercel 404).
-- Mobile gate (390×844): menu opens, no overlay trap, 0 console errors.
+- Mobile gate (390×844): menu opens, no overlay trap, 0 console errors. **Plus:** `aside` computed `position` must be `fixed` (not `relative`) and `main` `top` must be `0` (regression check for the leaked-`md:relative` push-down bug). Built `dist/assets/*.css` must contain 0 `oklab`/`oklch`/`color-mix` (regression check for the color-downlevel step).

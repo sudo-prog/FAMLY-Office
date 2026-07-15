@@ -2,7 +2,7 @@
   "framework": "vite",
   "buildCommand": "pnpm --filter @workspace/family-office run build",
   "outputDirectory": "artifacts/family-office/dist",
-  "installCommand": "pnpm install --no-frozen-lockfile",
+  "installCommand": "pnpm install --frozen-lockfile",
   "routes": [
     {
       "src": "^/api/(.*)$",

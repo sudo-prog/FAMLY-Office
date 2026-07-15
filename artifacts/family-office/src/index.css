@@ -369,15 +369,13 @@
      native on iOS and keeps header/cell text on one line so it's
      legible while scrolling. */
   table {
-    /* Self-contained horizontal scroll: cap to the viewport and let
-       content scroll instead of pushing past the edge. This fixes the
-       11 routes whose raw <table>s were never wrapped in .overflow-x-auto
-       (benchmarks, white-label, admin/users, audit-log, estate,
-       projections/cash-flow, transactions, assets, report, etc.).
+    /* Self-contained horizontal scroll: tie to parent width (100%) and
+       scroll content inside instead of pushing past the edge. Using
+       width:100% (not max-content) is critical — max-content resolved
+       against an already-wide flex/grid wrapper and ignored the viewport.
        display:block makes the table itself the scroll container. */
     display: block;
-    width: max-content;
-    max-width: 100%;
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }

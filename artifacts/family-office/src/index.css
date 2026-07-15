@@ -361,20 +361,23 @@
    and enforce a minimum touch target, without per-file JSX churn.
    ============================================================ */
 @media (max-width: 640px) {
-  /* Compress ALL <table>s to the viewport so they never push
-     page width. Tables that are intentionally wrapped in a scroll
-     container (shadcn Table / radix ScrollArea) scroll internally;
-     `overflow-x: clip` on <html>/<body> below guarantees no
-     page-level horizontal scroll regardless. */
+  /* Let tables size to their natural content width and scroll
+     horizontally inside their wrapper instead of squashing text.
+     Every table on the site should already be wrapped in a
+     `.overflow-x-auto` div (see the JSX wrap fixes for the raw
+     <table>s that weren't) — this block just makes that scroll feel
+     native on iOS and keeps header/cell text on one line so it's
+     legible while scrolling. */
   table {
-    table-layout: fixed;
-    width: 100% !important;
+    width: max-content;
+    min-width: 100%;
   }
   table th,
   table td {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    white-space: normal;
+    white-space: nowrap;
+  }
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
   }
   /* Minimum touch-target height for tappable controls */
   button,

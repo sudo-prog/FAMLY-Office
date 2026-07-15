@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HelpCircle } from "lucide-react";
 import {
@@ -15,9 +15,16 @@ export function HelpButton() {
     setOpen(true);
   };
 
+  // Auto-dismiss the "Take the tour" tooltip after 6s even if untapped,
+  // so it doesn't sit on screen across an entire session.
+  useEffect(() => {
+    const t = setTimeout(() => setPulse(false), 6000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2">
         {/* Tooltip */}
         <AnimatePresence>
           {pulse && !open && (
@@ -36,7 +43,7 @@ export function HelpButton() {
         {/* Floating button */}
         <motion.button
           onClick={handleOpen}
-          className="group relative w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center"
+          className="group relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Take the tour"

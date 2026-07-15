@@ -259,7 +259,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
 
         {/* Page content — safe-area bottom padding so fixed/inset footers
             and notched devices never overlap the last row of content. */}
-        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 safe-bottom">
+        <div className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-6 safe-bottom">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

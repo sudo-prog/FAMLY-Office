@@ -106,14 +106,14 @@ export default function Projections() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-3xl font-serif text-foreground mb-1">Financial Projections</h1>
           <p className="text-muted-foreground text-sm">
             10-year compound growth model across {Object.keys(categories).length} asset categories.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground">
             <Sparkles className="w-4 h-4" /> AI Analyze
           </Button>

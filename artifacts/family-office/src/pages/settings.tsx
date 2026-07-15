@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal, Upload, ScanFace } from "lucide-react";
+import { Share, ShieldCheck, HardDrive, Download, AlertCircle, CheckCircle2, FileText, Globe, Lock, Cloud, Shield, Loader2, Palette, Type, RotateCcw, Github, Search, Wrench, Cpu, Wifi, WifiOff, Key, ExternalLink, Sparkles, Smartphone, MonitorSmartphone, SlidersHorizontal, Upload, ScanFace } from "lucide-react";
 import { CURRENCIES, getStoredCurrency, setStoredCurrency, type Currency } from "@/lib/currency";
 import { useTheme, hexToHsl, hslToHex, DEFAULT_THEME } from "@/hooks/use-theme";
 import { isPasskeySupported, isPlatformAuthenticatorAvailable, hasEnrolledPasskey, enrollPasskey, removePasskey } from "@/lib/webauthn";
@@ -48,6 +48,7 @@ export default function Settings() {
   const [copiedEnvVar, setCopiedEnvVar] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installState, setInstallState] = useState<"idle" | "installing" | "done">("idle");
+  const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !installPrompt;
   const [swStatus, setSwStatus] = useState<"checking" | "active" | "inactive">("checking");
   const [passkeyAvailable, setPasskeyAvailable] = useState(false);
   const [passkeyEnrolled, setPasskeyEnrolled] = useState(false);
@@ -161,9 +162,9 @@ export default function Settings() {
           <CardDescription className="text-sm">Install Family Office as a standalone app on your device for a native-like experience with offline capability.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-4 text-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1 space-y-2 min-w-0">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${swStatus === "active" ? "bg-emerald-500" : swStatus === "inactive" ? "bg-red-500" : "bg-amber-400 animate-pulse"}`} />
                   <span className="text-muted-foreground">Service Worker: <span className={swStatus === "active" ? "text-emerald-500" : "text-muted-foreground"}>{swStatus === "active" ? "Registered" : swStatus === "inactive" ? "Not active" : "Checking…"}</span></span>
@@ -181,16 +182,21 @@ export default function Settings() {
                   : "To install: use your browser's menu → 'Add to Home Screen' or 'Install App'. Supported in Chrome, Edge, and Safari 16.4+."}
               </p>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 w-full sm:w-auto">
               {installState === "done" ? (
                 <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4" /> Installed
+                </div>
+              ) : isIOSSafari ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground border border-border rounded-md px-3 py-2 w-full sm:w-auto">
+                  <Share className="w-4 h-4 flex-shrink-0" />
+                  Tap <strong>Share</strong> → <strong>Add to Home Screen</strong>
                 </div>
               ) : (
                 <Button
                   onClick={handleInstall}
                   disabled={!installPrompt || installState === "installing"}
-                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
                 >
                   {installState === "installing" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
                   {installState === "installing" ? "Installing…" : "Install App"}
@@ -417,8 +423,8 @@ export default function Settings() {
             <CardDescription className="text-sm">Use your device's biometric authenticator instead of typing your PIN each session. This is a local, device-only convenience — it does not replace your PIN, which remains required for recovery on new devices.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+              <div className="min-w-0">
                 <h3 className="font-medium text-sm">{passkeyEnrolled ? "Passkey Enrolled" : "No Passkey Set Up"}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {passkeyEnrolled
@@ -430,7 +436,7 @@ export default function Settings() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="ml-4 flex-shrink-0"
+                  className="ml-4 flex-shrink-0 w-full sm:w-auto"
                   onClick={() => {
                     removePasskey();
                     setPasskeyEnrolled(false);
@@ -550,13 +556,13 @@ export default function Settings() {
           <CardDescription className="text-sm">Generate a formatted wealth summary report for printing or PDF export.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+            <div className="min-w-0">
               <h3 className="font-medium text-sm">Generate Report</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Complete net worth snapshot with asset allocation and recent transactions.</p>
             </div>
             <Link href="/report">
-              <Button variant="outline" className="gap-2 border-border text-sm flex-shrink-0 ml-4">
+              <Button variant="outline" className="gap-2 border-border text-sm w-full sm:w-auto flex-shrink-0 sm:ml-4">
                 <FileText className="w-4 h-4" /> Open Report
               </Button>
             </Link>
@@ -702,15 +708,15 @@ export default function Settings() {
           <CardDescription className="text-sm">Import bank statements via CSV auto-sync.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+            <div className="min-w-0">
               <h3 className="font-medium text-sm">CSV Auto-Sync</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Drop CSV files or paste content. Auto-detects columns and categories.
               </p>
             </div>
             <Link href="/settings/bank-feed">
-              <Button variant="outline" className="gap-2 border-border text-sm flex-shrink-0 ml-4">
+              <Button variant="outline" className="gap-2 border-border text-sm w-full sm:w-auto flex-shrink-0 sm:ml-4">
                 <Upload className="w-4 h-4" />
                 Open Bank Feed
               </Button>
@@ -728,14 +734,14 @@ export default function Settings() {
           <CardDescription className="text-sm">Download your complete financial records as CSV files.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3.5 border border-border rounded-md">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+            <div className="min-w-0">
               <h3 className="font-medium text-sm">Export All Records</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Assets ({assets?.length ?? 0} records) and transactions ({transactions?.length ?? 0} records) as CSV files.
               </p>
             </div>
-            <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-sm flex-shrink-0 ml-4"
+            <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-sm w-full sm:w-auto flex-shrink-0 sm:ml-4"
               disabled={!assets?.length && !transactions?.length}>
               {exportDone ? <><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Exported</> : <><Download className="w-4 h-4" /> Export CSV</>}
             </Button>

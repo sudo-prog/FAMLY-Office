@@ -106,16 +106,16 @@ export default function Report() {
             {summary && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Net Wealth Position</h2>
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="p-5 bg-muted/20 rounded-lg border border-border">
                     <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total Net Worth</div>
-                    <div className="text-3xl font-mono text-primary tabular-nums">{fmt(summary.totalNetWorth)}</div>
+                    <div className="text-2xl sm:text-3xl font-mono text-primary tabular-nums break-words">{fmt(summary.totalNetWorth)}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-0.5">Total Assets</div><div className="font-mono text-foreground tabular-nums">{fmt(summary.totalAssets)}</div></div>
-                    <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-0.5">Holdings</div><div className="font-mono text-foreground">{summary.assetCount}</div></div>
-                    <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-0.5">YTD Income</div><div className="font-mono text-emerald-500 tabular-nums">{fmt(summary.totalIncome)}</div></div>
-                    <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-0.5">YTD Expenses</div><div className="font-mono text-foreground tabular-nums">{fmt(summary.totalExpenses)}</div></div>
+                    <div className="p-4 bg-muted/10 rounded border border-border min-w-0"><div className="text-xs text-muted-foreground mb-0.5">Total Assets</div><div className="font-mono text-foreground tabular-nums text-sm sm:text-base break-words">{fmt(summary.totalAssets)}</div></div>
+                    <div className="p-4 bg-muted/10 rounded border border-border min-w-0"><div className="text-xs text-muted-foreground mb-0.5">Holdings</div><div className="font-mono text-foreground text-sm sm:text-base break-words">{summary.assetCount}</div></div>
+                    <div className="p-4 bg-muted/10 rounded border border-border min-w-0"><div className="text-xs text-muted-foreground mb-0.5">YTD Income</div><div className="font-mono text-emerald-500 tabular-nums text-sm sm:text-base break-words">{fmt(summary.totalIncome)}</div></div>
+                    <div className="p-4 bg-muted/10 rounded border border-border min-w-0"><div className="text-xs text-muted-foreground mb-0.5">YTD Expenses</div><div className="font-mono text-foreground tabular-nums text-sm sm:text-base break-words">{fmt(summary.totalExpenses)}</div></div>
                   </div>
                 </div>
               </div>
@@ -123,6 +123,7 @@ export default function Report() {
             {byCategory && byCategory.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Allocation</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Holdings</th><th className="text-right py-2 text-muted-foreground font-medium">Weight</th></tr></thead>
                   <tbody>
@@ -137,10 +138,12 @@ export default function Report() {
                   </tbody>
                 </table>
               </div>
+              </div>
             )}
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Register</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset</th><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-left py-2 text-muted-foreground font-medium">Institution</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th></tr></thead>
                   <tbody>
@@ -154,6 +157,7 @@ export default function Report() {
                     ))}
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
             {recentTx.length > 0 && (

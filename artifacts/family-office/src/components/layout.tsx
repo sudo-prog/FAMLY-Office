@@ -163,17 +163,10 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           events) so its off-canvas nav links are not counted as off-screen elements
           and cannot intercept taps. It expands to w-64 only while open. */}
       <aside
-        className={`z-50 h-full
-          bg-sidebar border-r border-border
-          flex flex-col flex-shrink-0
+        className={`fo-sidebar bg-sidebar border-r border-border flex flex-col flex-shrink-0
           transition-[transform,width] duration-300 ease-out
-          md:relative md:w-auto md:translate-x-0 md:overflow-visible
-          ${menuOpen
-            ? "fixed inset-y-0 left-0 w-64 translate-x-0 overflow-y-auto"
-            : "fixed inset-y-0 left-0 w-0 -translate-x-full overflow-hidden pointer-events-none"}
-          ${sidebarCollapsed ? "md:w-16" : "md:w-64"}
-          safe-top
-        `}
+          ${menuOpen ? "fo-open" : ""}
+          ${sidebarCollapsed ? "md:w-16" : "md:w-64"}`}
         ref={sidebarRef}
       >
         {/* Logo area */}

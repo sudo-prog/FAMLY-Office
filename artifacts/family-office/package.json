@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && node scripts/downlevel-colors.mjs",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -54,6 +54,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "catalog:",
     "input-otp": "^1.4.2",
+    "lightningcss": "^1.32.0",
     "lucide-react": "catalog:",
     "next-themes": "^0.4.6",
     "playwright": "^1.61.1",

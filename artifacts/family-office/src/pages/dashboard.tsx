@@ -477,20 +477,20 @@ function AIWidget() {
             <span className="text-sm font-semibold text-foreground">AI Assistant</span>
             <span className="text-xs text-muted-foreground ml-1">Zero-Trust Routing</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs">
-              <div className={`w-1.5 h-1.5 rounded-full ${localOk ? "bg-emerald-500" : "bg-muted"}`} />
-              <span className={localOk ? "text-emerald-500" : "text-muted-foreground"}>
-                {localOk ? `Local (${status?.local.model})` : "Local offline"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs">
-              <div className={`w-1.5 h-1.5 rounded-full ${cloudOk ? "bg-blue-400" : "bg-muted"}`} />
-              <span className={cloudOk ? "text-blue-400" : "text-muted-foreground"}>
-                {cloudOk ? `Cloud (${status?.cloud.model})` : "Cloud off"}
-              </span>
-            </div>
-            <div className="flex items-center gap-0.5 bg-muted/30 border border-border rounded p-0.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 text-xs">
+            <div className={`w-1.5 h-1.5 rounded-full ${localOk ? "bg-emerald-500" : "bg-muted"}`} />
+            <span className={localOk ? "text-emerald-500" : "text-muted-foreground"}>
+              {localOk ? `Local (${status?.local.model})` : "Local offline"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs">
+            <div className={`w-1.5 h-1.5 rounded-full ${cloudOk ? "bg-blue-400" : "bg-muted"}`} />
+            <span className={cloudOk ? "text-blue-400" : "text-muted-foreground"}>
+              {cloudOk ? `Cloud (${status?.cloud.model})` : "Cloud off"}
+            </span>
+          </div>
+          <div className="flex items-center gap-0.5 bg-muted/30 border border-border rounded p-0.5">
               {(["auto", "local", "cloud"] as AIMode[]).map((m) => (
                 <button key={m} onClick={() => setMode(m)}
                   className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>

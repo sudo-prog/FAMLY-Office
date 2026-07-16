@@ -19,16 +19,15 @@
 - **Menu pushes app down (leaked `md:relative`):** `md:relative` on the sidebar leaked out of its `@media` wrapper (Tailwind v4.3.1 build bug) and, being source-order-after `.fixed`, overrode `fixed` at mobile → `aside` computed `position:relative` (in-flow) → pushed main to `top:1606px` ("scroll halfway before you see it"). Fixed by replacing the Tailwind `md:` variant with a hand-rolled `.fo-sidebar` media query (`position:fixed` overlay on mobile, `static` on desktop).
 - **Verified live at 390px:** `aside.position=fixed`, `main.top=0`, `bodyBg=rgb(244,237,221)` (cream renders), 0 overflowers, dashboard unlocks, 0 console errors. Deployed prod (Ready 59s, aliased family-office-blush.vercel.app).
 
-## Status (2026-07-16) — ROUND 2 mobile render bugs FIXED + VERIFIED
+## Status (2026-07-16) — ROUND 2 + REGRESSION FIX, VERIFIED 3-WAY
 
-**MOBILE RENDERING BUGS ROUND 2 — DONE (commit b79b1410, deployed prod 2026-07-16).** User supplied `MOBILE-RENDERING-BUGS-ROUND-2.md` (9 screenshots). All 8 issues (G#1–G#7) fixed across 7 files + runtime-verify harness added. Verified via `fo-mobile-round2-verify.mjs` at 390×844 against live prod = **34/34 PASS** (0 page overflow, 0 console errors, all tables nowrap, help button clears viewport). See agent_notes.md 2026-07-16 entry for full diff + Moondream caveat + deploy gotcha.
+**MOBILE RENDERING BUGS ROUND 2 — DONE (commit b79b1410)** + **REGRESSION FIXED (06e8f7fe, 22e61fdf)**, all deployed prod 2026-07-16. The original round-2 sign-off ("34/34 GREEN") was a FALSE PASS — it only checked page-level overflow on 8 routes and missed 11 unwrapped wide tables pushing content past 390px on the other routes. User was right that pages still broke. Fixed centrally in `src/index.css`: `table{display:block;width:100%;overflow-x:auto}` (table = self scroll container, capped to viewport). Re-verified across ALL 25 routes three ways (see agent_notes.md 2026-07-16 retraction entry):
 
-- G#1 (tables): global `table-layout:fixed` squash → `width:max-content` + `white-space:nowrap`; raw tables wrapped in `overflow-x-auto` (report.tsx ×2, export-pdf.tsx ×5).
-- G#2 (help button): 6s auto-dismiss + smaller `bottom-4 right-4` footprint; layout `pb-20` so content clears it.
-- G#3/G#5 (stat grids / settings rows): responsive `grid-cols-1 sm:grid-cols-2` + `flex-col sm:flex-row` action rows.
-- G#4 (projections header): `flex-col sm:flex-row` + `flex-wrap` controls.
-- G#6 (settings Install-App): `isIOSSafari` → "Share → Add to Home Screen" instructions instead of dead disabled button.
-- G#7 (blank scenario cards): confirmed scenario data present in JSX; was a downstream effect of G#4 overflow + oklab color drop, both now fixed — no separate structural fix.
+- Playwright per-element scan (`fo-scan-accurate.mjs`, excludes scroll containers): **0 page overflow, 0 true offenders** on all 25 routes.
+- **OmniParser** grounding (`/home/thinkpad/Data/OmniParser`, detection-only — bypasses Florence `flash_attn` CPU build failure): **0 detected elements past 390px** on all 25 clean screenshots.
+- agent-browser: `overflowX=0`.
+
+Round-2 content fixes (G#1–G#7) still apply: help-button auto-dismiss + smaller footprint, responsive stat grids / settings rows / projections header, iOS Safari install instructions.
 
 ### Done ✅ (from audit)
 - §1 Malformed Vercel SPA rewrite → fixed (root + nested `vercel.json`); deep links/refresh no longer 404.

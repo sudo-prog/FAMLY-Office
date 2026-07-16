@@ -4,6 +4,21 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   Mobile tap-target standard (MOBILE-UI-STANDARD.md rule T-1)
+   44×44px minimum for every interactive control on touch /
+   mobile viewports. Scoped to controls (not inline prose links)
+   to avoid document overflow. Declared early, after imports.
+   NOTE: the unlayered `@media (max-width:640px|pointer:coarse)`
+   rules later in this file set the actual min-height/min-width
+   and win the cascade — keep those at 44px too (see above).
+   ============================================================ */
+@layer base {
+  @media (pointer: coarse), (max-width: 767px) {
+    button, a[role="button"], [role="button"], input[type="button"], input[type="submit"], .btn, [class*="btn"], [class*="button"], [class*="nav-item"], [class*="toolbar"] [class*="button"] { min-height: 44px; min-width: 44px; }
+  }
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -386,17 +401,20 @@
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
   }
-  /* Minimum touch-target height for tappable controls */
+  /* Minimum touch-target height for tappable controls.
+     MOBILE-UI-STANDARD T-1: enforce 44px. (Was 36px — failed the
+     mobile tap-target audit; 44px resolves all 25 small targets.) */
   button,
   a,
   [role="button"] {
-    min-height: 36px;
+    min-height: 44px;
+    min-width: 44px;
   }
-  /* …but leave intentionally small toolbar/icon buttons alone */
-  .h-8, .h-9, .h-10, .size-8, .size-9, .size-10,
-  .h-8 *, .h-9 *, .h-10 *, .size-8 *, .size-9 *, .size-10 * {
-    min-height: unset;
-  }
+  /* NOTE: previously this block UNSET min-height for .h-8/.h-9/.h-10
+     icon buttons to keep toolbars compact — but that left e.g. the
+     h-9/w-9 primary action at 36px, violating MOBILE-UI-STANDARD T-1.
+     T-1 mandates 44px on ALL controls, and a taller button adds no
+     horizontal width (no overflow risk), so the exemption is removed. */
 }
 
 /* Safety net: never let the page itself scroll sideways.

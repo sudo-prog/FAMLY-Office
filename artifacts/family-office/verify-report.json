@@ -1,0 +1,245 @@
+{
+  "/": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 49,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/assets": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 47,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/transactions": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 50,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/vault": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 46,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/entities": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 38,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/entities/1": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 29,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/report": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 33,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/projections": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 31,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/home-office": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 33,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/research": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 45,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/tax-report": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 29,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/report/tax-year": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 29,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/entities/1/tax": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 31,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/admin/audit-log": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 30,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/notifications": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 31,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/settings/bank-feed": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 31,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/projections/cash-flow": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 28,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/targets": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 28,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/report/benchmarks": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 27,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/research/watchlist": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 46,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/assets/prices": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 43,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/estate": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 28,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/white-label": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 32,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/admin/ocr": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 30,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/admin/users": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 56,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/report/export-pdf": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 34,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  },
+  "/settings": {
+    "docOverflow": 0,
+    "realOff": 0,
+    "offList": [],
+    "totalTaps": 63,
+    "smallTaps": [],
+    "consoleErrs": 0,
+    "errSamples": []
+  }
+}

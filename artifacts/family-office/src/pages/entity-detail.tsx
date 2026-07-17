@@ -182,11 +182,11 @@ export default function EntityDetail() {
         </Card>
       )}
 
-      <Link href={`/entities/${entityId}/tax`}>
-        <Button variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+      <Button asChild variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+        <Link href={`/entities/${entityId}/tax`}>
           <Calculator className="w-4 h-4" /> Tax Optimisation
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

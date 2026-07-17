@@ -149,7 +149,7 @@ function Dashboard({ onTabChange }: { onTabChange: (t: Tab) => void }) {
         ))}
       </div>
 
-      {summary && Object.keys(summary.invoicesByStatus).length > 0 && (
+      {summary?.invoicesByStatus && Object.keys(summary.invoicesByStatus).length > 0 && (
         <div className="grid grid-cols-2 gap-4">
           <Card className="bg-card border-border">
             <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground font-medium">Invoice Status Breakdown</CardTitle></CardHeader>

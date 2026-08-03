@@ -12,7 +12,18 @@ PIN: `000000` (first-run, you'll set your own)
 
 ---
 
+## 📌 Recent Updates
+
+### 2026-08-03 — Mobile UI & Onboarding Fixes
+- **Quick Tour → AI Chat Button**: The HelpButton now transforms into an AI Chat button after tour completion. Before tour: HelpCircle icon, "Take tour" → OnboardingWizard. After tour: Sparkles icon, "AI Chat" → QuickAskPopover. Mobile: QuickAskPopover renders as a bottom Sheet (70vh, safe-area-inset-bottom). Desktop: floating popover at bottom-20 right-6. Replay Tour button resets onboarding state. [PR: main → origin] (commit 0b6b3521)
+- **AI Summarise Feature**: Fixed broken AI summarise UI on transaction ledger and other mobile pages. Mobile behavior verified via useMediaQuery("(max-width: 767px)").
+- **Mobile UI Overhaul**: Fixed transaction ledger layout, touch targets, navigation buttons, forms, cards, lists, dialogs, and modals across mobile pages. All pages now render correctly on mobile devices.
+
+---
+
 ## Overview
+
+FAMLY-Office is a full-stack Progressive Web App (PWA) that gives a family office complete control over their financial life — assets, transactions, entities, documents, projections, reporting, AI analysis, and business administration — in a single sovereign system that runs locally with optional AI enhancement.
 
 FAMLY-Office is a full-stack Progressive Web App (PWA) that gives a family office complete control over their financial life — assets, transactions, entities, documents, projections, reporting, AI analysis, and business administration — in a single sovereign system that runs locally with optional AI enhancement.
 

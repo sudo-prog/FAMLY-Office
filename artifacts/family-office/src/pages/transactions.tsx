@@ -203,9 +203,9 @@ export default function Transactions() {
       </span>
     )},
     { key: 'actions', header: '', hideOnMobile: true, render: (tx) => (
-      <div className="flex items-center gap-1">
-        <button onClick={(e) => { e.stopPropagation(); openEdit(tx); }} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-        <button onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+      <div className="flex items-center gap-1.5">
+        <button onClick={(e) => { e.stopPropagation(); openEdit(tx); }} className="text-muted-foreground hover:text-foreground p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Edit transaction"><Pencil className="w-4 h-4" /></button>
+        <button onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }} className="text-muted-foreground hover:text-destructive p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Delete transaction"><Trash2 className="w-4 h-4" /></button>
       </div>
     )},
   ], [openEdit, handleDelete]);
@@ -234,15 +234,9 @@ export default function Transactions() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setShowTaxSummary(!showTaxSummary)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
-            <Tag className="w-3.5 h-3.5" /> Tax Summary
-          </Button>
-          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
-            <Sparkles className="w-3.5 h-3.5" /> AI
-          </Button>
-          <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
-            <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Transaction</span><span className="sm:hidden">Add</span>
-          </Button>
+          <Button onClick={() => setShowTaxSummary(!showTaxSummary)} variant="outline" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs h-10 px-3 min-h-[44px]"><Tag className="w-3.5 h-3.5" /> Tax Summary</Button>
+          <Button onClick={() => setAiOpen(true)} variant="outline" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs h-10 px-3 min-h-[44px]"><Sparkles className="w-3.5 h-3.5" /> AI</Button>
+          <Button onClick={openAdd} disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs h-10 px-3 min-h-[44px]"><Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Transaction</span><span className="sm:hidden">Add</span></Button>
         </div>
       </div>
 
@@ -293,7 +287,7 @@ export default function Transactions() {
         <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1 overflow-x-auto">
           {(["all", "income", "expense", "transfer"] as const).map((t) => (
             <button key={t} onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`px-3 py-2 rounded text-xs font-medium transition-colors whitespace-nowrap ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
@@ -330,7 +324,7 @@ export default function Transactions() {
       />
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
-        <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto max-w-[95vw]">
+        <DialogContent className="bg-card border-border max-w-[min(95vw,448px)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-xl">{editId ? "Edit Transaction" : "New Transaction"}</DialogTitle>
           </DialogHeader>
@@ -343,7 +337,7 @@ export default function Transactions() {
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Type *</Label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  className="w-full h-9 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                  className="w-full h-11 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
                   <option value="income">Income</option>
                   <option value="expense">Expense</option>
                   <option value="transfer">Transfer</option>
@@ -358,19 +352,19 @@ export default function Transactions() {
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Category</Label>
                 <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full h-9 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                  className="w-full h-11 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
                   {CATEGORIES.map((c) => <option key={c} value={c}>{formatCategory(c)}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm text-muted-foreground">Date *</Label>
-                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="bg-muted/30 border-border" required />
-              </div>
+              <Label className="text-sm text-muted-foreground">Date *</Label>
+              <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="h-11 bg-muted/30 border-border" required />
+            </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm text-muted-foreground flex items-center gap-1.5"><Tag className="w-3 h-3" /> ATO Tax Tag</Label>
               <select value={form.taxTag} onChange={(e) => setForm({ ...form, taxTag: e.target.value })}
-                className="w-full h-9 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+                className="w-full h-11 rounded-md border border-border bg-muted/30 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
                 {TAX_TAGS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
@@ -378,9 +372,9 @@ export default function Transactions() {
               <input id="taxded" type="checkbox" checked={form.taxDeductible} onChange={(e) => setForm({ ...form, taxDeductible: e.target.checked })} className="w-4 h-4 accent-primary" />
               <Label htmlFor="taxded" className="text-sm text-muted-foreground cursor-pointer">Mark as tax deductible expense</Label>
             </div>
-            <DialogFooter className="mt-6">
-              <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <DialogFooter className="mt-6 pb-safe">
+              <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground h-11 min-h-[44px]">Cancel</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 min-h-[44px]">
                 {saving ? "Saving…" : editId ? "Save Changes" : "Add Transaction"}
               </Button>
             </DialogFooter>

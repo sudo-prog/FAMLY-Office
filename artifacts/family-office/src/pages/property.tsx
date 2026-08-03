@@ -30,12 +30,12 @@ const avgGrowth = PROPERTIES.reduce((s, p) => s + p.growth12m, 0) / PROPERTIES.l
 export default function Property() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between">
         <div>
           <h1 className="text-2xl font-serif font-bold text-foreground">Property Valuations</h1>
           <p className="text-sm text-muted-foreground mt-1">Real estate portfolio with suburb benchmarks and yield tracking</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1">
+        <Button variant="outline" size="sm" className="gap-1 min-h-[44px]">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </Button>
       </div>
@@ -106,7 +106,7 @@ export default function Property() {
                 {PROPERTIES.map((p) => {
                   const variance = ((p.value - p.estimate) / p.estimate) * 100;
                   return (
-                    <tr key={p.address} className="border-b border-border/50 hover:bg-muted/30">
+                    <tr key={p.address} className="border-b border-border/50 hover:bg-muted/30 min-h-[44px]">
                       <td className="py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded bg-primary/10 flex items-center justify-center">
@@ -165,7 +165,7 @@ export default function Property() {
               </thead>
               <tbody>
                 {SUBURB_BENCHMARKS.map((s) => (
-                  <tr key={s.suburb} className="border-b border-border/50 hover:bg-muted/30">
+                  <tr key={s.suburb} className="border-b border-border/50 hover:bg-muted/30 min-h-[44px]">
                     <td className="py-3 font-medium flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-muted-foreground" /> {s.suburb}
                     </td>

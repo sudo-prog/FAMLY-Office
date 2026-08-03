@@ -106,13 +106,13 @@ function WidgetCard({ id, children, className = "", onClick }: { id: WidgetId; c
 const NetWorthWidget = memo(function NetWorthWidget({ summary, history }: { summary: any; history: any[] }) {
   const [, navigate] = useLocation();
   return (
-    <WidgetCard id="net-worth" onClick={() => navigate("/assets")} className="min-h-[280px]">
-      <div className="p-5 flex flex-col h-full">
+    <WidgetCard id="net-worth" onClick={() => navigate("/assets")} className="min-h-[240px] md:min-h-[280px]">
+      <div className="p-4 md:p-5 flex flex-col h-full">
         <div className="flex items-start justify-between mb-2">
           <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net Worth</div>
           <TrendingUp className="w-4 h-4 text-primary" />
         </div>
-        <div className="text-4xl font-mono text-primary tabular-nums mb-1">
+        <div className="text-3xl md:text-4xl font-mono text-primary tabular-nums mb-1">
           {fmtCur(summary?.totalNetWorth ?? 0)}
         </div>
         <div className="text-xs text-muted-foreground mb-4">
@@ -469,9 +469,9 @@ function AIWidget() {
   const cloudOk = status?.cloud.configured;
 
   return (
-    <WidgetCard id="ai-assistant" className="min-h-[520px]">
-      <div className="flex flex-col h-full" style={{ minHeight: 520 }}>
-        <div className="p-4 border-b border-border flex items-center justify-between flex-shrink-0">
+    <WidgetCard id="ai-assistant" className="min-h-[480px] md:min-h-[520px]">
+    <div className="flex flex-col h-full" style={{ minHeight: '480px' }}>
+      <div className="p-3 md:p-4 border-b border-border flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">AI Assistant</span>
@@ -493,7 +493,7 @@ function AIWidget() {
           <div className="flex items-center gap-0.5 bg-muted/30 border border-border rounded p-0.5">
               {(["auto", "local", "cloud"] as AIMode[]).map((m) => (
                 <button key={m} onClick={() => setMode(m)}
-                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                  className={`px-2 py-1.5 md:px-2 md:py-0.5 rounded text-[10px] font-medium transition-colors ${mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                   {m === "auto" ? "🤖 Auto" : m === "local" ? "🔒 Local" : "☁️ Cloud"}
                 </button>
               ))}
@@ -533,7 +533,7 @@ function AIWidget() {
               <p className="text-xs text-muted-foreground text-center mb-4">Suggested queries</p>
               {SUGGESTIONS.map((s) => (
                 <button key={s} onClick={() => setInput(s)}
-                  className="w-full text-left text-xs px-3 py-2 rounded-lg bg-muted/20 border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all">
+                  className="w-full text-left text-xs px-3 py-2.5 md:py-2 rounded-lg bg-muted/20 border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all">
                   {s}
                 </button>
               ))}
@@ -571,12 +571,12 @@ function AIWidget() {
             <div className="flex items-center gap-2 mb-2 text-xs bg-muted/30 rounded px-2 py-1.5 border border-border">
               <Upload className="w-3 h-3 text-muted-foreground" />
               <span className="text-muted-foreground truncate flex-1">{uploadedFile.name}</span>
-              <button onClick={() => setUploadedFile(null)} className="flex items-center justify-center text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+              <button onClick={() => setUploadedFile(null)} className="flex items-center justify-center text-muted-foreground hover:text-foreground p-1 md:p-0.5 h-6 w-6 md:h-5 md:w-5"><X className="w-3 h-3" /></button>
             </div>
           )}
           <div className="flex items-center gap-2">
             <input ref={fileRef} type="file" accept=".txt,.csv,.md,.json" className="hidden" onChange={handleFile} />
-            <button onClick={() => fileRef.current?.click()} title="Upload document" className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-muted/30 flex-shrink-0">
+            <button onClick={() => fileRef.current?.click()} title="Upload document" className="text-muted-foreground hover:text-foreground transition-colors p-2 md:p-1.5 rounded-lg hover:bg-muted/30 flex-shrink-0 h-10 w-10 md:h-9 md:w-9">
               <Upload className="w-4 h-4" />
             </button>
             <Input
@@ -587,7 +587,7 @@ function AIWidget() {
               disabled={(!localOk && !cloudOk) || loading}
               className="bg-muted/30 border-border text-sm"
             />
-            <Button onClick={sendMessage} disabled={(!localOk && !cloudOk) || loading || !input.trim()} size="icon" className="bg-primary text-primary-foreground flex-shrink-0">
+            <Button onClick={sendMessage} disabled={(!localOk && !cloudOk) || loading || !input.trim()} size="icon" className="bg-primary text-primary-foreground flex-shrink-0 h-10 w-10 md:h-9 md:w-9">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
@@ -727,7 +727,7 @@ const CustomizePanel = memo(function CustomizePanel({ visible, onClose, activeWi
             const Icon = meta.icon;
             return (
               <button key={id} onClick={() => onToggle(id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${active ? "bg-primary/10 border-primary/30" : "bg-muted/20 border-border hover:border-primary/20"}`}>
+                className={`w-full flex items-center gap-3 p-3 md:p-2.5 rounded-lg border transition-all text-left ${active ? "bg-primary/10 border-primary/30" : "bg-muted/20 border-border hover:border-primary/20"}`}>
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${active ? "bg-primary/20" : "bg-muted/40"}`}>
                   <Icon className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
                 </div>
@@ -795,10 +795,10 @@ export default function Dashboard() {
   const cur = getStoredCurrency();
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-8">
+    <div className="space-y-3 md:space-y-4 pb-6 md:pb-8">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1 effect-emboss-ink">Command Center</h1>
+          <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Command Center</h1>
           <p className="text-muted-foreground text-xs md:text-sm">
             {activeWidgets.length} widgets · {cur} display · {entities?.length ?? 0} entities
           </p>
@@ -808,7 +808,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 md:gap-4">
         {activeWidgets.map((id) => {
           let widget;
           switch (id) {

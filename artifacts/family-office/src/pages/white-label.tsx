@@ -33,7 +33,7 @@ export default function WhiteLabelPage() {
           </h1>
           <p className="text-muted-foreground mt-1">Manage multiple family office instances under one roof</p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2 min-h-[44px]">
           <Plus className="h-4 w-4" />
           Add Office
         </Button>
@@ -71,40 +71,42 @@ export default function WhiteLabelPage() {
           <CardTitle>Office Directory</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Office Name</TableHead>
-                <TableHead>Domain</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {offices.map((office) => (
-                <TableRow key={office.id}>
-                  <TableCell className="font-medium">{office.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{office.domain}</TableCell>
-                  <TableCell>{office.users}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      office.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {office.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{office.createdAt}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Office Name</TableHead>
+                  <TableHead>Domain</TableHead>
+                  <TableHead>Users</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {offices.map((office) => (
+                  <TableRow key={office.id}>
+                    <TableCell className="font-medium">{office.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{office.domain}</TableCell>
+                    <TableCell>{office.users}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        office.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {office.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{office.createdAt}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm" className="min-h-[44px]">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -119,22 +121,22 @@ export default function WhiteLabelPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Default Theme</label>
-              <Input defaultValue="Dark Gold" className="mt-1" />
+              <Input defaultValue="Dark Gold" className="mt-1 min-h-[44px]" />
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Default Currency</label>
-              <Input defaultValue="AUD" className="mt-1" />
+              <Input defaultValue="AUD" className="mt-1 min-h-[44px]" />
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Default Language</label>
-              <Input defaultValue="en-AU" className="mt-1" />
+              <Input defaultValue="en-AU" className="mt-1 min-h-[44px]" />
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Max Users Per Office</label>
-              <Input defaultValue="10" type="number" className="mt-1" />
+              <Input defaultValue="10" type="number" className="mt-1 min-h-[44px]" />
             </div>
           </div>
-          <Button>Save Configuration</Button>
+          <Button className="min-h-[44px]">Save Configuration</Button>
         </CardContent>
       </Card>
     </div>

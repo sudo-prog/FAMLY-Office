@@ -118,7 +118,7 @@ export default function CashFlowForecast() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-foreground">Cash Flow Forecasting</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -128,6 +128,7 @@ export default function CashFlowForecast() {
         <Button
           variant="outline"
           size="sm"
+          className="min-h-[44px]"
           onClick={() => downloadCSV("cash-flow-forecast.csv", forecast.map((f) => [f.month, f.income, f.expenses, f.netCashFlow, f.cumulative]), ["Month", "Income", "Expenses", "Net Cash Flow", "Cumulative"])}
         >
           <Download className="h-4 w-4 mr-2" />
@@ -135,7 +136,7 @@ export default function CashFlowForecast() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-wrap">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
@@ -229,7 +230,7 @@ export default function CashFlowForecast() {
           <CardTitle>Forecast Parameters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-wrap">
             <div>
               <Label htmlFor="start-balance">Starting Balance</Label>
               <Input
@@ -237,7 +238,7 @@ export default function CashFlowForecast() {
                 type="number"
                 value={startBalance}
                 onChange={(e) => setStartBalance(Number(e.target.value))}
-                className="mt-1"
+                className="mt-1 min-h-[44px]"
               />
               <p className="text-xs text-muted-foreground mt-1">Current cash balance to project from</p>
             </div>
@@ -248,7 +249,7 @@ export default function CashFlowForecast() {
                 type="number"
                 value={growthRate}
                 onChange={(e) => setGrowthRate(Number(e.target.value))}
-                className="mt-1"
+                className="mt-1 min-h-[44px]"
               />
               <p className="text-xs text-muted-foreground mt-1">Expected year-over-year income increase</p>
             </div>

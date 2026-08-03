@@ -76,7 +76,7 @@ export default function Report() {
         <Link href="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Link>
-        <Button onClick={() => window.print()} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button onClick={() => window.print()} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]">
           <Printer className="w-4 h-4" /> Print / Save PDF
         </Button>
       </div>
@@ -84,7 +84,7 @@ export default function Report() {
       <div className="flex gap-2 no-print overflow-x-auto">
         {TABS.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm transition-all flex-shrink-0 ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm transition-all flex-shrink-0 min-h-[44px] ${
               tab === t.id
                 ? "bg-primary text-primary-foreground border-primary"
                 : "border-border text-muted-foreground hover:text-foreground hover:border-border/80 bg-card"
@@ -347,6 +347,7 @@ export default function Report() {
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Net Cash Flow (YTD)</div><div className={`font-mono ${(summary.totalIncome - summary.totalExpenses) >= 0 ? "text-emerald-500" : "text-destructive"}`}>{fmt(summary.totalIncome - summary.totalExpenses)}</div></div>
                 </div>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Allocation by Asset Class</h3>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm mb-4">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Holdings</th><th className="text-right py-2 text-muted-foreground font-medium">Weight</th><th className="text-right py-2 text-muted-foreground font-medium">vs. Benchmark*</th></tr></thead>
                   <tbody>
@@ -369,12 +370,14 @@ export default function Report() {
                     })}
                   </tbody>
                 </table>
+                </div>
                 <p className="text-xs text-muted-foreground/60">* Benchmark based on typical balanced Australian family office allocation. Deviations ±2% highlighted for review.</p>
               </div>
             )}
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Full Holdings Register</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Position</th><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Portfolio %</th></tr></thead>
                   <tbody>
@@ -389,6 +392,7 @@ export default function Report() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
             <div className="p-4 bg-muted/10 border border-border rounded-lg text-sm text-muted-foreground mt-4">

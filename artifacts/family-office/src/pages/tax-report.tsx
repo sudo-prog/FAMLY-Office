@@ -179,24 +179,24 @@ td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
             ATO-aligned tax breakdown for FY{selectedFY} · {fyTransactions.length} transactions · {tagged.length} tagged
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center">
             <div className="relative">
               <select
                 value={selectedFY}
                 onChange={(e) => setSelectedFY(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-md border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                className="h-11 pl-3 pr-8 rounded-md border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
               >
                 {fys.map((fy) => <option key={fy} value={fy}>FY {fy}</option>)}
               </select>
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={handleExport} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm min-h-[44px]">
               <Download className="w-4 h-4" /> CSV
             </Button>
-            <Button onClick={handleExportPDF} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm">
+            <Button onClick={handleExportPDF} variant="outline" className="gap-2 border-border text-muted-foreground hover:text-foreground text-sm min-h-[44px]">
               <FileBarChart className="w-4 h-4" /> PDF
             </Button>
           </div>

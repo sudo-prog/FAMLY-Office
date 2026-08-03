@@ -28,12 +28,12 @@ const TASKS = [
 export default function Estate() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-2xl font-serif font-bold text-foreground">Estate Planning</h1>
           <p className="text-sm text-muted-foreground mt-1">Will register, beneficiary tracker & document management</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1">
+        <Button variant="outline" size="sm" className="gap-1 min-h-[44px]">
           <FileText className="w-3.5 h-3.5" /> New Document
         </Button>
       </div>
@@ -154,7 +154,7 @@ export default function Estate() {
                   <tr key={b.name} className="border-b border-border/50 hover:bg-muted/30">
                     <td className="py-3 font-medium">{b.name}</td>
                     <td className="py-3">
-                      <Badge variant="outline" className="text-xs">{b.relationship}</Badge>
+                      <Badge variant="outline" className="text-xs flex-wrap">{b.relationship}</Badge>
                     </td>
                     <td className="text-right py-3 font-mono font-semibold">{b.share}%</td>
                     <td className="py-3">
@@ -189,8 +189,8 @@ export default function Estate() {
         <CardContent>
           <div className="space-y-3">
             {TASKS.map((t) => (
-              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/20">
-                <div className="flex items-center gap-3">
+              <div key={t.id} className="flex items-center justify-between flex-wrap gap-2 p-3 rounded-lg border border-border/50 hover:bg-muted/20">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className={`w-2 h-2 rounded-full ${
                     t.status === "Completed" ? "bg-green-500" :
                     t.status === "In Progress" ? "bg-blue-500" : "bg-amber-500"
@@ -200,7 +200,7 @@ export default function Estate() {
                     <p className="text-xs text-muted-foreground">Due: {t.dueDate}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant={
                     t.priority === "High" ? "destructive" :
                     t.priority === "Medium" ? "default" : "secondary"

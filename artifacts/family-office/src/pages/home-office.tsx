@@ -301,11 +301,11 @@ function Invoices() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search invoices…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-0.5">
+        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-0.5 flex-wrap">
           {["all", "draft", "sent", "paid", "overdue"].map(s => <button key={s} onClick={() => setStatusFilter(s)} className={`px-2.5 py-1 rounded text-xs capitalize transition-colors ${statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{s}</button>)}
         </div>
-        <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs"><Sparkles className="w-3 h-3" /> AI</Button>
-        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> New Invoice</Button>
+        <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs min-h-[44px]"><Sparkles className="w-3 h-3" /> AI</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs min-h-[44px]"><Plus className="w-3.5 h-3.5" /> New Invoice</Button>
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
@@ -446,7 +446,7 @@ function Clients() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Client</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs min-h-[44px]"><Plus className="w-3.5 h-3.5" /> Add Client</Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(c => (
@@ -493,8 +493,8 @@ function Clients() {
             </div>
             <div className="space-y-1"><Label className="text-xs text-muted-foreground">Notes</Label><textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))} rows={2} className="w-full rounded-md border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary resize-none" /></div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Add Client"}</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground min-h-[44px]">Cancel</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]">{saving ? "Saving…" : editId ? "Save" : "Add Client"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -541,8 +541,8 @@ function Expenses() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search expenses…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs"><Sparkles className="w-3 h-3" /> AI</Button>
-        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Add Expense</Button>
+        <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground h-8 text-xs min-h-[44px]"><Sparkles className="w-3 h-3" /> AI</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs min-h-[44px]"><Plus className="w-3.5 h-3.5" /> Add Expense</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -617,8 +617,8 @@ function Expenses() {
               <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer"><input type="checkbox" checked={form.gstIncluded} onChange={e => setForm(f => ({...f, gstIncluded: e.target.checked}))} className="accent-primary" />GST included</label>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Expense"}</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground min-h-[44px]">Cancel</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]">{saving ? "Saving…" : editId ? "Save" : "Log Expense"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -661,7 +661,7 @@ function TimeTracker() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <div className="relative flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search entries…" className="pl-8 bg-muted/30 border-border h-8 text-sm" /></div>
-        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs"><Plus className="w-3.5 h-3.5" /> Log Time</Button>
+        <Button onClick={openCreate} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground h-8 text-xs min-h-[44px]"><Plus className="w-3.5 h-3.5" /> Log Time</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -722,8 +722,8 @@ function TimeTracker() {
               <div className="flex items-end pb-1"><label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer"><input type="checkbox" checked={form.billable} onChange={e => setForm(f => ({...f, billable: e.target.checked}))} className="accent-primary" />Billable</label></div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">{saving ? "Saving…" : editId ? "Save" : "Log Time"}</Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground min-h-[44px]">Cancel</Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]">{saving ? "Saving…" : editId ? "Save" : "Log Time"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -752,7 +752,7 @@ export default function HomeOffice() {
       <div className="flex gap-1 bg-muted/30 border border-border rounded-xl p-1">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center ${tab === t.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 justify-center min-h-[44px] ${tab === t.id ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
           </button>

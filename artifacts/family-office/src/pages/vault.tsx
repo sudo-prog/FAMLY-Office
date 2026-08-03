@@ -402,8 +402,8 @@ export default function Vault() {
           {doc.year && <span className="text-[10px] text-muted-foreground font-mono">{doc.year}</span>}
         </div>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 flex gap-1 transition-all" onClick={(e) => e.stopPropagation()}>
-          <button onClick={() => openEdit(doc)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60"><Pencil className="w-3 h-3" /></button>
-          <button onClick={(e) => handleDelete(doc.id, e)} className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"><Trash2 className="w-3 h-3" /></button>
+          <button onClick={() => openEdit(doc)} className="p-2.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted/60 min-h-[44px] min-w-[44px] flex items-center justify-center"><Pencil className="w-4 h-4" /></button>
+          <button onClick={(e) => handleDelete(doc.id, e)} className="p-2.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 min-h-[44px] min-w-[44px] flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
         </div>
       </div>
     );
@@ -487,41 +487,41 @@ export default function Vault() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search by title, description…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border" />
         </div>
-        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1 flex-shrink-0">
-          <button onClick={() => setTypeFilter("all")} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${typeFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>All</button>
+        <div className="flex gap-1 bg-muted/30 border border-border rounded-md p-1 flex-shrink-0 flex-wrap">
+          <button onClick={() => setTypeFilter("all")} className={`px-3 py-2 rounded text-xs font-medium transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${typeFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>All</button>
           {FILE_TYPES.slice(0, 4).map((t) => (
             <button key={t} onClick={() => setTypeFilter(t === typeFilter ? "all" : t)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors capitalize ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`px-3 py-2 rounded text-xs font-medium transition-colors capitalize min-h-[44px] min-w-[44px] flex items-center justify-center ${typeFilter === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t}
             </button>
           ))}
         </div>
         <div className="flex bg-muted/30 border border-border rounded-md p-1">
-          <button onClick={() => setView("canvas")} className={`px-2 py-1 rounded transition-colors ${view === "canvas" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            <LayoutGrid className="w-3.5 h-3.5" />
+          <button onClick={() => setView("canvas")} className={`px-3 py-2 rounded transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${view === "canvas" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <LayoutGrid className="w-4 h-4" />
           </button>
-          <button onClick={() => setView("list")} className={`px-2 py-1 rounded transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            <List className="w-3.5 h-3.5" />
+          <button onClick={() => setView("list")} className={`px-3 py-2 rounded transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <List className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {selectMode && selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+        <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-xl flex-wrap">
           <span className="text-sm text-primary font-medium">{selectedIds.size} selected</span>
-          <div className="flex gap-2 ml-auto">
-            <Button onClick={() => setNewFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border">
+          <div className="flex gap-2 ml-auto flex-wrap">
+            <Button onClick={() => setNewFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border min-h-[44px]">
               <FolderPlus className="w-3.5 h-3.5" /> New Folder
             </Button>
             {folderNames.length > 0 && (
-              <Button onClick={() => setMoveToFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border">
+              <Button onClick={() => setMoveToFolderOpen(true)} size="sm" variant="outline" className="text-xs gap-1.5 border-border min-h-[44px]">
                 <Move className="w-3.5 h-3.5" /> Move to Folder
               </Button>
             )}
-            <Button onClick={() => moveToFolder(null)} size="sm" variant="outline" className="text-xs gap-1.5 border-border text-muted-foreground">
+            <Button onClick={() => moveToFolder(null)} size="sm" variant="outline" className="text-xs gap-1.5 border-border text-muted-foreground min-h-[44px]">
               <X className="w-3.5 h-3.5" /> Unfiled
             </Button>
-            <button onClick={clearSelection} className="text-xs text-muted-foreground hover:text-foreground px-2">Cancel</button>
+            <button onClick={clearSelection} className="text-xs text-muted-foreground hover:text-foreground px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center">Cancel</button>
           </div>
         </div>
       )}
@@ -543,11 +543,11 @@ export default function Vault() {
                   <span className="text-xs text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">{folderMap[folderName]?.length ?? 0}</span>
                   <div className="flex items-center gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
                     <button onClick={() => setIsolatedFolder(folderName)}
-                      className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted/50 transition-colors flex items-center gap-1">
+                      className="text-xs text-muted-foreground hover:text-foreground px-3 py-2 rounded hover:bg-muted/50 transition-colors flex items-center gap-1 min-h-[44px]">
                       <Sparkles className="w-3 h-3" /> View
                     </button>
                     <button onClick={() => deleteFolderDocs(folderName)}
-                      className="text-xs text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-destructive/10 transition-colors flex items-center gap-1">
+                      className="text-xs text-muted-foreground hover:text-destructive px-3 py-2 rounded hover:bg-destructive/10 transition-colors flex items-center gap-1 min-h-[44px]">
                       <X className="w-3 h-3" /> Ungroup
                     </button>
                   </div>

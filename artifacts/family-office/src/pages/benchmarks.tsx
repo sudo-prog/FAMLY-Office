@@ -103,7 +103,7 @@ export default function Benchmarks() {
               <Badge
                 key={b.symbol}
                 variant={selectedBenchmarks.includes(b.name) ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1.5 text-sm"
+                className="cursor-pointer px-3 py-1.5 text-sm min-h-[44px]"
                 onClick={() => toggleBenchmark(b.name)}
               >
                 {b.name}
@@ -147,8 +147,8 @@ export default function Benchmarks() {
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
+              <thead className="bg-muted/50">
+                <tr>
                   <th className="text-left py-3 px-3 font-medium">Index</th>
                   <th className="text-right py-3 px-3 font-medium">1Y Return</th>
                   <th className="text-right py-3 px-3 font-medium">3Y Ann.</th>
@@ -206,7 +206,7 @@ export default function Benchmarks() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-green-500/30">
           <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
               <div>
                 <p className="font-medium text-foreground">Outperformance</p>
@@ -223,7 +223,7 @@ export default function Benchmarks() {
         </Card>
         <Card className="border-blue-500/30">
           <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <BarChart2 className="h-5 w-5 text-blue-500 mt-0.5" />
               <div>
                 <p className="font-medium text-foreground">Diversification Note</p>

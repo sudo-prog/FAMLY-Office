@@ -107,13 +107,13 @@ export default function NetWorthTargets() {
             Set financial goals, track progress, and calculate required savings rates
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} size="sm">
+        <Button onClick={() => setShowForm(!showForm)} size="sm" className="min-h-[44px]">
           <Plus className="h-4 w-4 mr-2" />
           New Target
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-wrap">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
@@ -171,12 +171,12 @@ export default function NetWorthTargets() {
                 <Input id="current-amount" type="number" placeholder={String(Math.round(totalNetWorth))} value={form.currentAmount} onChange={(e) => setForm({ ...form, currentAmount: e.target.value })} className="mt-1" />
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleAdd}>
+            <div className="flex gap-2 mt-4 flex-wrap">
+              <Button onClick={handleAdd} className="min-h-[44px]">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 Create Target
               </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowForm(false)} className="min-h-[44px]">Cancel</Button>
             </div>
           </CardContent>
         </Card>
@@ -201,7 +201,7 @@ export default function NetWorthTargets() {
             return (
               <Card key={target.id} className={isComplete ? "border-green-500/50" : isOverdue ? "border-red-500/50" : ""}>
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between flex-wrap gap-2">
                     <div>
                       <CardTitle className="text-lg">{target.name}</CardTitle>
                       <CardDescription className="flex items-center gap-1 mt-1">
@@ -211,7 +211,7 @@ export default function NetWorthTargets() {
                     </div>
                     <div className="flex items-center gap-1">
                       {isComplete && <Badge className="bg-green-500">Achieved</Badge>}
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDelete(target.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px]" onClick={() => handleDelete(target.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

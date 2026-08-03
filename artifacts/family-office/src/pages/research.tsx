@@ -305,7 +305,7 @@ function ResearchPanel() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 flex-wrap">
                   <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                     <input type="checkbox" checked={incPortfolio} onChange={e => setIncPortfolio(e.target.checked)} className="accent-primary" />
                     <Database className="w-3.5 h-3.5" /> Portfolio context
@@ -395,9 +395,9 @@ function ResearchPanel() {
               )}
             </div>
             {isDone && !savedId && (
-              <div className="flex items-center gap-2 shrink-0">
-                <Input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…" className="h-7 w-44 text-xs bg-muted/30 border-border" />
-                <Button onClick={handleSave} disabled={saving} size="sm" variant="outline" className="h-7 text-xs gap-1 border-border">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <Input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…" className="h-[44px] w-44 text-xs bg-muted/30 border-border" />
+                <Button onClick={handleSave} disabled={saving} size="sm" variant="outline" className="h-[44px] text-xs gap-1 border-border">
                   <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
                 </Button>
               </div>
@@ -525,12 +525,12 @@ function ComponentBuilder({ seedDescription }: { seedDescription?: string }) {
             <input type="checkbox" checked={incPortfolio} onChange={e => setIncPortfolio(e.target.checked)} className="accent-primary" />
             Include Australian portfolio sample data
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {phase === "running"
-              ? <Button onClick={reset} variant="outline" className="gap-1.5 border-destructive/60 text-destructive"><StopCircle className="w-3.5 h-3.5" /> Stop</Button>
-              : <Button onClick={handleGenerate} disabled={!desc.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Generate Component</Button>
+              ? <Button onClick={reset} variant="outline" className="gap-1.5 border-destructive/60 text-destructive min-h-[44px]"><StopCircle className="w-3.5 h-3.5" /> Stop</Button>
+              : <Button onClick={handleGenerate} disabled={!desc.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 min-h-[44px]"><Sparkles className="w-3.5 h-3.5" /> Generate Component</Button>
             }
-            {code && <Button onClick={reset} variant="outline" className="border-border text-muted-foreground">Reset</Button>}
+            {code && <Button onClick={reset} variant="outline" className="border-border text-muted-foreground min-h-[44px]">Reset</Button>}
           </div>
         </div>
         {phase === "idle" && !code && (
@@ -557,9 +557,9 @@ function ComponentBuilder({ seedDescription }: { seedDescription?: string }) {
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-foreground flex items-center gap-2">Generated Component {phase === "running" && <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />}</p>
             {phase !== "running" && !savedId && (
-              <div className="flex items-center gap-2">
-                <Input value={compName} onChange={e => setCompName(e.target.value)} placeholder="Component name…" className="h-7 w-40 text-xs bg-muted/30 border-border" />
-                <Button onClick={handleSave} size="sm" variant="outline" className="h-7 text-xs gap-1 border-border"><Save className="w-3 h-3" /> Save</Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Input value={compName} onChange={e => setCompName(e.target.value)} placeholder="Component name…" className="h-[44px] w-40 text-xs bg-muted/30 border-border" />
+                <Button onClick={handleSave} size="sm" variant="outline" className="h-[44px] text-xs gap-1 border-border"><Save className="w-3 h-3" /> Save</Button>
               </div>
             )}
             {savedId && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Saved</span>}
@@ -714,13 +714,13 @@ function GitHubPanel({ onSendToBuilder }: { onSendToBuilder: (desc: string) => v
             disabled={isRunning} />
         </div>
         {isRunning
-          ? <button onClick={stop} className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-destructive/60 text-destructive hover:bg-destructive/10 text-sm transition-colors shrink-0"><StopCircle className="w-4 h-4" /> Stop</button>
+          ? <button onClick={stop} className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-destructive/60 text-destructive hover:bg-destructive/10 text-sm transition-colors shrink-0 min-h-[44px]"><StopCircle className="w-4 h-4" /> Stop</button>
           : <button onClick={handleAnalyse} disabled={!repoUrl.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm disabled:opacity-40 transition-colors shrink-0">
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm disabled:opacity-40 transition-colors shrink-0 min-h-[44px]">
               <Sparkles className="w-4 h-4" /> Analyse
             </button>
         }
-        {isDone && <button onClick={() => { reset(); setSavedId(null); }} className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm shrink-0">New</button>}
+        {isDone && <button onClick={() => { reset(); setSavedId(null); }} className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground text-sm shrink-0 min-h-[44px]">New</button>}
       </div>
 
       {/* Options */}
@@ -855,11 +855,11 @@ function GitHubPanel({ onSendToBuilder }: { onSendToBuilder: (desc: string) => v
               <Badge variant="outline" className={`text-[10px] border-border capitalize ${depth === "deep" ? "text-purple-400 border-purple-400/30" : depth === "quick" ? "text-emerald-400 border-emerald-400/30" : "text-blue-400 border-blue-400/30"}`}>{depth}</Badge>
             </div>
             {isDone && !savedId && (
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 <input value={saveTitle} onChange={e => setSaveTitle(e.target.value)} placeholder="Report title…"
-                  className="h-7 w-44 px-2 text-xs rounded-md border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  className="h-[44px] w-44 px-2 text-xs rounded-md border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
                 <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-1 h-7 px-2.5 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
+                  className="flex items-center gap-1 h-[44px] px-2.5 text-xs rounded-md border border-border text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
                   <Save className="w-3 h-3" />{saving ? "Saving…" : "Save"}
                 </button>
               </div>
@@ -1088,7 +1088,7 @@ function BusinessPlanPanel() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Industry *</label>
             <select value={form.industry} onChange={e => set("industry", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {BIZ_INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
             </select>
           </div>
@@ -1100,7 +1100,7 @@ function BusinessPlanPanel() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Stage</label>
             <select value={form.stage} onChange={e => set("stage", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {BIZ_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -1383,14 +1383,14 @@ function GrantPanel() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Industry</label>
             <select value={form.industry} onChange={e => setF("industry", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {GRANT_INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Business Stage</label>
             <select value={form.stage} onChange={e => setF("stage", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {GRANT_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -1400,14 +1400,14 @@ function GrantPanel() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Location</label>
             <select value={form.location} onChange={e => setF("location", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Employees</label>
             <select value={form.employeeCount} onChange={e => setF("employeeCount", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {["1 (solo)", "2-5", "6-20", "21-50", "51-200", "200+"].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -1417,14 +1417,14 @@ function GrantPanel() {
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Business Type</label>
             <select value={form.businessType} onChange={e => setF("businessType", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {["For-profit", "Not-for-profit", "Social Enterprise", "Co-operative", "Start-up", "SME", "Mid-Market"].map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Annual Revenue</label>
             <select value={form.annualRevenue} onChange={e => setF("annualRevenue", e.target.value)}
-              className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
+              className="w-full h-[44px] px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
               {["Pre-revenue", "< $50K", "$50K–$250K", "$250K–$1M", "$1M–$5M", "$5M–$20M", "$20M+"].map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>

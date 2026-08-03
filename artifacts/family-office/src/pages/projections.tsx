@@ -106,7 +106,7 @@ export default function Projections() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-3xl font-serif text-foreground mb-1">Financial Projections</h1>
           <p className="text-muted-foreground text-sm">
@@ -114,13 +114,13 @@ export default function Projections() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground">
+          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-2 border-border text-muted-foreground hover:text-foreground min-h-[44px]">
             <Sparkles className="w-4 h-4" /> AI Analyze
           </Button>
-          <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-md p-1">
+          <div className="flex flex-wrap items-center gap-1 bg-muted/30 border border-border rounded-md p-1">
           {(Object.keys(SCENARIOS) as ScenarioKey[]).map((s) => (
             <button key={s} onClick={() => setScenario(s)}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors min-h-[44px] ${
                 scenario === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               }`}>
               {SCENARIOS[s].label}
@@ -228,7 +228,7 @@ export default function Projections() {
                         setCustomRates((prev) => ({ ...prev, [cat]: parseFloat(e.target.value) / 100 }));
                         setScenario("conservative"); // trigger custom effectively
                       }}
-                      className="w-full h-7 rounded border border-border bg-muted/30 px-2 text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      className="w-full h-7 rounded border border-border bg-muted/30 px-2 text-xs font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-[44px]"
                     />
                     <span className="text-xs text-muted-foreground">%/yr</span>
                   </div>
@@ -239,11 +239,11 @@ export default function Projections() {
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border overflow-hidden">
+      <Card className="bg-card border-border overflow-hidden w-full max-w-[100%]">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-serif">Year-by-Year Projections</CardTitle>
         </CardHeader>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full max-w-[100%]">
           <table className="w-full text-sm">
             <thead className="bg-muted/50">
               <tr className="border-b border-border">

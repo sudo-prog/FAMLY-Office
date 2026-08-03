@@ -161,10 +161,10 @@ export default function EntityTax() {
       </div>
 
       <Tabs defaultValue="trust" className="space-y-4">
-        <TabsList className="bg-muted/30 border border-border">
-          <TabsTrigger value="trust">Trust Distribution</TabsTrigger>
-          <TabsTrigger value="company">Company Comparison</TabsTrigger>
-          <TabsTrigger value="smsf">SMSF Tracker</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full">
+          <TabsTrigger value="trust" className="min-h-[44px]">Trust Distribution</TabsTrigger>
+          <TabsTrigger value="company" className="min-h-[44px]">Company Comparison</TabsTrigger>
+          <TabsTrigger value="smsf" className="min-h-[44px]">SMSF Tracker</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trust">
@@ -248,53 +248,55 @@ export default function EntityTax() {
                     type="number"
                     value={companyProfit}
                     onChange={(e) => setCompanyProfit(Number(e.target.value))}
-                    className="w-40 h-8 text-sm font-mono text-right"
+                    className="w-40 min-h-[44px] text-sm font-mono text-right"
                   />
                 </div>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="text-xs text-muted-foreground font-medium">Metric</TableHead>
-                    <TableHead className="text-xs text-muted-foreground font-medium text-right">Company (25%)</TableHead>
-                    <TableHead className="text-xs text-muted-foreground font-medium text-right">Trust (Top Rate)</TableHead>
-                    <TableHead className="text-xs text-muted-foreground font-medium text-right">SMSF</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="border-border/50">
-                    <TableCell className="text-sm font-medium">Gross Income</TableCell>
-                    <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
-                  </TableRow>
-                  <TableRow className="border-border/50">
-                    <TableCell className="text-sm font-medium">Tax Payable</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(companyTax)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(calcTax(companyProfit))}</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(companyProfit * 0.15)}</TableCell>
-                  </TableRow>
-                  <TableRow className="border-border/50">
-                    <TableCell className="text-sm font-medium">After Tax</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyAfterTax)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyProfit - calcTax(companyProfit))}</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyProfit * 0.85)}</TableCell>
-                  </TableRow>
-                  <TableRow className="border-border/50">
-                    <TableCell className="text-sm font-medium">Effective Rate</TableCell>
-                    <TableCell className="text-right font-mono text-sm">25.0%</TableCell>
-                    <TableCell className="text-right font-mono text-sm">{(calcTax(companyProfit) / companyProfit * 100).toFixed(1)}%</TableCell>
-                    <TableCell className="text-right font-mono text-sm">15.0%</TableCell>
-                  </TableRow>
-                  <TableRow className="border-border/50">
-                    <TableCell className="text-sm font-medium">Franking Credits</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-blue-400">{fmtAUD(frankingCredits)}</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-muted-foreground">N/A</TableCell>
-                    <TableCell className="text-right font-mono text-sm text-muted-foreground">N/A</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-transparent">
+                      <TableHead className="text-xs text-muted-foreground font-medium">Metric</TableHead>
+                      <TableHead className="text-xs text-muted-foreground font-medium text-right">Company (25%)</TableHead>
+                      <TableHead className="text-xs text-muted-foreground font-medium text-right">Trust (Top Rate)</TableHead>
+                      <TableHead className="text-xs text-muted-foreground font-medium text-right">SMSF</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow className="border-border/50">
+                      <TableCell className="text-sm font-medium">Gross Income</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmtAUD(companyProfit)}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-border/50">
+                      <TableCell className="text-sm font-medium">Tax Payable</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(companyTax)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(calcTax(companyProfit))}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-red-400">{fmtAUD(companyProfit * 0.15)}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-border/50">
+                      <TableCell className="text-sm font-medium">After Tax</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyAfterTax)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyProfit - calcTax(companyProfit))}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-emerald-400">{fmtAUD(companyProfit * 0.85)}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-border/50">
+                      <TableCell className="text-sm font-medium">Effective Rate</TableCell>
+                      <TableCell className="text-right font-mono text-sm">25.0%</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{(calcTax(companyProfit) / companyProfit * 100).toFixed(1)}%</TableCell>
+                      <TableCell className="text-right font-mono text-sm">15.0%</TableCell>
+                    </TableRow>
+                    <TableRow className="border-border/50">
+                      <TableCell className="text-sm font-medium">Franking Credits</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-blue-400">{fmtAUD(frankingCredits)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground">N/A</TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground">N/A</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
 
               <div className="p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
                 <div className="flex items-center gap-2 text-xs text-amber-400">
@@ -325,7 +327,7 @@ export default function EntityTax() {
                     type="number"
                     value={smsfBalance}
                     onChange={(e) => setSmsfBalance(Number(e.target.value))}
-                    className="h-9 text-sm font-mono"
+                    className="min-h-[44px] text-sm font-mono"
                   />
                 </div>
                 <div className="space-y-2">
@@ -334,7 +336,7 @@ export default function EntityTax() {
                     type="number"
                     value={smsfEarnings}
                     onChange={(e) => setSmsfEarnings(Number(e.target.value))}
-                    className="h-9 text-sm font-mono"
+                    className="min-h-[44px] text-sm font-mono"
                   />
                 </div>
               </div>

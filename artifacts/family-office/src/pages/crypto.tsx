@@ -35,18 +35,18 @@ const totalValue = WALLETS.reduce((s, w) => s + w.value, 0);
 export default function Crypto() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap">
         <div>
           <h1 className="text-2xl font-serif font-bold text-foreground">Crypto Portfolio</h1>
           <p className="text-sm text-muted-foreground mt-1">Wallet tracking, DeFi positions & NFT holdings</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1">
+        <Button variant="outline" size="sm" className="gap-1 min-h-[44px]">
           <RefreshCw className="w-3.5 h-3.5" /> Refresh
         </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:flex-nowrap flex-wrap">
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
@@ -99,7 +99,7 @@ export default function Crypto() {
           </CardTitle>
           <CardDescription>Cryptocurrency balances across all wallets</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <ResponsiveDataTable
             data={WALLETS}
             primaryKey="symbol"
@@ -147,7 +147,7 @@ export default function Crypto() {
           </CardTitle>
           <CardDescription>Active yield-generating positions across protocols</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <ResponsiveDataTable
             data={DEFI_POSITIONS}
             primaryKey="protocol"
@@ -172,7 +172,7 @@ export default function Crypto() {
           </CardTitle>
           <CardDescription>Digital collectibles and art holdings</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <ResponsiveDataTable
             data={NFT_HOLDINGS}
             primaryKey="collection"

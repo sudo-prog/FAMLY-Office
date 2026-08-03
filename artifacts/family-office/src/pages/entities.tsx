@@ -92,23 +92,24 @@ export default function Entities() {
 
   return (
     <div className="space-y-4 md:space-y-6 pb-8">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl md:text-3xl font-serif text-foreground mb-1">Legal Entities</h1>
           <p className="text-muted-foreground text-xs md:text-sm">{entities?.length ?? 0} corporate structures and trusts. Click a row to view details.</p>
         </div>
-        <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs flex-shrink-0">
+        <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs flex-shrink-0 min-h-[44px]">
           <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Entity</span><span className="sm:hidden">Add</span>
         </Button>
       </div>
 
-      <div className="relative">
+      <div className="relative min-h-[44px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search by name, type, jurisdiction…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border" />
+        <Input placeholder="Search by name, type, jurisdiction…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border min-h-[44px]" />
       </div>
 
-      <Card className="bg-card border-border overflow-hidden">
-        <ResponsiveDataTable
+      <div className="overflow-x-auto">
+        <Card className="bg-card border-border overflow-hidden">
+          <ResponsiveDataTable
           columns={[
             { key: 'name', header: 'Name', render: (entity) => (
               <div className="flex items-center gap-2">
@@ -131,8 +132,8 @@ export default function Entities() {
             )},
             { key: 'actions', header: '', render: (entity) => (
               <div className="flex items-center gap-1">
-                <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1 min-h-[44px]"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1 min-h-[44px]"><Trash2 className="w-3.5 h-3.5" /></button>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
               </div>
             ), hideOnMobile: true }
@@ -143,6 +144,7 @@ export default function Entities() {
           mobileTitleKey="name"
         />
       </Card>
+      </div>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(emptyForm); } }}>
         <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto max-w-[95vw]">
@@ -154,7 +156,7 @@ export default function Entities() {
               <Label className="text-sm text-muted-foreground">Name *</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Smith Family Trust" className="bg-muted/30 border-border" required />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-sm text-muted-foreground">Type *</Label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}

@@ -67,14 +67,14 @@ export default function AdminUsers() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Family Members</h1>
             <p className="text-muted-foreground">Manage user access to your Family Office</p>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-[44px]"
           >
             {showForm ? "Cancel" : "Add Member"}
           </button>
@@ -82,7 +82,7 @@ export default function AdminUsers() {
 
         {showForm && (
           <form onSubmit={handleSubmit} className="rounded-lg border bg-card p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium">Name</label>
                 <input
@@ -90,7 +90,7 @@ export default function AdminUsers() {
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm min-h-[44px]"
                 />
               </div>
               <div>
@@ -100,7 +100,7 @@ export default function AdminUsers() {
                   required
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm min-h-[44px]"
                 />
               </div>
               <div>
@@ -108,7 +108,7 @@ export default function AdminUsers() {
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm min-h-[44px]"
                 >
                   <option value="admin">Admin</option>
                   <option value="member">Member</option>
@@ -121,14 +121,14 @@ export default function AdminUsers() {
                   type="text"
                   value={form.pinHash}
                   onChange={(e) => setForm({ ...form, pinHash: e.target.value })}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm"
+                  className="mt-1 block w-full rounded-md border px-3 py-2 text-sm min-h-[44px]"
                   placeholder="bcrypt hash"
                 />
               </div>
             </div>
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-[44px]"
             >
               Create User
             </button>
@@ -142,7 +142,7 @@ export default function AdminUsers() {
             <p className="text-muted-foreground">No family members yet. Add one to get started.</p>
           </div>
         ) : (
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -165,7 +165,7 @@ export default function AdminUsers() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => handleDelete(user.id)}
-                        className="text-sm text-red-600 hover:text-red-800"
+                        className="text-sm text-red-600 hover:text-red-800 min-h-[44px]"
                       >
                         Remove
                       </button>

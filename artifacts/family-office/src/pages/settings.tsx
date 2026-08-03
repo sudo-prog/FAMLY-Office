@@ -162,7 +162,7 @@ export default function Settings() {
           <CardDescription className="text-sm">Install Family Office as a standalone app on your device for a native-like experience with offline capability.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-wrap">
             <div className="flex-1 space-y-2 min-w-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                 <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export default function Settings() {
               <button
                 key={c}
                 onClick={() => handleCurrencyChange(c)}
-                className={`px-4 py-2 rounded-md text-sm font-mono font-medium border transition-all ${
+                className={`px-4 py-2 rounded-md text-sm font-mono font-medium border transition-all min-h-[44px] ${
                   currency === c
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-muted/30 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
@@ -266,11 +266,12 @@ export default function Settings() {
                 const active = theme.primaryHsl === preset.primaryHsl && theme.backgroundHsl === preset.backgroundHsl;
                 return (
                   <button key={preset.label}
-                    onClick={() => updateTheme({ primaryHsl: preset.primaryHsl, backgroundHsl: preset.backgroundHsl, cardHsl: preset.cardHsl })}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all ${active ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>
-                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `hsl(${preset.primaryHsl})` }} />
-                    {preset.label}
-                  </button>
+                                      onClick={() => updateTheme({ primaryHsl: preset.primaryHsl, backgroundHsl: preset.backgroundHsl, cardHsl: preset.cardHsl })}
+                                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition-all min-h-[44px] ${active ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border bg-muted/20 text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
+                                      >
+                                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `hsl(${preset.primaryHsl})` }} />
+                                      {preset.label}
+                                    </button>
                 );
               })}
             </div>
@@ -290,7 +291,7 @@ export default function Settings() {
                   <div className="flex items-center gap-2">
                     <input type="color" value={hslToHex(c.hsl)}
                       onChange={(e) => updateTheme({ [c.key]: hexToHsl(e.target.value) })}
-                      className="w-9 h-8 rounded cursor-pointer border border-border bg-transparent p-0.5" />
+                      className="w-9 h-8 rounded cursor-pointer border border-border bg-transparent p-0.5 min-h-[44px] min-w-[44px]" />
                     <code className="text-[10px] text-muted-foreground/70 font-mono">{hslToHex(c.hsl)}</code>
                   </div>
                 </div>
@@ -306,9 +307,10 @@ export default function Settings() {
             <div className="flex gap-2 flex-wrap">
               {[0.85, 0.90, 1.0, 1.05, 1.10, 1.15].map((scale) => (
                 <button key={scale} onClick={() => updateTheme({ textScale: scale })}
-                  className={`px-3 py-1 rounded-md border text-xs transition-all ${theme.textScale === scale ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground bg-muted/20 hover:border-primary/40 hover:text-foreground"}`}>
-                  {Math.round(scale * 100)}%
-                </button>
+                                  className={`px-3 py-1 rounded-md border text-xs transition-all min-h-[44px] ${theme.textScale === scale ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground bg-muted/20 hover:border-primary/40 hover:text-foreground"}`}
+                                  >
+                                  {Math.round(scale * 100)}%
+                                </button>
               ))}
             </div>
           </div>
@@ -423,7 +425,7 @@ export default function Settings() {
             <CardDescription className="text-sm">Use your device's biometric authenticator instead of typing your PIN each session. This is a local, device-only convenience — it does not replace your PIN, which remains required for recovery on new devices.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md flex-wrap">
               <div className="min-w-0">
                 <h3 className="font-medium text-sm">{passkeyEnrolled ? "Passkey Enrolled" : "No Passkey Set Up"}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -556,7 +558,7 @@ export default function Settings() {
           <CardDescription className="text-sm">Generate a formatted wealth summary report for printing or PDF export.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md flex-wrap">
             <div className="min-w-0">
               <h3 className="font-medium text-sm">Generate Report</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Complete net worth snapshot with asset allocation and recent transactions.</p>
@@ -708,7 +710,7 @@ export default function Settings() {
           <CardDescription className="text-sm">Import bank statements via CSV auto-sync.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md flex-wrap">
             <div className="min-w-0">
               <h3 className="font-medium text-sm">CSV Auto-Sync</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -734,7 +736,7 @@ export default function Settings() {
           <CardDescription className="text-sm">Download your complete financial records as CSV files.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 border border-border rounded-md flex-wrap">
             <div className="min-w-0">
               <h3 className="font-medium text-sm">Export All Records</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -780,7 +782,7 @@ export default function Settings() {
                 type="range" min={min} max={max} step="1"
                 value={thresholds[key]}
                 onChange={(e) => updateThreshold(key, Number(e.target.value))}
-                className="w-full h-1.5 accent-primary rounded cursor-pointer"
+                className="w-full h-1.5 accent-primary rounded cursor-pointer min-h-[44px]"
               />
               <p className="text-xs text-muted-foreground">{desc}</p>
             </div>

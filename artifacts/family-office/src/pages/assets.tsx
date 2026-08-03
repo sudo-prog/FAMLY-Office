@@ -184,12 +184,12 @@ function RebalancingSheet({
                           <span className="text-[10px] text-emerald-500 font-medium">✓ On target</span>
                         ) : gapVal > 0 ? (
                           <div className="flex items-center justify-end gap-1 text-emerald-500">
-                            <ArrowRight className="w-3 h-3" />
+                            <ArrowRight className="w-4 h-4" />
                             <span className="text-[10px] font-medium">Buy {s}{fmtNum(Math.abs(gapVal))}</span>
                           </div>
                         ) : (
                           <div className="flex items-center justify-end gap-1 text-destructive">
-                            <ArrowLeft className="w-3 h-3" />
+                            <ArrowLeft className="w-4 h-4" />
                             <span className="text-[10px] font-medium">Reduce {s}{fmtNum(Math.abs(gapVal))}</span>
                           </div>
                         )}
@@ -314,10 +314,10 @@ function PriceRefreshSheet({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">Crypto / Digital Assets</h3>
-                <Button size="sm" variant="outline" onClick={fetchCryptoPrices} disabled={loadingCrypto} className="gap-1.5 text-xs h-7 border-border">
-                  {loadingCrypto ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                  {loadingCrypto ? "Fetching…" : "Fetch All"}
-                </Button>
+                <Button size="sm" variant="outline" onClick={fetchCryptoPrices} disabled={loadingCrypto} className="gap-1.5 text-xs h-8 min-w-[80px] border-border">
+                          {loadingCrypto ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                          {loadingCrypto ? "Fetching…" : "Fetch All"}
+                        </Button>
               </div>
               <div className="space-y-2">
                 {cryptoAssets.map((asset) => {
@@ -334,7 +334,7 @@ function PriceRefreshSheet({
                         placeholder="e.g. bitcoin"
                         value={coinIds[asset.id] ?? ""}
                         onChange={(e) => setCoinIds((prev) => ({ ...prev, [asset.id]: e.target.value.toLowerCase().trim() }))}
-                        className="w-32 h-7 text-xs bg-muted/30 border-border font-mono"
+                        className="w-32 h-8 text-xs bg-muted/30 border-border font-mono"
                       />
                       {p && (
                         <div className="text-right shrink-0">
@@ -372,8 +372,8 @@ function PriceRefreshSheet({
                         onChange={(e) => setTickers((prev) => ({ ...prev, [asset.id]: e.target.value.toUpperCase() }))}
                         className="w-24 h-7 text-xs bg-muted/30 border-border font-mono"
                       />
-                      <Button size="sm" variant="outline" onClick={() => fetchEquityPrice(asset.id)} disabled={loading || !tickers[asset.id]?.trim()} className="h-7 text-xs border-border px-2 shrink-0">
-                        {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+          <Button size="sm" variant="outline" onClick={() => fetchEquityPrice(asset.id)} disabled={loading || !tickers[asset.id]?.trim()} className="h-8 text-xs border-border px-2 shrink-0 min-w-[60px]">
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                       </Button>
                       {p && (
                         <div className="text-right shrink-0">
@@ -519,11 +519,11 @@ export default function Assets() {
     }},
     { key: 'actions', header: '', hideOnMobile: true, render: (a) => (
       <div className="flex items-center gap-1">
-        <button onClick={(e) => { e.stopPropagation(); openEdit(a); }} className="text-muted-foreground hover:text-foreground p-1">
-          <Pencil className="w-3.5 h-3.5" />
+        <button onClick={(e) => { e.stopPropagation(); openEdit(a); }} className="text-muted-foreground hover:text-foreground p-2.5">
+          <Pencil className="w-4 h-4" />
         </button>
-        <button onClick={(e) => { e.stopPropagation(); handleDelete(a.id); }} className="text-muted-foreground hover:text-destructive p-1">
-          <Trash2 className="w-3.5 h-3.5" />
+        <button onClick={(e) => { e.stopPropagation(); handleDelete(a.id); }} className="text-muted-foreground hover:text-destructive p-2.5">
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     )},
@@ -549,17 +549,17 @@ export default function Assets() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setPriceRefreshOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
-            <RefreshCw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Market Prices</span><span className="sm:hidden">Prices</span>
+          <Button onClick={() => setPriceRefreshOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs h-9 min-w-[80px]">
+            <RefreshCw className="w-4 h-4" /> <span className="hidden sm:inline">Market Prices</span><span className="sm:hidden">Prices</span>
           </Button>
-          <Button onClick={() => setRebalanceOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
-            <Scale className="w-3.5 h-3.5" /> Rebalance
+          <Button onClick={() => setRebalanceOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs h-9 min-w-[80px]">
+            <Scale className="w-4 h-4" /> Rebalance
           </Button>
-          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs">
-            <Sparkles className="w-3.5 h-3.5" /> AI
+          <Button onClick={() => setAiOpen(true)} variant="outline" size="sm" className="gap-1.5 border-border text-muted-foreground hover:text-foreground text-xs h-9 min-w-[80px]">
+            <Sparkles className="w-4 h-4" /> AI
           </Button>
-          <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
-            <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">New Asset</span><span className="sm:hidden">Add</span>
+          <Button onClick={openAdd} size="sm" disabled={!isOnline} className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs h-9 min-w-[80px]">
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New Asset</span><span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
@@ -570,13 +570,15 @@ export default function Assets() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <ResponsiveDataTable
-          columns={assetColumns}
-          data={filtered}
-          primaryKey="id"
-          mobileTitleKey="name"
-          onRowClick={(a) => openEdit(a)}
-        />
+        <div className="overflow-x-auto">
+          <ResponsiveDataTable
+            columns={assetColumns}
+            data={filtered}
+            primaryKey="id"
+            mobileTitleKey="name"
+            onRowClick={(a) => openEdit(a)}
+          />
+        </div>
         {filtered.length === 0 && (
           <div className="h-28 text-center text-muted-foreground text-sm">
             {search ? "No assets match your search." : "No assets yet. Add your first holding."}
@@ -650,8 +652,10 @@ export default function Assets() {
               <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Optional notes" className="bg-muted/30 border-border" />
             </div>
             <DialogFooter className="mt-6">
-              <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground">Cancel</Button>
-              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button type="button" variant="ghost" onClick={() => { setOpen(false); setForm(emptyForm); setEditId(null); }} className="text-muted-foreground h-9 px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={saving || !isOnline} className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4">
                 {saving ? "Saving…" : editId ? "Save Changes" : "Add Asset"}
               </Button>
             </DialogFooter>

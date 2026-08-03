@@ -153,18 +153,18 @@ export default function AssetPrices() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/30 border border-border rounded-xl p-1 w-fit">
+      <div className="flex flex-wrap gap-1 bg-muted/30 border border-border rounded-xl p-1">
         <button
           onClick={() => setTab("equities")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === "equities" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all min-h-[44px] ${tab === "equities" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
         >
-          <Globe className="w-3.5 h-3.5" /> Equities
+          <Globe className="w-4 h-4 flex-shrink-0" /> Equities
         </button>
         <button
           onClick={() => setTab("crypto")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === "crypto" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+          className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all min-h-[44px] ${tab === "crypto" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
         >
-          <Bitcoin className="w-3.5 h-3.5" /> Crypto
+          <Bitcoin className="w-4 h-4 flex-shrink-0" /> Crypto
         </button>
       </div>
 
@@ -244,18 +244,20 @@ export default function AssetPrices() {
               </div>
               {popEquitiesLoading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Fetching prices...</div>}
               {popularEquities && popularEquities.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
-                  {popularEquities.map(eq => (
-                    <div key={eq.ticker} className="p-2 rounded-lg border border-border bg-muted/10">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium">{eq.ticker}</span>
-                        <span className="text-xs font-bold">${eq.price.toFixed(2)}</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground truncate">{eq.name}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+                                <div className="overflow-x-auto rounded-lg border border-border">
+                                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 min-w-[320px]">
+                                    {popularEquities.map(eq => (
+                                      <div key={eq.ticker} className="p-2 rounded-lg border border-border bg-muted/10 min-w-[140px]">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-medium truncate pr-2">{eq.ticker}</span>
+                                          <span className="text-xs font-bold whitespace-nowrap">${eq.price.toFixed(2)}</span>
+                                        </div>
+                                        <p className="text-[10px] text-muted-foreground truncate">{eq.name}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
             </CardContent>
           </Card>
         </div>

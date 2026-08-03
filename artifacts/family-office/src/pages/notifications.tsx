@@ -78,7 +78,7 @@ export default function NotificationsPage() {
           </p>
         </div>
         {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
+          <Button variant="outline" size="sm" className="min-h-[44px]" onClick={handleMarkAllRead}>
             <CheckCheck className="w-4 h-4 mr-2" /> Mark all read
           </Button>
         )}
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
               <p className="text-muted-foreground">No notifications yet</p>
             </div>
           ) : (
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[calc(100dvh-200px)] md:h-[600px]">
               <div className="divide-y divide-border">
                 {(notifications ?? []).map((n) => {
                   const Icon = TYPE_ICONS[n.type] ?? Info;
@@ -104,13 +104,13 @@ export default function NotificationsPage() {
                   return (
                     <div
                       key={n.id}
-                      className={`flex items-start gap-4 p-4 transition-colors ${n.read ? "opacity-60" : "bg-muted/20"}`}
+                      className={`flex flex-col md:flex-row items-start gap-4 p-4 transition-colors ${n.read ? "opacity-60" : "bg-muted/20"}`}
                     >
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-sm font-medium">{n.title}</h3>
                           {!n.read && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
                         </div>
@@ -120,7 +120,7 @@ export default function NotificationsPage() {
                         </span>
                       </div>
                       {!n.read && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => handleMarkRead(n.id)}>
+                        <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px] flex-shrink-0" onClick={() => handleMarkRead(n.id)}>
                           <Check className="w-4 h-4" />
                         </Button>
                       )}

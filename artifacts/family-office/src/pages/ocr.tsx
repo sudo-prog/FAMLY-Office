@@ -216,15 +216,15 @@ export default function OcrPage() {
                   accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp,.webp"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 />
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors text-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors text-sm min-h-[44px]">
                   <Upload className="w-4 h-4" />
                   Choose File
                 </div>
               </Label>
               {selectedFile && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm text-foreground">{selectedFile.name}</span>
-                  <Button onClick={handleUpload} disabled={uploading} size="sm">
+                  <Button onClick={handleUpload} disabled={uploading} size="sm" className="min-h-[44px]">
                     {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     {uploading ? "Processing..." : "Process OCR"}
                   </Button>
@@ -265,7 +265,7 @@ export default function OcrPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="outline" className={statusColor(job.status)}>
                         {job.status}
                       </Badge>
@@ -295,13 +295,13 @@ export default function OcrPage() {
                           Copy
                         </Button>
                       </div>
-                      <pre className="text-xs text-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                      <pre className="text-xs text-foreground whitespace-pre-wrap font-mono leading-relaxed overflow-x-auto">
                         {job.extractedText}
                       </pre>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button variant="ghost" size="sm" onClick={() => handleReprocess(job.id)} disabled={job.status === "processing"}>
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Reprocess

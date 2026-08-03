@@ -91,9 +91,9 @@ export default function BankFeedSettings() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <Link href="/settings">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
@@ -103,7 +103,7 @@ export default function BankFeedSettings() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 overflow-x-auto">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -169,7 +169,7 @@ export default function BankFeedSettings() {
             <Input
               type="file"
               accept=".csv"
-              className="max-w-xs mx-auto"
+              className="max-w-xs mx-auto min-h-[44px]"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handleFile(file);
@@ -188,10 +188,11 @@ export default function BankFeedSettings() {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Button
               onClick={handleImport}
               disabled={!csvText.trim() || importMutation.isPending}
+              className="min-h-[44px]"
             >
               {importMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -200,7 +201,7 @@ export default function BankFeedSettings() {
               )}
               Import Transactions
             </Button>
-            <Button variant="outline" onClick={downloadSample}>
+            <Button variant="outline" onClick={downloadSample} className="min-h-[44px]">
               <Download className="w-4 h-4" />
               Download Sample CSV
             </Button>
@@ -236,18 +237,18 @@ export default function BankFeedSettings() {
           {loadingImported ? (
             <div className="text-center py-4 text-muted-foreground">Loading...</div>
           ) : importedTx?.length ? (
-            <div className="space-y-2">
+            <div className="space-y-2 overflow-x-auto">
               {importedTx.slice(0, 10).map((tx: any) => (
-                <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
+                <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border last:border-0 flex-wrap">
+                  <div className="min-w-[150px]">
                     <div className="font-medium text-sm">{tx.description}</div>
                     <div className="text-xs text-muted-foreground">{tx.date} · {tx.category}</div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right min-w-[120px]">
                     <div className={`font-mono text-sm ${tx.type === "income" ? "text-green-400" : "text-red-400"}`}>
                       {tx.type === "income" ? "+" : "-"}${Number(tx.amount).toLocaleString()}
                     </div>
-                    <Badge variant="outline" className="text-xs">imported</Badge>
+                    <Badge variant="outline" className="text-xs min-h-[20px]">imported</Badge>
                   </div>
                 </div>
               ))}

@@ -115,7 +115,7 @@ export default function ExportPdf() {
         <div className="flex gap-2">
           <Button
             onClick={() => handleExport(selectedReport)}
-            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 min-h-[44px]"
             disabled={exporting}
           >
             <Printer className="w-4 h-4" />
@@ -133,7 +133,7 @@ export default function ExportPdf() {
             <button
               key={option.id}
               onClick={() => setSelectedReport(option.id)}
-              className={`text-left p-4 rounded-lg border transition-all ${
+              className={`text-left p-4 rounded-lg border transition-all min-h-[44px] ${
                 selectedReport === option.id
                   ? "border-primary bg-primary/5 ring-1 ring-primary/20"
                   : "border-border bg-card hover:border-border/80 hover:bg-muted/20"
@@ -365,7 +365,8 @@ export default function ExportPdf() {
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Number of Holdings</div><div className="font-mono text-foreground">{summary.assetCount} positions</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Net Cash Flow (YTD)</div><div className={`font-mono ${(summary.totalIncome - summary.totalExpenses) >= 0 ? "text-emerald-500" : "text-destructive"}`}>{fmt(summary.totalIncome - summary.totalExpenses)}</div></div>
                 </div>
-                <table className="w-full text-sm mb-4">
+                <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Weight</th><th className="text-right py-2 text-muted-foreground font-medium">vs. Benchmark</th></tr></thead>
                   <tbody>
                     {byCategory.sort((a, b) => b.total - a.total).map((c) => {
@@ -387,10 +388,12 @@ export default function ExportPdf() {
                   </tbody>
                 </table>
               </div>
+              </div>
             )}
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Full Holdings Register</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Position</th><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Portfolio %</th></tr></thead>
                   <tbody>
@@ -405,6 +408,7 @@ export default function ExportPdf() {
                     ))}
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
           </>
@@ -429,6 +433,7 @@ export default function ExportPdf() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Holdings — Legal Summary</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset / Property</th><th className="text-left py-2 text-muted-foreground font-medium">Classification</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Recorded Value</th></tr></thead>
                   <tbody>
@@ -442,6 +447,7 @@ export default function ExportPdf() {
                     ))}
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
             {documents && documents.length > 0 && (
@@ -490,6 +496,7 @@ export default function ExportPdf() {
             {byCategory && byCategory.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Distribution</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset Category</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">% of Estate</th></tr></thead>
                   <tbody>
@@ -503,10 +510,12 @@ export default function ExportPdf() {
                   </tbody>
                 </table>
               </div>
+              </div>
             )}
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Complete Asset Inventory</h2>
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">#</th><th className="text-left py-2 text-muted-foreground font-medium">Asset</th><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-left py-2 text-muted-foreground font-medium">Institution</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th></tr></thead>
                   <tbody>
@@ -525,6 +534,7 @@ export default function ExportPdf() {
                     </tr>
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
             {documents && documents.length > 0 && (

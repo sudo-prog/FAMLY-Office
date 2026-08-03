@@ -70,11 +70,11 @@ export default function AuditLogPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-4 flex-wrap md:flex-nowrap">
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Action:</span>
               <Select value={action} onValueChange={(v) => { setAction(v); setOffset(0); }}>
-                <SelectTrigger className="w-32"><SelectValue placeholder="All" /></SelectTrigger>
+                <SelectTrigger className="w-32 min-h-[44px]"><SelectValue placeholder="All" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__all__">All</SelectItem>
                   <SelectItem value="CREATE">CREATE</SelectItem>
@@ -89,7 +89,7 @@ export default function AuditLogPage() {
                 placeholder="Entity type..."
                 value={entityType}
                 onChange={(e) => { setEntityType(e.target.value); setOffset(0); }}
-                className="w-40"
+                className="w-40 min-h-[44px]"
               />
             </div>
           </div>
@@ -104,7 +104,8 @@ export default function AuditLogPage() {
             </div>
           ) : (
             <ScrollArea className="h-[600px]">
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader className="sticky top-0 bg-card z-10">
                   <TableRow>
                     <TableHead className="w-20">ID</TableHead>
@@ -143,15 +144,16 @@ export default function AuditLogPage() {
                   )}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
           )}
         </CardContent>
         <div className="flex items-center justify-between p-4 border-t border-border">
-          <Button variant="outline" size="sm" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0}>
+          <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0}>
             <ChevronLeft className="w-4 h-4" /> Previous
           </Button>
           <span className="text-xs text-muted-foreground">Showing {offset + 1}–{offset + limit}</span>
-          <Button variant="outline" size="sm" onClick={() => setOffset(offset + limit)} disabled={(logs ?? []).length < limit}>
+          <Button variant="outline" size="sm" className="min-h-[44px]" onClick={() => setOffset(offset + limit)} disabled={(logs ?? []).length < limit}>
             Next <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

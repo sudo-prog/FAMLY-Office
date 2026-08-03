@@ -135,7 +135,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           />
           <div className="flex items-center gap-1.5">
             <kbd className="text-[10px] text-muted-foreground bg-muted/60 border border-border rounded px-1.5 py-0.5 font-mono">ESC</kbd>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors ml-1">
+            <button onClick={onClose} className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors ml-1">
               <X className="w-3.5 h-3.5" />
             </button>
           </div>

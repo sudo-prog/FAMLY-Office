@@ -194,7 +194,7 @@ export function QuickAskPopover({ open, onClose, onReplayTour }: QuickAskPopover
                   Replay Tour
                 </button>
                 <SheetTrigger asChild>
-                  <button className="p-3 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" aria-label="Close">
+                  <button className="flex items-center justify-center p-3 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" aria-label="Close">
                     <X className="w-5 h-5" />
                   </button>
                 </SheetTrigger>

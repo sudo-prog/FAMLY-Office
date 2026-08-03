@@ -183,7 +183,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           {/* Mobile close button */}
           <button
             onClick={() => setMenuOpen(false)}
-            className="md:hidden ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted min-w-[36px] min-h-[36px]"
+            className="md:hidden ml-auto flex items-center justify-center p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted min-w-[36px] min-h-[36px]"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />

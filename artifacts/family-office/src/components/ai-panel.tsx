@@ -224,23 +224,13 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
               </div>
             )}
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors">
+          <button onClick={onClose} className="flex items-center justify-center text-muted-foreground hover:text-foreground p-1 rounded transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.length === 0 && (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground mb-3">Tap a prompt or type your own:</p>
-              {suggestions.map((s) => (
-                <button key={s} onClick={() => sendMessage(s)}
-                  className="w-full text-left text-xs px-3.5 py-2.5 rounded-xl bg-muted/20 border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 hover:bg-muted/30 transition-all">
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
+          {messages.length === 0 && null}
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${msg.role === "user" ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-muted/40 border border-border text-foreground rounded-bl-sm"}`}>

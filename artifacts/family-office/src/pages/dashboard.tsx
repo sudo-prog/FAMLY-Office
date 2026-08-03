@@ -571,7 +571,7 @@ function AIWidget() {
             <div className="flex items-center gap-2 mb-2 text-xs bg-muted/30 rounded px-2 py-1.5 border border-border">
               <Upload className="w-3 h-3 text-muted-foreground" />
               <span className="text-muted-foreground truncate flex-1">{uploadedFile.name}</span>
-              <button onClick={() => setUploadedFile(null)} className="text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
+              <button onClick={() => setUploadedFile(null)} className="flex items-center justify-center text-muted-foreground hover:text-foreground"><X className="w-3 h-3" /></button>
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -718,7 +718,7 @@ const CustomizePanel = memo(function CustomizePanel({ visible, onClose, activeWi
             <h3 className="font-semibold text-foreground text-sm">Customize Widgets</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Toggle widgets on or off</p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="flex items-center justify-center text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {(Object.keys(WIDGET_META) as WidgetId[]).map((id) => {

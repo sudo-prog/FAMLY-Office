@@ -285,7 +285,7 @@ export function OnboardingWizard({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="absolute top-4 right-4 z-10 flex items-center justify-center p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label="Close"
           >
             <X className="w-4 h-4" />

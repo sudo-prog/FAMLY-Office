@@ -19,7 +19,7 @@ import {
   Lock, Plus, Search, Pencil, Trash2, LayoutGrid, List, FileText, FileCheck,
   ScrollText, Shield, FileBarChart, Award, File, Folder, FolderOpen, ChevronDown,
   ChevronRight, CheckSquare, Square, FolderPlus, ArrowLeft, Sparkles, X, Move,
-  Upload, TableProperties, CheckCircle2, AlertCircle, Loader2,
+  Upload, TableProperties, CheckCircle2, AlertCircle, Loader2, Receipt,
 } from "lucide-react";
 import { DocumentPreview } from "@/components/document-preview";
 import { AIPanel } from "@/components/ai-panel";
@@ -148,14 +148,14 @@ function detectAndParseFinancialCSV(text: string): CsvRow[] | null {
 }
 
 const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; border: string; bg: string }> = {
-  pdf:         { icon: FileText,    color: "text-amber-400",   border: "border-amber-400/40",  bg: "bg-amber-500/5" },
-  contract:    { icon: ScrollText,  color: "text-blue-400",    border: "border-blue-400/40",   bg: "bg-blue-500/5" },
-  tax:         { icon: FileBarChart,color: "text-emerald-400", border: "border-emerald-400/40",bg: "bg-emerald-500/5" },
-  insurance:   { icon: Shield,      color: "text-purple-400",  border: "border-purple-400/40", bg: "bg-purple-500/5" },
-  statement:   { icon: FileCheck,   color: "text-orange-400",  border: "border-orange-400/40", bg: "bg-orange-500/5" },
-  deed:        { icon: ScrollText,  color: "text-red-400",     border: "border-red-400/40",    bg: "bg-red-500/5" },
-  certificate: { icon: Award,       color: "text-cyan-400",    border: "border-cyan-400/40",   bg: "bg-cyan-500/5" },
-  other:       { icon: File,        color: "text-muted-foreground", border: "border-border", bg: "bg-muted/10" },
+  pdf:         { icon: FileText,    color: "text-red-500",      border: "border-red-500/40",   bg: "bg-red-500/5" },
+  contract:    { icon: FileCheck,    color: "text-blue-500",     border: "border-blue-500/40",  bg: "bg-blue-500/5" },
+  tax:         { icon: Receipt,     color: "text-green-500",    border: "border-green-500/40", bg: "bg-green-500/5" },
+  insurance:   { icon: Shield,      color: "text-purple-500",   border: "border-purple-500/40",bg: "bg-purple-500/5" },
+  statement:   { icon: FileBarChart,color: "text-teal-500",     border: "border-teal-500/40",  bg: "bg-teal-500/5" },
+  deed:        { icon: ScrollText,  color: "text-amber-500",    border: "border-amber-500/40", bg: "bg-amber-500/5" },
+  certificate: { icon: Award,       color: "text-emerald-500",  border: "border-emerald-500/40",bg: "bg-emerald-500/5" },
+  other:       { icon: File,        color: "text-gray-500",     border: "border-gray-500/40",  bg: "bg-gray-500/5" },
 };
 
 type DocForm = { title: string; description: string; fileType: string; year: string; encrypted: boolean; ocrText: string; folder: string };
@@ -253,7 +253,7 @@ export default function Vault() {
     const matchType = typeFilter === "all" || d.fileType === typeFilter;
     const matchIsolated = isolatedFolder === null || d.folder === isolatedFolder;
     return matchSearch && matchType && matchIsolated;
-  });
+  }) as Doc[];
 
   const folderMap = useMemo(() => {
     const map: Record<string, Doc[]> = {};

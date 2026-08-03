@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   X, Printer, Mail, Sparkles, PenLine, Eraser, EyeOff, FileText,
   Lock, Shield, ChevronDown, ChevronUp, Pen, Download, Loader2,
-  Highlighter, StickyNote, PenTool,
+  Highlighter, StickyNote, PenTool, FileCheck, ScrollText, FileBarChart, Award, File, Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AIPanel } from "@/components/ai-panel";
@@ -23,15 +23,15 @@ interface DocumentPreviewProps {
   onSave?: (id: number, updates: { ocrText?: string }) => Promise<void>;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  pdf: "text-amber-400 bg-amber-500/10 border-amber-400/30",
-  contract: "text-blue-400 bg-blue-500/10 border-blue-400/30",
-  tax: "text-emerald-400 bg-emerald-500/10 border-emerald-400/30",
-  insurance: "text-purple-400 bg-purple-500/10 border-purple-400/30",
-  statement: "text-orange-400 bg-orange-500/10 border-orange-400/30",
-  deed: "text-red-400 bg-red-500/10 border-red-400/30",
-  certificate: "text-cyan-400 bg-cyan-500/10 border-cyan-400/30",
-  other: "text-muted-foreground bg-muted/10 border-border",
+const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; border: string; bg: string }> = {
+  pdf:         { icon: FileText,    color: "text-red-500",      border: "border-red-500/40",   bg: "bg-red-500/5" },
+  contract:    { icon: FileCheck,    color: "text-blue-500",     border: "border-blue-500/40",  bg: "bg-blue-500/5" },
+  tax:         { icon: Receipt,     color: "text-green-500",    border: "border-green-500/40", bg: "bg-green-500/5" },
+  insurance:   { icon: Shield,      color: "text-purple-500",   border: "border-purple-500/40",bg: "bg-purple-500/5" },
+  statement:   { icon: FileBarChart,color: "text-teal-500",     border: "border-teal-500/40",  bg: "bg-teal-500/5" },
+  deed:        { icon: ScrollText,  color: "text-amber-500",    border: "border-amber-500/40", bg: "bg-amber-500/5" },
+  certificate: { icon: Award,       color: "text-emerald-500",  border: "border-emerald-500/40",bg: "bg-emerald-500/5" },
+  other:       { icon: File,        color: "text-gray-500",     border: "border-gray-500/40",  bg: "bg-gray-500/5" },
 };
 
 type Tool = "none" | "highlight" | "pen" | "sign" | "redact" | "notes" | "ai";
@@ -158,7 +158,7 @@ export function DocumentPreview({ doc, onClose, onSave }: DocumentPreviewProps) 
 
   if (!doc) return null;
 
-  const typeColor = TYPE_COLORS[doc.fileType] ?? TYPE_COLORS.other;
+  const typeColor = TYPE_CONFIG[doc.fileType]?.color || "text-muted-foreground border-border";
 
   const tools: { id: Tool; icon: React.ElementType; label: string; color?: string }[] = [
     { id: "highlight", icon: Highlighter, label: "Highlight", color: "text-yellow-400" },
@@ -196,9 +196,13 @@ export function DocumentPreview({ doc, onClose, onSave }: DocumentPreviewProps) 
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="h-14 border-b border-border flex items-center justify-between px-6 flex-shrink-0 bg-card">
             <div className="flex items-center gap-3">
-              <FileText className="w-4 h-4 text-muted-foreground" />
+              {(() => {
+                const cfg = doc.fileType ? TYPE_CONFIG[doc.fileType] : null;
+                const Icon = cfg?.icon;
+                return Icon ? <Icon className={`w-4 h-4 ${cfg.color}`} /> : <FileText className="w-4 h-4 text-muted-foreground" />;
+              })()}
               <span className="font-serif font-semibold text-foreground">{doc.title}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full border font-mono uppercase ${typeColor}`}>{doc.fileType}</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full border font-mono uppercase ${TYPE_CONFIG[doc.fileType]?.color || "text-muted-foreground border-border"}`}>{doc.fileType}</span>
               {doc.year && <span className="text-xs text-muted-foreground font-mono">{doc.year}</span>}
               {doc.encrypted && (
                 <span className="flex items-center gap-1 text-xs text-emerald-500">
@@ -247,7 +251,11 @@ export function DocumentPreview({ doc, onClose, onSave }: DocumentPreviewProps) 
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-center space-y-4">
-                  <FileText className="w-12 h-12 text-muted-foreground/30" />
+                  {(() => {
+                    const cfg = doc.fileType ? TYPE_CONFIG[doc.fileType] : null;
+                    const Icon = cfg?.icon;
+                    return Icon ? <Icon className={`w-12 h-12 ${cfg.color}/30`} /> : <FileText className="w-12 h-12 text-muted-foreground/30" />;
+                  })()}
                   <div>
                     <p className="text-muted-foreground font-medium">No content yet</p>
                     <p className="text-muted-foreground/60 text-sm mt-1">Paste document text below to enable AI search and analysis</p>
@@ -298,7 +306,7 @@ export function DocumentPreview({ doc, onClose, onSave }: DocumentPreviewProps) 
                   <div className="flex gap-2">
                     <Button onClick={clearSign} size="sm" variant="outline" className="text-xs border-border">Clear</Button>
                     <Button onClick={acceptSign} size="sm" className="text-xs bg-primary text-primary-foreground">Accept & Insert</Button>
-                    <button onClick={() => setActiveTool("none")} className="text-muted-foreground hover:text-foreground p-1"><X className="w-4 h-4" /></button>
+                    <button onClick={() => setActiveTool("none")} className="flex items-center justify-center text-muted-foreground hover:text-foreground p-1"><X className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <canvas ref={canvasRef} width={700} height={120}

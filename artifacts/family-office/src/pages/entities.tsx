@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VirtualizedTable } from "@/components/ui/virtualized-table";
+import { ResponsiveDataTable, Column } from "@/components/ui/responsive-data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,56 +108,39 @@ export default function Entities() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <VirtualizedTable
+        <ResponsiveDataTable
+          columns={[
+            { key: 'name', header: 'Name', render: (entity) => (
+              <div className="flex items-center gap-2">
+                {TYPE_ICONS[entity.type] ? React.createElement(TYPE_ICONS[entity.type], { className: 'w-4 h-4 text-muted-foreground' }) : null}
+                <span>{entity.name}</span>
+              </div>
+            )},
+            { key: 'type', header: 'Type', render: (entity) => (
+              <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
+                {formatType(entity.type)}
+              </Badge>
+            ), className: 'w-28' },
+            { key: 'jurisdiction', header: 'Jurisdiction', render: (entity) => (
+              <span className="text-muted-foreground text-sm">{entity.jurisdiction ?? "—"}</span>
+            )},
+            { key: 'id', header: 'ABN / ACN', render: (entity) => (
+              <span className="text-muted-foreground font-mono text-sm">
+                {entity.abn ? `ABN: ${entity.abn}` : entity.acn ? `ACN: ${entity.acn}` : "—"}
+              </span>
+            )},
+            { key: 'actions', header: '', render: (entity) => (
+              <div className="flex items-center gap-1">
+                <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+              </div>
+            ), hideOnMobile: true }
+          ]}
           data={filtered}
-          getRowKey={(entity) => entity.id}
-          colCount={5}
-          rowHeight={52}
-          overscan={8}
-          maxHeight={640}
-          className="overflow-x-auto"
-          header={
-            <TableHeader className="bg-muted/50">
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="font-medium text-muted-foreground">Name</TableHead>
-                <TableHead className="font-medium text-muted-foreground w-28">Type</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Jurisdiction</TableHead>
-                <TableHead className="font-medium text-muted-foreground">ABN / ACN</TableHead>
-                <TableHead className="w-24" />
-              </TableRow>
-            </TableHeader>
-          }
-          rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
-          renderCells={(entity) => {
-            const Icon = TYPE_ICONS[entity.type] ?? Building2;
-            return (
-              <>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span>{entity.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
-                    {formatType(entity.type)}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">{entity.jurisdiction ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground font-mono text-sm">
-                  {entity.abn ? `ABN: ${entity.abn}` : entity.acn ? `ACN: ${entity.acn}` : "—"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <button onClick={(e) => openEdit(entity, e)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={(e) => handleDelete(entity.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
-                  </div>
-                </TableCell>
-              </>
-            );
-          }}
-          emptyState={search ? "No entities match your search." : "No entities yet. Add your first structure."}
+          onRowClick={(entity) => navigate(`/entities/${entity.id}`)}
+          primaryKey="id"
+          mobileTitleKey="name"
         />
       </Card>
 

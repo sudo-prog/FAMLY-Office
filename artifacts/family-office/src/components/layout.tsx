@@ -8,10 +8,10 @@ import {
 } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/assets", label: "Assets", icon: Wallet },
-  { href: "/transactions", label: "Ledger", icon: ArrowLeftRight },
-  { href: "/vault", label: "Vault", icon: FileKey },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, tourId: "dashboard" },
+  { href: "/assets", label: "Assets", icon: Wallet, tourId: "assets" },
+  { href: "/transactions", label: "Ledger", icon: ArrowLeftRight, tourId: "transactions" },
+  { href: "/vault", label: "Vault", icon: FileKey, tourId: "vault" },
   { href: "/entities", label: "Entities", icon: Users },
   { href: "/projections", label: "Projections", icon: TrendingUp },
   { href: "/report", label: "Report", icon: FileText },
@@ -20,7 +20,7 @@ const NAV_ITEMS = [
 
 const BUSINESS_ITEMS = [
   { href: "/home-office", label: "Home Office", icon: Briefcase },
-  { href: "/research",    label: "AI Research",  icon: Sparkles },
+  { href: "/research",    label: "AI Research",  icon: Sparkles, tourId: "ai" },
   { href: "/projections/cash-flow", label: "Cash Flow", icon: BarChart3 },
   { href: "/targets", label: "Net Worth Targets", icon: Target },
   { href: "/report/benchmarks", label: "Benchmarks", icon: BarChart3 },
@@ -89,6 +89,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           return (
             <Link key={item.href} href={item.href}
               onClick={onClick}
+              data-tour={item.tourId}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                 active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               } ${sidebarCollapsed ? "justify-center" : ""}`}
@@ -106,6 +107,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
           return (
             <Link key={item.href} href={item.href}
               onClick={onClick}
+              data-tour={item.tourId}
               className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
                 active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               } ${sidebarCollapsed ? "justify-center" : ""}`}
@@ -135,6 +137,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
         )}
         <Link href="/settings"
           onClick={onClick}
+          data-tour="customize"
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
             location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
           } ${sidebarCollapsed ? "justify-center" : ""}`}
@@ -209,6 +212,7 @@ export function Layout({ children, onOpenPalette }: LayoutProps) {
               </button>
             )}
             <Link href="/settings"
+              data-tour="customize"
               className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
                 location === "/settings" ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}

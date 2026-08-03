@@ -58,7 +58,7 @@ Architecture decisions, file structure, API patterns, and known issues.
 - **Remaining:** Wire into documents CRUD route for ocrText encryption
 
 ### API Security
-- Auth middleware: API key (X-API-Key header) or JWT (Authorization: Bearer)
+- Auth middleware: API key (X-API-Key header) or JWT (Authorization: Bearer ***)
 - Rate limiting: 100 req/15min per IP, X-RateLimit-* headers
 - CORS: Production blocks all origins unless CORS_ORIGINS set
 - Input sanitization: Strips script tags, on*= handlers, javascript: URLs
@@ -66,6 +66,9 @@ Architecture decisions, file structure, API patterns, and known issues.
 - Request body size: 10mb limit
 - SQL injection fixed in dashboard.ts (raw column names → Drizzle refs)
 - Error message info leakage fixed in 5 routes
+
+## Security: Self-Heal Eval Removed (2026-08-02)
+Raw code execution from AI output (executeAIFix / new Function) was removed from ai-panel.tsx. AI actions are now dispatched through a closed allow-list (dispatchAIAction). See P0 in FAMLY-OFFICE-AUDIT-IMPLEMENTATION-PLAN.md for full rationale.
 
 ## Performance (2026-06-28)
 

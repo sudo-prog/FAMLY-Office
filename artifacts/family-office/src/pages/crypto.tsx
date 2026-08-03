@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, Wallet, Bitcoin, Coins, Image, ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react";
+import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 
 const WALLETS = [
   { name: "Bitcoin Cold Storage", symbol: "BTC", balance: 12.4521, price: 67234.50, change24h: 2.34, value: 837124.50, type: "Wallet" },
@@ -99,49 +100,42 @@ export default function Crypto() {
           <CardDescription>Cryptocurrency balances across all wallets</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground text-xs">
-                  <th className="text-left py-2 font-medium">Asset</th>
-                  <th className="text-right py-2 font-medium">Balance</th>
-                  <th className="text-right py-2 font-medium">Price</th>
-                  <th className="text-right py-2 font-medium">24h Change</th>
-                  <th className="text-right py-2 font-medium">Value</th>
-                  <th className="text-right py-2 font-medium">% of Portfolio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {WALLETS.map((w) => (
-                  <tr key={w.symbol} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">{w.symbol.slice(0, 2)}</span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{w.name}</p>
-                          <p className="text-xs text-muted-foreground">{w.symbol} · {w.type}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="text-right py-3 font-mono">{w.balance.toLocaleString()}</td>
-                    <td className="text-right py-3 font-mono">${w.price.toLocaleString()}</td>
-                    <td className="text-right py-3">
-                      <span className={`flex items-center justify-end gap-0.5 ${w.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
-                        {w.change24h >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {Math.abs(w.change24h)}%
-                      </span>
-                    </td>
-                    <td className="text-right py-3 font-mono font-semibold">${w.value.toLocaleString()}</td>
-                    <td className="text-right py-3">
-                      <Badge variant="outline">{((w.value / totalValue) * 100).toFixed(1)}%</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveDataTable
+            data={WALLETS}
+            primaryKey="symbol"
+            mobileTitleKey="name"
+            columns={[
+              { key: "asset", header: "Asset", hideOnMobile: false, render: (w) => (
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-xs font-bold text-primary">{w.symbol.slice(0, 2)}</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">{w.name}</p>
+                    <p className="text-xs text-muted-foreground">{w.symbol} · {w.type}</p>
+                  </div>
+                </div>
+              )},
+              { key: "balance", header: "Balance", className: "text-right", render: (w) => (
+                <span className="font-mono">{w.balance.toLocaleString()}</span>
+              )},
+              { key: "price", header: "Price", className: "text-right", render: (w) => (
+                <span className="font-mono">${w.price.toLocaleString()}</span>
+              )},
+              { key: "change24h", header: "24h Change", className: "text-right", render: (w) => (
+                <span className={`flex items-center justify-end gap-0.5 ${w.change24h >= 0 ? "text-green-500" : "text-red-500"}`}>
+                  {w.change24h >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {Math.abs(w.change24h)}%
+                </span>
+              )},
+              { key: "value", header: "Value", className: "text-right", render: (w) => (
+                <span className="font-mono font-semibold">${w.value.toLocaleString()}</span>
+              )},
+              { key: "pct", header: "% of Portfolio", className: "text-right", render: (w) => (
+                <Badge variant="outline">{((w.value / totalValue) * 100).toFixed(1)}%</Badge>
+              )},
+            ]}
+          />
         </CardContent>
       </Card>
 
@@ -154,32 +148,19 @@ export default function Crypto() {
           <CardDescription>Active yield-generating positions across protocols</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground text-xs">
-                  <th className="text-left py-2 font-medium">Protocol</th>
-                  <th className="text-left py-2 font-medium">Chain</th>
-                  <th className="text-left py-2 font-medium">Asset</th>
-                  <th className="text-left py-2 font-medium">Type</th>
-                  <th className="text-right py-2 font-medium">APY</th>
-                  <th className="text-right py-2 font-medium">TVL</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DEFI_POSITIONS.map((p, i) => (
-                  <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-3 font-medium">{p.protocol}</td>
-                    <td className="py-3"><Badge variant="outline" className="text-xs">{p.chain}</Badge></td>
-                    <td className="py-3 font-mono text-xs">{p.asset}</td>
-                    <td className="py-3"><Badge variant={p.type === "Staking" ? "default" : "secondary"} className="text-xs">{p.type}</Badge></td>
-                    <td className="text-right py-3 font-mono text-green-500 font-semibold">{p.apy}%</td>
-                    <td className="text-right py-3 font-mono">${p.tvl.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveDataTable
+            data={DEFI_POSITIONS}
+            primaryKey="protocol"
+            mobileTitleKey="protocol"
+            columns={[
+              { key: "protocol", header: "Protocol", render: (p) => <span className="font-medium">{p.protocol}</span> },
+              { key: "chain", header: "Chain", render: (p) => <Badge variant="outline" className="text-xs">{p.chain}</Badge> },
+              { key: "asset", header: "Asset", render: (p) => <span className="font-mono text-xs">{p.asset}</span> },
+              { key: "type", header: "Type", render: (p) => <Badge variant={p.type === "Staking" ? "default" : "secondary"} className="text-xs">{p.type}</Badge> },
+              { key: "apy", header: "APY", className: "text-right", render: (p) => <span className="font-mono text-green-500 font-semibold">{p.apy}%</span> },
+              { key: "tvl", header: "TVL", className: "text-right", render: (p) => <span className="font-mono">${p.tvl.toLocaleString()}</span> },
+            ]}
+          />
         </CardContent>
       </Card>
 
@@ -192,34 +173,22 @@ export default function Crypto() {
           <CardDescription>Digital collectibles and art holdings</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground text-xs">
-                  <th className="text-left py-2 font-medium">Collection</th>
-                  <th className="text-left py-2 font-medium">Token ID</th>
-                  <th className="text-right py-2 font-medium">Floor Price</th>
-                  <th className="text-right py-2 font-medium">Est. Value</th>
-                  <th className="text-right py-2 font-medium">P&L</th>
-                </tr>
-              </thead>
-              <tbody>
-                {NFT_HOLDINGS.map((n, i) => (
-                  <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
-                    <td className="py-3 font-medium">{n.collection}</td>
-                    <td className="py-3 font-mono text-xs">{n.tokenId}</td>
-                    <td className="text-right py-3 font-mono">{n.floorPrice} ETH</td>
-                    <td className="text-right py-3 font-mono">{n.estValue} ETH</td>
-                    <td className="text-right py-3">
-                      <span className="text-green-500 flex items-center justify-end gap-0.5">
-                        <ArrowUpRight className="w-3 h-3" /> +{n.pnl} ETH
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveDataTable
+            data={NFT_HOLDINGS}
+            primaryKey="collection"
+            mobileTitleKey="collection"
+            columns={[
+              { key: "collection", header: "Collection", render: (n) => <span className="font-medium">{n.collection}</span> },
+              { key: "tokenId", header: "Token ID", render: (n) => <span className="font-mono text-xs">{n.tokenId}</span> },
+              { key: "floorPrice", header: "Floor Price", className: "text-right", render: (n) => <span className="font-mono">{n.floorPrice} ETH</span> },
+              { key: "estValue", header: "Est. Value", className: "text-right", render: (n) => <span className="font-mono">{n.estValue} ETH</span> },
+              { key: "pnl", header: "P&L", className: "text-right", render: (n) => (
+                <span className="text-green-500 flex items-center justify-end gap-0.5">
+                  <ArrowUpRight className="w-3 h-3" /> +{n.pnl} ETH
+                </span>
+              )},
+            ]}
+          />
         </CardContent>
       </Card>
     </div>

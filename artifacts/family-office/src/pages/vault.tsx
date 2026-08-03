@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VirtualizedTable } from "@/components/ui/virtualized-table";
+import { ResponsiveDataTable } from "@/components/ui/responsive-data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -587,57 +588,25 @@ export default function Vault() {
         </div>
       ) : (
         <Card className="bg-card border-border overflow-hidden">
-          <VirtualizedTable
+          <ResponsiveDataTable<Doc>
+            columns={[
+              ...(selectMode ? [{ key: "select", header: "", render: (doc: Doc): React.ReactNode => selectedIds.has(doc.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />, className: "w-10" }] : []),
+              { key: "title", header: "Title", render: (doc: Doc): React.ReactNode => <span className="font-medium">{doc.title}</span> },
+              { key: "fileType", header: "Type", render: (doc: Doc): React.ReactNode => <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs capitalize">{doc.fileType}</Badge> },
+              { key: "folder", header: "Folder", render: (doc: Doc): React.ReactNode => doc.folder ? <span className="flex items-center gap-1 text-primary/80"><Folder className="w-3 h-3" /> {doc.folder}</span> : "—" },
+              { key: "year", header: "Year", render: (doc: Doc): React.ReactNode => <span className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</span>, className: "w-16" },
+              { key: "encrypted", header: "Enc.", render: (doc: Doc): React.ReactNode => doc.encrypted ? <Lock className="w-3.5 h-3.5 text-emerald-500" /> : null, className: "w-16" },
+              { key: "actions", header: "", render: (doc: Doc): React.ReactNode => (
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openEdit(doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+                  <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ), className: "w-16" }
+            ]}
             data={filtered}
-            getRowKey={(doc) => doc.id}
-            colCount={selectMode ? 7 : 6}
-            rowHeight={52}
-            overscan={8}
-            maxHeight={640}
-            className="overflow-x-auto"
-            header={
-              <TableHeader className="bg-muted/50">
-                <TableRow className="border-border hover:bg-transparent">
-                  {selectMode && <TableHead className="w-10" />}
-                  <TableHead className="font-medium text-muted-foreground">Title</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Type</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Folder</TableHead>
-                  <TableHead className="font-medium text-muted-foreground w-16">Year</TableHead>
-                  <TableHead className="w-16 font-medium text-muted-foreground">Enc.</TableHead>
-                  <TableHead className="w-16" />
-                </TableRow>
-              </TableHeader>
-            }
-            rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
-            renderCells={(doc) => (
-              <>
-                {selectMode && (
-                  <TableCell>
-                    {selectedIds.has(doc.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
-                  </TableCell>
-                )}
-                <TableCell className="font-medium">{doc.title}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs capitalize">{doc.fileType}</Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm">
-                  {doc.folder ? (
-                    <span className="flex items-center gap-1 text-primary/80">
-                      <Folder className="w-3 h-3" /> {doc.folder}
-                    </span>
-                  ) : "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground text-sm font-mono">{doc.year ?? "—"}</TableCell>
-                <TableCell>{doc.encrypted ? <Lock className="w-3.5 h-3.5 text-emerald-500" /> : null}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => openEdit(doc as Doc)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={(e) => handleDelete(doc.id, e)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </TableCell>
-              </>
-            )}
-            emptyState={search ? "No documents match your search." : "No documents yet."}
+            onRowClick={(doc: Doc) => {}}
+            primaryKey="id"
+            mobileTitleKey="title"
           />
         </Card>
       )}

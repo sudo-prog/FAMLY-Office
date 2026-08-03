@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "wouter";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 import {
   Home,
   LayoutDashboard,
@@ -26,6 +29,7 @@ const STEPS = [
     icon: Home,
     color: "text-primary",
     bgColor: "bg-primary/10",
+    route: null,
   },
   {
     id: "dashboard",
@@ -35,6 +39,8 @@ const STEPS = [
     icon: LayoutDashboard,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
+    route: "/",
+    element: "[data-tour='dashboard']",
   },
   {
     id: "transactions",
@@ -44,6 +50,8 @@ const STEPS = [
     icon: ArrowLeftRight,
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
+    route: "/transactions",
+    element: "[data-tour='transactions']",
   },
   {
     id: "assets",
@@ -53,6 +61,8 @@ const STEPS = [
     icon: Wallet,
     color: "text-violet-500",
     bgColor: "bg-violet-500/10",
+    route: "/assets",
+    element: "[data-tour='assets']",
   },
   {
     id: "vault",
@@ -62,6 +72,8 @@ const STEPS = [
     icon: FileKey,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
+    route: "/vault",
+    element: "[data-tour='vault']",
   },
   {
     id: "ai",
@@ -71,6 +83,8 @@ const STEPS = [
     icon: Sparkles,
     color: "text-pink-500",
     bgColor: "bg-pink-500/10",
+    route: "/research",
+    element: "[data-tour='ai']",
   },
   {
     id: "customize",
@@ -80,6 +94,8 @@ const STEPS = [
     icon: Palette,
     color: "text-cyan-500",
     bgColor: "bg-cyan-500/10",
+    route: "/settings",
+    element: "[data-tour='customize']",
   },
 ];
 
@@ -115,10 +131,64 @@ export function OnboardingWizard({
 }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [isTourRunning, setIsTourRunning] = useState(false);
+  const navigate = useNavigate();
+  const driverObj = useRef<any>(null);
 
   const step = STEPS[currentStep];
   const isLast = currentStep === STEPS.length - 1;
   const isFirst = currentStep === 0;
+
+  const startTourStep = useCallback(() => {
+    if (!step.route) return;
+    
+    setIsTourRunning(true);
+    
+    // Navigate to the route
+    navigate(step.route);
+    
+    // Wait for the element to appear using MutationObserver
+    const observer = new MutationObserver((mutations, obs) => {
+      const element = document.querySelector(step.element);
+      if (element) {
+        obs.disconnect();
+        
+        // Start driver.js tour
+        driverObj.current = driver({
+          showProgress: true,
+          steps: [
+            {
+              element: step.element,
+              popover: {
+                title: step.title,
+                description: step.description,
+                side: "right",
+                align: "start",
+              },
+            },
+          ],
+          onDestroyed: () => {
+            setIsTourRunning(false);
+            goNext();
+          },
+        });
+        
+        driverObj.current.drive();
+      }
+    });
+    
+    // Start observing the document body
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+    
+    // Timeout fallback
+    setTimeout(() => {
+      observer.disconnect();
+      setIsTourRunning(false);
+    }, 10000);
+  }, [step, navigate]);
 
   const goNext = useCallback(() => {
     if (isLast) {
@@ -127,17 +197,35 @@ export function OnboardingWizard({
       onClose();
       return;
     }
-    setDirection(1);
-    setCurrentStep((s) => s + 1);
-  }, [isLast, onComplete, onClose]);
+    
+    if (step.route && !isTourRunning) {
+      startTourStep();
+    } else {
+      setDirection(1);
+      setCurrentStep((s) => s + 1);
+    }
+  }, [isLast, onComplete, onClose, step, isTourRunning, startTourStep]);
 
   const goBack = useCallback(() => {
     if (isFirst) return;
+    
+    // Cancel any running tour
+    if (driverObj.current) {
+      driverObj.current.destroy();
+      driverObj.current = null;
+    }
+    
     setDirection(-1);
     setCurrentStep((s) => s - 1);
   }, [isFirst]);
 
   const skipAll = useCallback(() => {
+    // Cancel any running tour
+    if (driverObj.current) {
+      driverObj.current.destroy();
+      driverObj.current = null;
+    }
+    
     localStorage.setItem(STORAGE_KEY, "true");
     onComplete?.();
     onClose();
@@ -148,6 +236,12 @@ export function OnboardingWizard({
     if (open) {
       setCurrentStep(0);
       setDirection(1);
+      
+      // Clean up any existing driver instance
+      if (driverObj.current) {
+        driverObj.current.destroy();
+        driverObj.current = null;
+      }
     }
   }, [open]);
 
@@ -155,7 +249,15 @@ export function OnboardingWizard({
   useEffect(() => {
     if (!open) return;
     function handler(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (driverObj.current) {
+          driverObj.current.destroy();
+          driverObj.current = null;
+          setIsTourRunning(false);
+        } else {
+          onClose();
+        }
+      }
       if (e.key === "ArrowRight") goNext();
       if (e.key === "ArrowLeft" && !isFirst) goBack();
     }
@@ -259,6 +361,7 @@ export function OnboardingWizard({
               <button
                 onClick={goNext}
                 className="flex items-center gap-1 px-4 py-1.5 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                disabled={isTourRunning}
               >
                 {isLast ? (
                   <>
@@ -267,8 +370,8 @@ export function OnboardingWizard({
                   </>
                 ) : (
                   <>
-                    Next
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    {isTourRunning ? "Continue Tour" : "Next"}
+                    {!isTourRunning && <ChevronRight className="w-3.5 h-3.5" />}
                   </>
                 )}
               </button>

@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListAssets, getListAssetsQueryKey,
@@ -7,7 +7,7 @@ import {
 import type { Asset } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResponsiveDataTable, type Column } from "@/components/ui/responsive-data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -421,52 +421,6 @@ function PriceRefreshSheet({
   );
 }
 
-// ─── Memoized Table Row ───────────────────────────────────────────────────────
-
-const AssetRow = memo(function AssetRow({ asset, totalValue, onEdit, onDelete }: {
-  asset: any;
-  totalValue: number;
-  onEdit: (asset: any) => void;
-  onDelete: (id: number) => void;
-}) {
-  const disp = getStoredCurrency();
-  const val = convert(Number(asset.value), asset.currency as Currency, disp);
-  const pct = totalValue > 0 ? (val / totalValue) * 100 : 0;
-
-  return (
-    <TableRow className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => onEdit(asset)}>
-      <TableCell className="font-medium">{asset.name}</TableCell>
-      <TableCell>
-        <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
-          {formatCategory(asset.category)}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-muted-foreground text-sm">{asset.institution || "—"}</TableCell>
-      <TableCell className="text-right font-mono text-foreground tabular-nums">
-        {formatDisplay(Number(asset.value), asset.currency)}
-      </TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-2">
-          <div className="w-16 h-1.5 bg-muted/50 rounded-full overflow-hidden">
-            <div className="h-full bg-primary/70 rounded-full" style={{ width: `${Math.min(pct, 100)}%` }} />
-          </div>
-          <span className="text-xs text-muted-foreground tabular-nums w-8">{pct.toFixed(0)}%</span>
-        </div>
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-          <button onClick={(e) => { e.stopPropagation(); onEdit(asset); }} className="text-muted-foreground hover:text-foreground p-1">
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onDelete(asset.id); }} className="text-muted-foreground hover:text-destructive p-1">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-});
-
 export default function Assets() {
   const qc = useQueryClient();
   const { data: assets, isLoading } = useListAssets();
@@ -538,6 +492,43 @@ export default function Assets() {
     }
   }
 
+  const assetColumns: Column<any>[] = useMemo(() => [
+    { key: 'name', header: 'Name', render: (a) => <span className="font-medium">{a.name}</span> },
+    { key: 'category', header: 'Category', render: (a) => (
+      <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
+        {formatCategory(a.category)}
+      </Badge>
+    )},
+    { key: 'institution', header: 'Institution', render: (a) => (
+      <span className="text-muted-foreground text-sm">{a.institution || "—"}</span>
+    )},
+    { key: 'value', header: 'Value', className: 'text-right', render: (a) => (
+      <span className="font-mono text-foreground tabular-nums">{formatDisplay(Number(a.value), a.currency)}</span>
+    )},
+    { key: 'allocation', header: '% of Portfolio', className: 'text-right', render: (a) => {
+      const val = convert(Number(a.value), a.currency as Currency, disp);
+      const pct = totalValue > 0 ? (val / totalValue) * 100 : 0;
+      return (
+        <div className="flex items-center justify-end gap-2">
+          <div className="w-16 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+            <div className="h-full bg-primary/70 rounded-full" style={{ width: `${Math.min(pct, 100)}%` }} />
+          </div>
+          <span className="text-xs text-muted-foreground tabular-nums w-8">{pct.toFixed(0)}%</span>
+        </div>
+      );
+    }},
+    { key: 'actions', header: '', hideOnMobile: true, render: (a) => (
+      <div className="flex items-center gap-1">
+        <button onClick={(e) => { e.stopPropagation(); openEdit(a); }} className="text-muted-foreground hover:text-foreground p-1">
+          <Pencil className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={(e) => { e.stopPropagation(); handleDelete(a.id); }} className="text-muted-foreground hover:text-destructive p-1">
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )},
+  ], [disp, totalValue, openEdit, handleDelete]);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -579,32 +570,18 @@ export default function Assets() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="font-medium text-muted-foreground">Name</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Category</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Institution</TableHead>
-                <TableHead className="text-right font-medium text-muted-foreground">Value</TableHead>
-                <TableHead className="text-right font-medium text-muted-foreground w-16">% of Portfolio</TableHead>
-                <TableHead className="w-16" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((asset) => (
-                <AssetRow key={asset.id} asset={asset} totalValue={totalValue} onEdit={openEdit} onDelete={handleDelete} />
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-28 text-center text-muted-foreground text-sm">
-                    {search ? "No assets match your search." : "No assets yet. Add your first holding."}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <ResponsiveDataTable
+          columns={assetColumns}
+          data={filtered}
+          primaryKey="id"
+          mobileTitleKey="name"
+          onRowClick={(a) => openEdit(a)}
+        />
+        {filtered.length === 0 && (
+          <div className="h-28 text-center text-muted-foreground text-sm">
+            {search ? "No assets match your search." : "No assets yet. Add your first holding."}
+          </div>
+        )}
       </Card>
 
       <PriceRefreshSheet

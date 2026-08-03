@@ -1,4 +1,4 @@
-import React, { useState, memo, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListTransactions, getListTransactionsQueryKey,
@@ -6,8 +6,7 @@ import {
 } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { VirtualizedTable } from "@/components/ui/virtualized-table";
+import { ResponsiveDataTable, type Column } from "@/components/ui/responsive-data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,54 +78,6 @@ function taxTagLabel(value: string) {
 const today = new Date().toISOString().slice(0, 10);
 type TxForm = { description: string; amount: string; type: string; category: string; date: string; taxDeductible: boolean; taxTag: string };
 const emptyForm: TxForm = { description: "", amount: "", type: "expense", category: "other", date: today, taxDeductible: false, taxTag: "" };
-
-// ─── Memoized Table Row ────────────────────────────────────────────────────────
-// Extracted from inline render to avoid re-rendering all rows when parent state
-// (search, filter) changes but individual tx objects remain the same.
-
-const TransactionRow = memo(function TransactionRow({ tx, onEdit, onDelete }: {
-  tx: any;
-  onEdit: (tx: any) => void;
-  onDelete: (id: number) => void;
-}) {
-  return (
-    <TableRow className="border-border hover:bg-muted/30 group cursor-pointer" onClick={() => onEdit(tx)}>
-      <TableCell className="text-muted-foreground text-sm tabular-nums">{formatDate(tx.date)}</TableCell>
-      <TableCell className="font-medium">
-        <div className="flex items-center gap-2">
-          {tx.description}
-          {tx.taxDeductible && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
-          {tx.type}
-        </span>
-      </TableCell>
-      <TableCell className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</TableCell>
-      <TableCell>
-        {(tx as any).taxTag ? (
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
-            {taxTagLabel((tx as any).taxTag)}
-          </span>
-        ) : (
-          <span className="text-muted-foreground text-sm">—</span>
-        )}
-      </TableCell>
-      <TableCell className={`text-right font-mono tabular-nums ${tx.type === "income" ? "text-emerald-500" : "text-foreground"}`}>
-        {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-          <button onClick={() => onEdit(tx)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-          <button onClick={() => onDelete(tx.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-        </div>
-      </TableCell>
-    </TableRow>
-  );
-});
 
 export default function Transactions() {
   const qc = useQueryClient();
@@ -219,6 +170,46 @@ export default function Transactions() {
     }
   }, [deleteTx, qc, isOnline]);
 
+  const txColumns: Column<any>[] = useMemo(() => [
+    { key: 'date', header: 'Date', render: (tx) => formatDate(tx.date), className: 'text-muted-foreground text-sm tabular-nums' },
+    { key: 'description', header: 'Description', render: (tx) => (
+      <div className="flex items-center gap-2">
+        {tx.description}
+        {tx.taxDeductible && (
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
+        )}
+      </div>
+    )},
+    { key: 'type', header: 'Type', render: (tx) => (
+      <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
+        {tx.type}
+      </span>
+    )},
+    { key: 'category', header: 'Category', render: (tx) => (
+      <span className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</span>
+    )},
+    { key: 'taxTag', header: 'Tax Tag', render: (tx) => (
+      (tx as any).taxTag ? (
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
+          {taxTagLabel((tx as any).taxTag)}
+        </span>
+      ) : (
+        <span className="text-muted-foreground text-sm">—</span>
+      )
+    )},
+    { key: 'amount', header: 'Amount', className: 'text-right font-mono tabular-nums', render: (tx) => (
+      <span className={tx.type === "income" ? "text-emerald-500" : "text-foreground"}>
+        {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
+      </span>
+    )},
+    { key: 'actions', header: '', hideOnMobile: true, render: (tx) => (
+      <div className="flex items-center gap-1">
+        <button onClick={(e) => { e.stopPropagation(); openEdit(tx); }} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
+        <button onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+      </div>
+    )},
+  ], [openEdit, handleDelete]);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -310,67 +301,18 @@ export default function Transactions() {
       </div>
 
       <Card className="bg-card border-border overflow-hidden">
-        <VirtualizedTable
+        <ResponsiveDataTable
+          columns={txColumns}
           data={filtered}
-          getRowKey={(tx) => tx.id}
-          colCount={7}
-          rowHeight={52}
-          overscan={8}
-          maxHeight={640}
-          className="overflow-x-auto"
-          header={
-            <TableHeader className="bg-muted/50">
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="font-medium text-muted-foreground w-32">Date</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Description</TableHead>
-                <TableHead className="font-medium text-muted-foreground w-24">Type</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Category</TableHead>
-                <TableHead className="font-medium text-muted-foreground">Tax Tag</TableHead>
-                <TableHead className="text-right font-medium text-muted-foreground w-32">Amount</TableHead>
-                <TableHead className="w-16" />
-              </TableRow>
-            </TableHeader>
-          }
-          rowClassName="border-border hover:bg-muted/30 group cursor-pointer"
-          renderCells={(tx) => (
-            <>
-              <TableCell className="text-muted-foreground text-sm tabular-nums">{formatDate(tx.date)}</TableCell>
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  {tx.description}
-                  {tx.taxDeductible && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/50 text-primary bg-primary/10 rounded-sm">Deductible</Badge>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className={`text-xs font-medium uppercase tracking-wider ${tx.type === "income" ? "text-emerald-500" : tx.type === "expense" ? "text-destructive" : "text-blue-400"}`}>
-                  {tx.type}
-                </span>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{tx.category ? formatCategory(tx.category) : "—"}</TableCell>
-              <TableCell>
-                {(tx as any).taxTag ? (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border font-medium ${TAX_TAG_COLORS[(tx as any).taxTag] ?? "border-border text-muted-foreground"}`}>
-                    {taxTagLabel((tx as any).taxTag)}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground text-sm">—</span>
-                )}
-              </TableCell>
-              <TableCell className={`text-right font-mono tabular-nums ${tx.type === "income" ? "text-emerald-500" : "text-foreground"}`}>
-                {tx.type === "expense" ? "−" : tx.type === "income" ? "+" : ""}{fmtCur(Number(tx.amount))}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1"><Pencil className="w-3.5 h-3.5" /></button>
-                  <button onClick={() => handleDelete(tx.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              </TableCell>
-            </>
-          )}
-          emptyState={search || typeFilter !== "all" ? "No transactions match your filters." : "No transactions yet."}
+          primaryKey="id"
+          mobileTitleKey="description"
+          onRowClick={(tx) => openEdit(tx)}
         />
+        {filtered.length === 0 && (
+          <div className="h-28 text-center text-muted-foreground text-sm">
+            {search || typeFilter !== "all" ? "No transactions match your filters." : "No transactions yet."}
+          </div>
+        )}
       </Card>
 
       <AIPanel

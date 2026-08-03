@@ -2,8 +2,41 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { X, Sparkles, Lock, Cloud, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-// ─── AI Self-Heal ──────────────────────────────────────────────────────
+// SECURITY NOTE: executeAIFix (raw eval) was removed on 2026-08-02. AI responses are now dispatched through a closed allow-list (dispatchAIAction). Do not reintroduce arbitrary code execution from LLM output — see FAMLY-OFFICE-AUDIT-IMPLEMENTATION-PLAN.md P0 for rationale.
+
+// ─── AI Action Dispatch (Closed Allow-List) ────────────────────────────────
+type AllowedAction =
+  | { action: 'DISMISS_TOAST'; target: string }
+  | { action: 'NAVIGATE'; route: string }
+  | { action: 'SCROLL_TO'; selector: string }
+  | { action: 'TOGGLE_THEME' }
+  | { action: 'OPEN_PANEL'; panel: string };
+
+function dispatchAIAction(action: AllowedAction) {
+  switch (action.action) {
+    case 'DISMISS_TOAST':
+      document.querySelector(action.target)?.remove();
+      break;
+    case 'NAVIGATE':
+      window.location.hash = action.route;
+      break;
+    case 'SCROLL_TO':
+      document.querySelector(action.selector)?.scrollIntoView({ behavior: 'smooth' });
+      break;
+    case 'TOGGLE_THEME':
+      document.documentElement.classList.toggle('dark');
+      break;
+    case 'OPEN_PANEL':
+      // dispatch custom event
+      document.dispatchEvent(new CustomEvent('openPanel', { detail: { panel: action.panel } }));
+      break;
+  }
+}
+
+// Minimal DOM snapshot for debugging (only used when user opts in)
 function buildDomSnapshot(): string {
   const els: string[] = [];
   const walk = (el: Element, depth: number) => {
@@ -22,27 +55,11 @@ function buildDomSnapshot(): string {
   return els.slice(0, 50).join("\n");
 }
 
-function executeAIFix(code: string): string {
-  try { const r = new Function(code)(); return "Fixed: " + (r !== undefined ? String(r) : "done"); }
-  catch (e: any) { return "Fix error: " + e.message; }
-}
+const SYSTEM_PROMPT = 'You are a helpful financial assistant. You can request UI actions by returning JSON blocks like {"type":"ACTION","action":"NAVIGATE","route":"/assets"}. Never return code or eval blocks.';
 
-const SELF_HEAL_PROMPT = `
-
-━━━ SELF-HEAL CAPABILITY ━━━
-When the user reports a bug, you can fix it in the DOM.
-The user message includes a DOM_SNAPSHOT. Use it to target real elements.
-To fix issues, include a JSON block in your response like:
-\`\`\`fix
-{"type":"EVAL","code":"document.querySelectorAll('.stale').forEach(el=>el.remove())"}
-\`\`\`
-Operations: EVAL (run JS), FIX_NOTIFICATIONS (clear stuck toasts), CLEAR_STALE (remove by selector).
-RULES: Check DOM_SNAPSHOT first — NEVER guess selectors. Use EVAL for immediate fixes.`;
-
-const PRIMARY_PROXY = "https://textbooks-careful-shut-dev.trycloudflare.com/v1/chat/completions";
+// SECURITY: VITE_NOUS_API_KEY is visible in client bundle. TODO: Route through api-server proxy to keep key server-side.
+const PRIMARY_PROXY = import.meta.env.VITE_AI_PROXY_URL || 'http://localhost:4000/api/ai/chat';
 const PRIMARY_MODEL = "gemini-3.5-flash";
-const FALLBACK_PROXY = "https://textbooks-careful-shut-dev.trycloudflare.com/v1/chat/completions";
-const FALLBACK_MODEL = "gemini-3.5-flash";
 
 type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string; provider?: string };
 
@@ -58,6 +75,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [domOptIn, setDomOptIn] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,9 +98,14 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
       const key = import.meta.env.VITE_NOUS_API_KEY || "";
       if (key) headers["Authorization"] = `Bearer ${key}`;
     }
-    // Inject DOM snapshot for self-heal capability
-    const domSnapshot = buildDomSnapshot();
-    const enrichedText = text + "\n\n[DOM_SNAPSHOT]\n" + domSnapshot + "\n[/DOM_SNAPSHOT]";
+    
+    // Only include DOM snapshot if user has opted in
+    let enrichedText = text;
+    if (domOptIn) {
+      // Build minimal DOM snapshot for debugging
+      const domSnapshot = buildDomSnapshot();
+      enrichedText = text + "\n\n[DOM_SNAPSHOT]\n" + domSnapshot + "\n[/DOM_SNAPSHOT]";
+    }
 
     const res = await fetch(proxyUrl, {
       method: "POST",
@@ -90,7 +113,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
       body: JSON.stringify({
         model,
         stream: true,
-        system: SELF_HEAL_PROMPT,
+        system: SYSTEM_PROMPT,
         messages: [
           ...history,
           { role: "user", content: enrichedText },
@@ -138,32 +161,21 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
       }
     }
 
-    // Parse self-heal fix blocks from streamed content
-    const fixMatch = content.match(/```fix\s*\n?([\s\S]*?)\n?```/);
-    if (fixMatch) {
+    // Parse AI actions from streamed content
+    const actionMatch = content.match(/```(?:json|JSON)\s*\n?([\s\S]*?)\n?```/);
+    if (actionMatch) {
       try {
-        const fixOps = JSON.parse(fixMatch[1]);
-        const ops = Array.isArray(fixOps) ? fixOps : [fixOps];
-        for (const op of ops) {
-          if (op.type === "EVAL" && op.code) executeAIFix(op.code);
-          else if (op.type === "FIX_NOTIFICATIONS")
-            document.querySelectorAll('[class*="notification"],[class*="toast"],[role="alert"]').forEach(e => e.remove());
-          else if (op.type === "CLEAR_STALE" && op[0])
-            document.querySelectorAll(op[0]).forEach(e => e.remove());
+        const actionData = JSON.parse(actionMatch[1]);
+        if (actionData.type === "ACTION") {
+          dispatchAIAction(actionData);
         }
-        content = content.replace(/```fix\s*\n?[\s\S]*?\n?```/g, "").trim();
-        content += "\n\n🔧 Auto-fix applied";
-      } catch (_) { /* ignore */ }
+      } catch (e) {
+        console.warn("Failed to parse AI action:", e);
+      }
     }
 
-    // Final update: remove cursor
-    setMessages((prev) => [
-      ...prev.slice(0, -1),
-      { role: "assistant", content, routing: respRouting, model: respModel, provider: providerLabel },
-    ]);
-
     return { ok: true, content };
-  }, []);
+  }, [domOptIn]);
 
   const sendMessage = useCallback(async (msg: string) => {
     const text = msg.trim();
@@ -176,18 +188,8 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     // Placeholder message while streaming
     setMessages((prev) => [...prev, { role: "assistant", content: "▌", routing: "cloud", model: PRIMARY_MODEL, provider: "Hermes" }]);
 
-    // Try primary (Nous/Hermes) first
-    let result = await streamChat(PRIMARY_PROXY, PRIMARY_MODEL, history, text, "Hermes");
-
-    if (!result.ok) {
-      // Update placeholder to indicate fallback
-      setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { role: "assistant", content: "▌", routing: "cloud", model: FALLBACK_MODEL, provider: "Gemini" },
-      ]);
-      // Try fallback (Gemini)
-      result = await streamChat(FALLBACK_PROXY, FALLBACK_MODEL, history, text, "Gemini");
-    }
+    // Try primary proxy only
+    const result = await streamChat(PRIMARY_PROXY, PRIMARY_MODEL, history, text, "Hermes");
 
     if (!result.ok) {
       // Both failed — show error
@@ -197,7 +199,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     }
 
     setLoading(false);
-  }, [loading, messages, streamChat]);
+  }, [loading, messages, streamChat, domOptIn]);
 
   if (!open) return null;
 
@@ -272,6 +274,12 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
               className="bg-primary text-primary-foreground h-9 w-9 flex-shrink-0">
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
             </Button>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Switch id="dom-opt-in" checked={domOptIn} onCheckedChange={setDomOptIn} />
+            <Label htmlFor="dom-opt-in" className="text-xs text-muted-foreground">
+              Include screen context for debugging
+            </Label>
           </div>
         </div>
       </div>

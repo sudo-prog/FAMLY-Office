@@ -5,24 +5,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PinLock } from "@/components/pin-lock";
-import { CommandPalette } from "@/components/command-palette";
 import ErrorBoundary from "@/components/error-boundary";
 import { Layout } from "@/components/layout";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { DemoBanner } from "@/components/demo-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchLiveRates } from "@/lib/currency";
-import {
-  OnboardingWizard,
-  hasSeenOnboarding,
-} from "@/components/onboarding/OnboardingWizard";
-import { HelpButton } from "@/components/onboarding/HelpButton";
+import { hasSeenOnboarding } from "@/components/onboarding/OnboardingWizard";
+
+// Lazy loaded: non-critical components (not needed on initial paint)
+const CommandPalette = lazy(() => import("@/components/command-palette").then(m => ({ default: m.CommandPalette })));
+const OnboardingWizard = lazy(() => import("@/components/onboarding/OnboardingWizard").then(m => ({ default: m.OnboardingWizard })));
+const HelpButton = lazy(() => import("@/components/onboarding/HelpButton").then(m => ({ default: m.HelpButton })));
 
 // Eagerly loaded: critical above-the-fold routes
-import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 
 // Lazy loaded: routes not needed on initial load
+const Dashboard = lazy(() => import("@/pages/dashboard").then(m => ({ default: m.default })));
 const Assets = lazy(() => import("@/pages/assets").then(m => ({ default: m.default })));
 const Transactions = lazy(() => import("@/pages/transactions").then(m => ({ default: m.default })));
 const Vault = lazy(() => import("@/pages/vault").then(m => ({ default: m.default })));
@@ -112,7 +112,9 @@ function Router() {
           </Suspense>
         </ErrorBoundary>
       </Layout>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <Suspense fallback={null}>
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      </Suspense>
     </>
   );
 }
@@ -152,13 +154,17 @@ function App() {
           <Toaster richColors position="top-right" />
           <OfflineIndicator />
           {/* Onboarding wizard: shows on first visit or when re-triggered */}
-          <OnboardingWizard
-            open={showOnboarding && !onboardingDone}
-            onClose={() => setShowOnboarding(false)}
-            onComplete={handleOnboardingComplete}
-          />
+          <Suspense fallback={null}>
+            <OnboardingWizard
+              open={showOnboarding && !onboardingDone}
+              onClose={() => setShowOnboarding(false)}
+              onComplete={handleOnboardingComplete}
+            />
+          </Suspense>
           {/* Help button: always visible, can re-trigger tour */}
-          <HelpButton />
+          <Suspense fallback={null}>
+            <HelpButton />
+          </Suspense>
         </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>

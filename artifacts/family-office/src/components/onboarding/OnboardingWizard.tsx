@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import {
@@ -132,7 +132,7 @@ export function OnboardingWizard({
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isTourRunning, setIsTourRunning] = useState(false);
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const driverObj = useRef<any>(null);
 
   const step = STEPS[currentStep];

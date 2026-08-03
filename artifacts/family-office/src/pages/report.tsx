@@ -377,8 +377,8 @@ export default function Report() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Full Holdings Register</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Position</th><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Portfolio %</th></tr></thead>
                   <tbody>
                     {assets.sort((a, b) => b.value - a.value).map((a) => (

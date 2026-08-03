@@ -262,8 +262,8 @@ export default function CashFlowForecast() {
           <CardTitle>Monthly Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <table className="w-full text-sm min-w-[640px]">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-2 px-3 font-medium">Month</th>

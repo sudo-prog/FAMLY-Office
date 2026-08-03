@@ -107,8 +107,8 @@ export default function Entities() {
         <Input placeholder="Search by name, type, jurisdiction…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-muted/30 border-border min-h-[44px]" />
       </div>
 
-      <div className="overflow-x-auto">
-        <Card className="bg-card border-border overflow-hidden">
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <Card className="bg-card border-border overflow-hidden min-w-[640px]">
           <ResponsiveDataTable
           columns={[
             { key: 'name', header: 'Name', render: (entity) => (
@@ -118,7 +118,7 @@ export default function Entities() {
               </div>
             )},
             { key: 'type', header: 'Type', render: (entity) => (
-              <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border rounded-sm text-xs">
+              <Badge variant="outline" className="text-xs">
                 {formatType(entity.type)}
               </Badge>
             ), className: 'w-28' },

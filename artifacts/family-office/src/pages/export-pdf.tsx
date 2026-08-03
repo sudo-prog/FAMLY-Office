@@ -194,8 +194,8 @@ export default function ExportPdf() {
             {byCategory && byCategory.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Allocation</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Holdings</th><th className="text-right py-2 text-muted-foreground font-medium">Weight</th></tr></thead>
                   <tbody>
                     {byCategory.sort((a, b) => b.total - a.total).map((c) => (
@@ -214,8 +214,8 @@ export default function ExportPdf() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Register</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset</th><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-left py-2 text-muted-foreground font-medium">Institution</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th></tr></thead>
                   <tbody>
                     {assets.map((a) => (
@@ -234,8 +234,8 @@ export default function ExportPdf() {
             {recentTx.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Recent Transactions</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Date</th><th className="text-left py-2 text-muted-foreground font-medium">Description</th><th className="text-left py-2 text-muted-foreground font-medium">Type</th><th className="text-right py-2 text-muted-foreground font-medium">Amount</th></tr></thead>
                   <tbody>
                     {recentTx.map((t) => (
@@ -287,8 +287,8 @@ export default function ExportPdf() {
             {incomeTx.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Income Transactions</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Date</th><th className="text-left py-2 text-muted-foreground font-medium">Description</th><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-right py-2 text-muted-foreground font-medium">Amount</th></tr></thead>
                   <tbody>
                     {incomeTx.map((t) => (
@@ -311,8 +311,8 @@ export default function ExportPdf() {
             {taxDedTx.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Tax-Deductible Expenses</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Date</th><th className="text-left py-2 text-muted-foreground font-medium">Description</th><th className="text-right py-2 text-muted-foreground font-medium">Amount</th></tr></thead>
                   <tbody>
                     {taxDedTx.map((t) => (
@@ -365,8 +365,8 @@ export default function ExportPdf() {
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Number of Holdings</div><div className="font-mono text-foreground">{summary.assetCount} positions</div></div>
                   <div className="p-4 bg-muted/10 rounded border border-border"><div className="text-xs text-muted-foreground mb-1">Net Cash Flow (YTD)</div><div className={`font-mono ${(summary.totalIncome - summary.totalExpenses) >= 0 ? "text-emerald-500" : "text-destructive"}`}>{fmt(summary.totalIncome - summary.totalExpenses)}</div></div>
                 </div>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Weight</th><th className="text-right py-2 text-muted-foreground font-medium">vs. Benchmark</th></tr></thead>
                   <tbody>
                     {byCategory.sort((a, b) => b.total - a.total).map((c) => {
@@ -393,8 +393,8 @@ export default function ExportPdf() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Full Holdings Register</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Position</th><th className="text-left py-2 text-muted-foreground font-medium">Asset Class</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">Portfolio %</th></tr></thead>
                   <tbody>
                     {assets.sort((a, b) => b.value - a.value).map((a) => (
@@ -433,8 +433,8 @@ export default function ExportPdf() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Holdings — Legal Summary</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset / Property</th><th className="text-left py-2 text-muted-foreground font-medium">Classification</th><th className="text-left py-2 text-muted-foreground font-medium">Custodian</th><th className="text-right py-2 text-muted-foreground font-medium">Recorded Value</th></tr></thead>
                   <tbody>
                     {assets.map((a) => (
@@ -496,8 +496,8 @@ export default function ExportPdf() {
             {byCategory && byCategory.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Asset Distribution</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">Asset Category</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th><th className="text-right py-2 text-muted-foreground font-medium">% of Estate</th></tr></thead>
                   <tbody>
                     {byCategory.sort((a, b) => b.total - a.total).map((c) => (
@@ -515,8 +515,8 @@ export default function ExportPdf() {
             {assets && assets.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Complete Asset Inventory</h2>
-                <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead><tr className="border-b border-border"><th className="text-left py-2 text-muted-foreground font-medium">#</th><th className="text-left py-2 text-muted-foreground font-medium">Asset</th><th className="text-left py-2 text-muted-foreground font-medium">Category</th><th className="text-left py-2 text-muted-foreground font-medium">Institution</th><th className="text-right py-2 text-muted-foreground font-medium">Value</th></tr></thead>
                   <tbody>
                     {assets.sort((a, b) => b.value - a.value).map((a, i) => (

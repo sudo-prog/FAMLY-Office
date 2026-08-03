@@ -507,25 +507,114 @@ export default async function handler(req, res) {
     }
     if (seg === "ai/chat") {
       if (method !== "POST") { res.setHeader("Allow", "POST"); return send(res, 405, { error: "Method Not Allowed" }); }
+
+      const OMNI_BASE = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128/v1";
+      const OMNI_KEY  = process.env.OMNIROUTE_API_KEY || "";
+
       const b = jsonBody(req);
-      const userMessage = (b.message || "").toString();
-      const reply = `Thank you for your question${userMessage ? ` about "${userMessage.slice(0, 80)}"` : ""}. This is a structured demo response from the Family Office assistant. To enable live answers, configure LOCAL_LLM_URL (Ollama) or CLOUD_AI_KEY. Your portfolio data stays local-first under the zero-trust policy.`;
-      const events = [
-        { routing: "local", model: "demo", content: "" },
-        { content: reply.slice(0, Math.ceil(reply.length / 2)) },
-        { content: reply.slice(Math.ceil(reply.length / 2)) },
-        { done: true },
-      ];
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      let i = 0;
-      const flush = () => {
-        if (i >= events.length) { res.end(); return; }
-        res.write(`data: ${JSON.stringify(events[i++])}\n\n`);
-        setTimeout(flush, 25);
-      };
-      return flush();
+      let messages = b.messages || [];
+      const system = b.system || "";
+      const model = b.model || "auto/best-coding";
+
+      // Legacy single-message support
+      if (b.message && !messages.length) {
+        messages = [{ role: "user", content: b.message }];
+      }
+
+      // Demo fallback if no API key configured
+      if (!OMNI_KEY) {
+        const userMessage = (messages[0]?.content || "").toString();
+        const reply = `Thank you for your question${userMessage ? ` about "${userMessage.slice(0, 80)}"` : ""}. This is a structured demo response from the Family Office assistant. To enable live answers, configure LOCAL_LLM_URL (Ollama) or CLOUD_AI_KEY. Your portfolio data stays local-first under the zero-trust policy.`;
+        const events = [
+          { routing: "local", model: "demo", content: "" },
+          { content: reply.slice(0, Math.ceil(reply.length / 2)) },
+          { content: reply.slice(Math.ceil(reply.length / 2)) },
+          { done: true },
+        ];
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        let i = 0;
+        const flush = () => {
+          if (i >= events.length) { res.end(); return; }
+          res.write(`data: ${JSON.stringify(events[i++])}\n\n`);
+          setTimeout(flush, 25);
+        };
+        return flush();
+      }
+
+      // Proxy to Omniroute with streaming
+      const upstreamMessages = system
+        ? [{ role: "system", content: system }, ...messages]
+        : messages;
+
+      try {
+        const upstream = await fetch(`${OMNI_BASE}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OMNI_KEY}`,
+          },
+          body: JSON.stringify({
+            model,
+            stream: true,
+            messages: upstreamMessages,
+          }),
+        });
+
+        if (!upstream.ok) {
+          const errText = await upstream.text().catch(() => "");
+          throw new Error(`Omniroute ${upstream.status}: ${errText}`);
+        }
+
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        // Send initial routing badge
+        res.write(`data: ${JSON.stringify({ routing: "cloud", model })}\n\n`);
+
+        const reader = upstream.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed.startsWith("data: ")) continue;
+              const data = trimmed.slice(6);
+              if (data === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  res.write(`data: ${JSON.stringify({ content: delta })}\n\n`);
+                }
+              } catch {
+                // ignore malformed SSE lines
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+
+      } catch (e) {
+        res.write(`data: ${JSON.stringify({ content: "AI service unavailable: " + e.message })}\n\n`);
+        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+        res.end();
+      }
+
+      return;
     }
 
     // ── Audit logs ──────────────────────────────────────────

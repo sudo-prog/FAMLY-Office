@@ -142,8 +142,8 @@ export default function AdminUsers() {
             <p className="text-muted-foreground">No family members yet. Add one to get started.</p>
           </div>
         ) : (
-          <div className="rounded-md border overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="rounded-md border overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <table className="w-full text-sm min-w-[640px]">
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">Name</th>

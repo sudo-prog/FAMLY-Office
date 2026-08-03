@@ -243,8 +243,8 @@ export default function Projections() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-serif">Year-by-Year Projections</CardTitle>
         </CardHeader>
-        <div className="overflow-x-auto w-full max-w-[100%]">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-muted/50">
               <tr className="border-b border-border">
                 <th className="text-left py-2.5 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Year</th>

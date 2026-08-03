@@ -58,7 +58,7 @@ function buildDomSnapshot(): string {
 const SYSTEM_PROMPT = 'You are a helpful financial assistant. You can request UI actions by returning JSON blocks like {"type":"ACTION","action":"NAVIGATE","route":"/assets"}. Never return code or eval blocks.';
 
 // SECURITY: VITE_NOUS_API_KEY is visible in client bundle. TODO: Route through api-server proxy to keep key server-side.
-const PRIMARY_PROXY = import.meta.env.VITE_AI_PROXY_URL || 'http://localhost:4000/api/ai/chat';
+const PRIMARY_PROXY = import.meta.env.VITE_AI_PROXY_URL || '/api/ai/chat';
 const PRIMARY_MODEL = "gemini-3.5-flash";
 
 type AIMessage = { role: "user" | "assistant"; content: string; routing?: string; model?: string; provider?: string };
@@ -76,6 +76,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [domOptIn, setDomOptIn] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,6 +86,19 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
   useEffect(() => {
     if (!open) { setMessages([]); setInput(""); }
   }, [open]);
+
+  // Detect mobile devices
+  useEffect(() => {
+    const checkIfMobile = () => {
+      const isMobileDevice = window.matchMedia('(max-width: 767px)').matches;
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   const streamChat = useCallback(async (
     proxyUrl: string,
@@ -206,7 +220,10 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-[440px] bg-card border-l border-border z-50 flex flex-col shadow-2xl">
+      <div className={`${isMobile ? 'fixed inset-x-0 bottom-0 top-auto max-h-[85vh] w-full rounded-t-2xl pb-[env(safe-area-inset-bottom)]' : 'fixed right-0 top-0 h-full w-[440px]'} bg-card border-l border-border z-50 flex flex-col shadow-2xl`}>
+        {isMobile && (
+          <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mt-2 mb-2 sm:hidden"></div>
+        )}
         <div className="p-4 border-b border-border flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />

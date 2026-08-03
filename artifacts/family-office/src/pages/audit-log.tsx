@@ -104,8 +104,8 @@ export default function AuditLogPage() {
             </div>
           ) : (
             <ScrollArea className="h-[600px]">
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <Table className="min-w-[640px]">
                 <TableHeader className="sticky top-0 bg-card z-10">
                   <TableRow>
                     <TableHead className="w-20">ID</TableHead>

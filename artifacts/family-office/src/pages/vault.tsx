@@ -432,13 +432,15 @@ export default function Vault() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {folderDocs.map((doc) => (
-            <DocCard key={doc.id} doc={doc as Doc} />
-          ))}
-          {folderDocs.length === 0 && (
-            <div className="col-span-4 text-center py-12 text-muted-foreground text-sm">This folder is empty.</div>
-          )}
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 min-w-[640px]">
+            {folderDocs.map((doc) => (
+              <DocCard key={doc.id} doc={doc as Doc} />
+            ))}
+            {folderDocs.length === 0 && (
+              <div className="col-span-4 text-center py-12 text-muted-foreground text-sm">This folder is empty.</div>
+            )}
+          </div>
         </div>
 
         <AIPanel

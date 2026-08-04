@@ -183,9 +183,9 @@ export default function AssetPrices() {
                   value={equityTicker}
                   onChange={e => setEquityTicker(e.target.value.toUpperCase())}
                   onKeyDown={e => { if (e.key === "Enter") fetchEquity(equityTicker); }}
-                  placeholder="Enter ticker (e.g. AAPL, MSFT, CBA.AX)"
-                  className="flex-1 h-9"
-                />
+                   placeholder="Enter ticker (e.g. AAPL, MSFT, CBA.AX)"
+                   className="flex-1 h-11 md:h-9"
+                 />
                 <Button onClick={() => fetchEquity(equityTicker)} disabled={loading || !equityTicker.trim()}>
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                   Fetch
@@ -278,9 +278,9 @@ export default function AssetPrices() {
                   value={cryptoIds}
                   onChange={e => setCryptoIds(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") fetchCrypto(cryptoIds); }}
-                  placeholder="Enter coin IDs (e.g. bitcoin,ethereum,solana)"
-                  className="flex-1 h-9"
-                />
+                   placeholder="Enter coin IDs (e.g. bitcoin,ethereum,solana)"
+                   className="flex-1 h-11 md:h-9"
+                 />
                 <Button onClick={() => fetchCrypto(cryptoIds)} disabled={loading || !cryptoIds.trim()}>
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                   Fetch

@@ -283,7 +283,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
             <Input value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
               placeholder="Ask anything…" disabled={loading}
-              className="bg-muted/30 border-border text-sm h-9" />
+               className="bg-muted/30 border-border text-sm h-11 md:h-9" />
             <Button onClick={() => sendMessage(input)} disabled={loading || !input.trim()} size="icon"
               className="bg-primary text-primary-foreground h-11 w-11 flex-shrink-0">
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

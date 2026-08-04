@@ -263,7 +263,7 @@ function ResearchPanel() {
         <Input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !isRunning) start(); }}
           placeholder="What would you like to research? e.g. Australian real estate market outlook 2026…"
-          className="flex-1 bg-muted/30 border-border text-sm h-10" disabled={isRunning} />
+           className="flex-1 bg-muted/30 border-border text-sm h-11 md:h-10" disabled={isRunning} />
         {isRunning
           ? <Button onClick={stop} variant="outline" className="gap-1.5 border-destructive/60 text-destructive hover:bg-destructive/10 h-10 shrink-0"><StopCircle className="w-4 h-4" /> Stop</Button>
           : <Button onClick={start} disabled={!query.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 h-10 shrink-0"><Sparkles className="w-4 h-4" /> Research</Button>
@@ -1327,7 +1327,7 @@ function GrantPanel() {
               <label className="block text-xs font-medium text-muted-foreground mb-1">Grant Organisation</label>
               <input placeholder="e.g. ATO, Austrade, Business Victoria"
                 onChange={e => setSelectedGrant(g => ({ ...g, org: e.target.value }))}
-                className="w-full h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
+                className="w-full h-11 md:h-9 px-3 rounded-lg border border-border bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
           </div>
           {[

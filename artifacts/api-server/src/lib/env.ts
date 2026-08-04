@@ -40,12 +40,12 @@ const envSchema = z.object({
   // ─── Cloud AI (defaults to Gemini Web2API proxy) ─────────────────
   CLOUD_AI_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
-  CLOUD_AI_URL: z.string().url().default("http://localhost:8081/v1"),
-  CLOUD_AI_MODEL: z.string().min(1).default("gemini-3.5-flash"),
+  CLOUD_AI_URL: z.string().url().default("http://127.0.0.1:20128/v1"),
+  CLOUD_AI_MODEL: z.string().min(1).default("auto/best-coding-fast"),
 
   // ─── Local LLM ──────────────────────────────────────────────────
-  LOCAL_LLM_URL: z.string().url().default("http://localhost:11434/v1"),
-  LOCAL_LLM_MODEL: z.string().min(1).default("llama3.2"),
+  LOCAL_LLM_URL: z.string().url().default("http://127.0.0.1:20128/v1"),
+  LOCAL_LLM_MODEL: z.string().min(1).default("auto/best-coding-fast"),
 
   // ─── GitHub ──────────────────────────────────────────────────────
   GITHUB_TOKEN: z.string().min(1).optional(),

@@ -40,8 +40,8 @@ export async function streamLocalLLM(
   system: string,
   res: Response
 ): Promise<void> {
-  const baseUrl = process.env.LOCAL_LLM_URL || "http://localhost:11434/v1";
-  const model = process.env.LOCAL_LLM_MODEL || "llama3.2";
+  const baseUrl = process.env.LOCAL_LLM_URL || "http://127.0.0.1:20128/v1";
+  const model = process.env.LOCAL_LLM_MODEL || "auto/best-coding-fast";
 
   let response: globalThis.Response;
   try {
@@ -73,9 +73,9 @@ export async function streamCloudLLM(
   messages: ChatMessage[],
   res: Response
 ): Promise<void> {
-  const apiKey = process.env.CLOUD_AI_KEY || process.env.OPENAI_API_KEY;
-  const model = process.env.CLOUD_AI_MODEL || "gemini-3.5-flash";
-  const baseUrl = process.env.CLOUD_AI_URL || "http://localhost:8081/v1";
+  const apiKey = process.env.CLOUD_AI_KEY || process.env.OPENAI_API_KEY || "omniroute";
+  const model = process.env.CLOUD_AI_MODEL || "auto/best-coding-fast";
+  const baseUrl = process.env.CLOUD_AI_URL || "http://127.0.0.1:20128/v1";
 
   // OpenRouter fallback client
   const openrouterBaseUrl = process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";

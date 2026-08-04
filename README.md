@@ -255,12 +255,12 @@ Copy `.env.example` to `.env` and configure as needed.
 | `FAMLY_JWT_SECRET` | Production | — | JWT secret for HS256 token signing |
 | `FAMLY_ENCRYPTION_KEY` | Production | — | AES-256-GCM encryption key for document vault (generate: `openssl rand -hex 32`) |
 | `CORS_ORIGINS` | No | — | Comma-separated allowed CORS origins |
-| `LOCAL_LLM_URL` | No | `http://localhost:11434/v1` | Local LLM endpoint (Ollama/LM Studio) |
-| `LOCAL_LLM_MODEL` | No | `llama3.2` | Local LLM model name |
-| `OPENAI_API_KEY` | No | — | Cloud AI key for research queries |
-| `CLOUD_AI_KEY` | No | — | Alternative cloud AI key |
-| `CLOUD_AI_URL` | No | OpenAI default | Custom OpenAI-compatible endpoint URL |
-| `CLOUD_AI_MODEL` | No | `gpt-4o-mini` | Cloud AI model name |
+| `LOCAL_LLM_URL` | No | `http://127.0.0.1:20128/v1` | Local LLM endpoint — **OmniRoute gateway** (OpenAI-compatible, port 20128). Default model `auto/best-coding-fast` |
+| `LOCAL_LLM_MODEL` | No | `auto/best-coding-fast` | OmniRoute virtual model (routing to free providers) |
+| `OPENAI_API_KEY` | No | — | Unused — kept for parity; OmniRoute is the only backend |
+| `CLOUD_AI_KEY` | No | — | Unused — kept for parity; OmniRoute is the only backend |
+| `CLOUD_AI_URL` | No | `http://127.0.0.1:20128/v1` | **OmniRoute gateway** (OpenAI-compatible). Was OpenAI default |
+| `CLOUD_AI_MODEL` | No | `auto/best-coding-fast` | OmniRoute virtual model (was gpt-4o-mini) |
 | `BRAVE_SEARCH_KEY` | No | — | Brave Search API key for web search |
 | `GITHUB_TOKEN` | No | — | GitHub token for private repo analysis |
 | `SERP_API_KEY` | No | — | SerpAPI key for AI deep research |

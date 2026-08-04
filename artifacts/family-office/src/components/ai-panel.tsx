@@ -215,6 +215,13 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
     setLoading(false);
   }, [loading, messages, streamChat, domOptIn]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
@@ -241,7 +248,7 @@ export function AIPanel({ open, onClose, title, suggestions, mode = "local" }: A
               </div>
             )}
           </div>
-          <button onClick={onClose} className="flex items-center justify-center text-muted-foreground hover:text-foreground p-1 rounded transition-colors">
+          <button onClick={onClose} aria-label="Close AI panel" className="flex items-center justify-center min-h-[44px] min-w-[44px] -mr-2 text-muted-foreground hover:text-foreground rounded transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -373,7 +373,7 @@ export default function Settings() {
             <div className="flex gap-2">
               <input value={fontImportInput} onChange={(e) => setFontImportInput(e.target.value)}
                 placeholder="https://fonts.googleapis.com/css2?family=…&display=swap"
-                className="flex-1 h-8 bg-muted/30 border border-border rounded-md px-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono" />
+                className="flex-1 h-11 md:h-8 bg-muted/30 border border-border rounded-md px-3 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary font-mono" />
               <Button onClick={() => updateTheme({ fontImportUrl: fontImportInput })} size="sm" variant="outline" className="text-xs border-border h-8">Apply</Button>
             </div>
             <p className="text-[10px] text-muted-foreground/60 mt-1.5">Paste any Google Fonts embed URL. The stylesheet is loaded immediately.</p>

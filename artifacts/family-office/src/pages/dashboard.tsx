@@ -659,7 +659,7 @@ const InsightsWidget = memo(function InsightsWidget() {
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Insight Engine</span>
           </div>
-          <button onClick={fetchInsights} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 disabled:opacity-40">
+          <button onClick={fetchInsights} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center justify-end gap-1 min-h-[44px] px-2 -mr-2 disabled:opacity-40">
             {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3 rotate-[-90deg]" />}
             {loading ? "Analysing…" : "Refresh"}
           </button>
